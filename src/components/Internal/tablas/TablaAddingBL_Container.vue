@@ -30,13 +30,10 @@
 
 						<i @click="outGoingData('removeBl', `${dato[1].text1}-${dato[1].text2}`)"
 							class="bi bi-dash-square-fill"
-							style="cursor: pointer; color: red; float: right; padding-right: 20px;"></i>
+               style="cursor: pointer; color: red; float: right; padding-right: 20px; font-size: 17px"></i>
 					</td>
 
 				</tr>
-
-
-
 
 			</tbody>
 		</table>
@@ -74,9 +71,9 @@ console.log(incomingData.blList)
 }
 
 .datoTable {
-	font-size: 12px;
-	padding-top: 5px;
-	padding-bottom: 5px;
+  font-size: 15px;
+  padding-top: 5px;
+  padding-bottom: 0px;
 }
 
 .checkIcon {

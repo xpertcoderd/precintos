@@ -3,6 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 import PrivateDashboard from '../views/PrivateDashboard.vue'
 import LoginPage from '../views/LoginPage.vue'
+// import TransferWizardCard from '../components/TransferWizard/TransferWizardCard.vue'
 
 
 import ATM_Local  from '@/components/conexion/socket/Atmosphere/Socket_Local.vue'
@@ -13,7 +14,6 @@ import WS_Navixy from '@/components/conexion/socket/WS/Socket_Navixy.vue'
 
 
 const routes = [
-
   {
     path: '/',
     name: 'precintos',

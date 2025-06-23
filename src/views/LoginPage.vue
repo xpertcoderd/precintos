@@ -47,6 +47,9 @@ import Cookies from 'js-cookie';
 
 let datosUser = ref({ username: "", passwd: "" })
 let claveIncorrecta = ref(false)
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
 
 
 /*if (window.$cookies.isKey('PLAY_SESSION')) {
@@ -54,7 +57,7 @@ let claveIncorrecta = ref(false)
   console.log("Wellcome Back")
   window.location.replace("./dashboard");
 
-} else { 
+} else {
   window.location.replace("./dashboard");
   console.log("Logeate Por Favor")
 }
@@ -89,14 +92,14 @@ if (Cookies.get('userPublicInfo')) {
 
 
 function consultar() {
-  
+
     auth(datosUser.value).then(resAuth => {
       if (resAuth.success) {
         console.log("Bienvenido");
 
         console.log(resAuth)
 
-         window.location.replace("./dashboard");
+      router.push("/dashboard");
 
       } else {
         claveIncorrecta.value = true;
@@ -111,10 +114,10 @@ function consultar() {
 
       console.log("consutla done")
       //console.log(Cookies.get());
-      
+
     })
-    
-  
+
+
 }
 
 
@@ -148,7 +151,7 @@ function consultar() {
   right: 20px;
   /*   border: solid 1px white;
    border-radius:10px;
-   backdrop-filter: blur(10px) o puede ser todo=> filter: blur(1px); 
+   backdrop-filter: blur(10px) o puede ser todo=> filter: blur(1px);
    padding: 20px;*/
 }
 

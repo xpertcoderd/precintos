@@ -2,7 +2,7 @@
 
 	<PopEnlazar :containerSelected="containerSelected" @cerrar="closeEnlacePop" v-if="enlaceShowing" />
 
-	<PopTransfersCard @cerrar="closeAddTransfer" @updateTransfersList="consultarTransfers" v-if="addTransferShowing" />
+  <TransferWizardCard v-if="addTransferShowing"/>
 
 
 	<div class="containerPage">
@@ -60,7 +60,7 @@
 import HeaderLog from '@/components/external/components/HeaderLog.vue'
 
 
-import PopTransfersCard from '@/components/Internal/Menu/Frames/PopPop/PanelPrincipal/PopTransfersCard.vue'
+// import PopTransfersCard from '@/components/Internal/Menu/Frames/PopPop/PanelPrincipal/PopTransfersCard.vue'
 
 import CounterCards from '@/components/Internal/CounterCards.vue'
 
@@ -83,6 +83,7 @@ import PopEnlazar from '@/components/Internal/Menu/Frames/PopPop/PanelPrincipal/
 
 
 import { ref, onMounted, defineProps } from 'vue'
+import TransferWizardCard from "@/components/TransferWizard/TransferWizardCard.vue";
 
 //let addUsuarioShowing=ref(false)
 
@@ -171,11 +172,11 @@ function cargarMapa(transfer_id) {
 
 
 
-function closeAddTransfer() {
-
-	addTransferShowing.value = false
-
-}
+// function closeAddTransfer() {
+//
+// 	addTransferShowing.value = false
+//
+// }
 
 function closeEnlacePop() {
 
@@ -201,26 +202,13 @@ function showAddingTransfer() {
 
 async function consultarTransfers() {
 
-
-	await transfers_list().then(result => {
+  const result = await transfers_list();
 
 		if (result.success) {
-
 			transferList.value = result.clientFullTransfers;
-		} else {
+		}else {
 			console.log(result)
 		}
-	}).catch(error => {
-		console.log(error)
-		console.log("Error al Hacer La peticion")
-	}).finally(() => {
-		console.log("consutla done")
-	})
-
-
-
-
-
 
 }
 

@@ -194,7 +194,7 @@ const transferTypes = ref([
     transferTypeId: 1,
     tariffTypeId: 1, //distanceFreeKm variables attrib
     price: 1299
-}, 
+},
 {
     id: 2,
     name: "name 2",
@@ -686,16 +686,16 @@ function consultarTransferTypes_Tariffs() {
     console.log("consutla done")
     /*
             tariffs_List().then(tariffsList => {
-    
+
                 if (tariffsList.success) {
                     tariffs.value = tariffsList.tariffs
                 }
             }).catch(error => {
                 console.log(error)
                 console.log("Error al Hacer La peticion")
-    
+
             }).finally(() => {
-    
+
              // tariff_To_unitPrice(2)
               console.log("consutla done")
             })*/
@@ -731,7 +731,6 @@ onMounted(() => {
   const token = Cookies.get('userPublicInfo');
 
   if (token) {
-
     let user_session = decodeBase64Token(token);
 
     session.value.serverClientId = user_session.clientId || 0
