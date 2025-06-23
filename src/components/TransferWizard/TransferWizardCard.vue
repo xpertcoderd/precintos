@@ -32,7 +32,7 @@
 <script setup>
 import addClientBg from '@/assets/fondos/addClient.png'
 import auroraLogo from '@/assets/logo/auroraLogob.png'
-import {ref, computed, reactive, onMounted} from 'vue';
+import {ref, computed, reactive, onMounted, defineEmits} from 'vue';
 import TransferStep1Form from './TransferStep1Form.vue';
 import TransferStep2Form from './TransferStep2Form.vue';
 import TransferStep3Form from './TransferStep3Form.vue';
