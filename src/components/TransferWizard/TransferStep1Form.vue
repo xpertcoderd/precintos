@@ -64,19 +64,28 @@
 import {computed, defineEmits, defineProps, ref, watch} from 'vue';
 import {calculateTariff} from "@/components/TransferWizard/helpers/fetchBrokerData";
 
-const unitPrice = ref(null)
-
 const props = defineProps({
   modelValue: { type: Object, required: true },
   errors: { type: Object, default: () => ({}) },
   incomingData: { type: Object, default: () => ({}) },
 });
+
+const unitPrice = ref(props.modelValue.unitPrice || null);
+
 const emit = defineEmits(['update:modelValue', 'cerrar', 'next', 'searchMyTarifa']);
 
 const localModel = computed({
   get: () => props.modelValue,
   set: (val) => emit('update:modelValue', val),
 });
+
+// Sync unitPrice with localModel.unitPrice
+watch(
+    () => localModel.value.unitPrice,
+    (newPrice) => {
+      unitPrice.value = newPrice;
+    }
+);
 
 watch(
     () => localModel.value.endPlace,

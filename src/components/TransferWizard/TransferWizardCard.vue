@@ -82,7 +82,7 @@ onMounted(async () => {
     loading.value = false
   }
 })
-const stepIndicators = computed(() => [1, 2, 3, 4, 5].map(n => step.value >= n));
+const stepIndicators = computed(() => [1, 2, 3, 4, 5].map(n => step.value > n));
 
 function close() {
   step.value = 1;
