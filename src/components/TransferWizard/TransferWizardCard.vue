@@ -92,11 +92,8 @@ function close() {
 }
 
 function validateAndNext(currentStep) {
-  step.value++
-  return () => {
-    const valid = validateStep(currentStep);
-    if (valid && step.value < 5) step.value++;
-  };
+  const valid = validateStep(currentStep);
+  if (valid && step.value < 5) step.value++;
 }
 
 function setStep(newStep) {
