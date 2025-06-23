@@ -31,7 +31,6 @@
 
 			<div class="contendorBlanco" style="height: 100%;">
 
-sdsd
 				<ContenedoresCard @showEnlacePop="showEnlacePop" v-if="views.contenedor"
 					:containersList="containersList" @showAddTransfer="showAddingTransfer" />
 
