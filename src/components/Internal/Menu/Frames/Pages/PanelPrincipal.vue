@@ -2,7 +2,7 @@
 
 	<PopEnlazar :containerSelected="containerSelected" @cerrar="closeEnlacePop" v-if="enlaceShowing" />
 
-  <TransferWizardCard v-if="addTransferShowing"/>
+  <TransferWizardCard v-if="addTransferShowing" @close="closeAddingTransfer"/>
 
 
 	<div class="containerPage">
@@ -31,7 +31,7 @@
 
 			<div class="contendorBlanco" style="height: 100%;">
 
-
+sdsd
 				<ContenedoresCard @showEnlacePop="showEnlacePop" v-if="views.contenedor"
 					:containersList="containersList" @showAddTransfer="showAddingTransfer" />
 
@@ -179,22 +179,22 @@ function cargarMapa(transfer_id) {
 // }
 
 function closeEnlacePop() {
-
 	enlaceShowing.value = false
 }
 
 function showEnlacePop(contenedorSelected) {
-	console.log(contenedorSelected)
-
 	containerSelected.value = contenedorSelected
 
 	enlaceShowing.value = true
 }
 
 
-
 function showAddingTransfer() {
 	addTransferShowing.value = true
+}
+
+function closeAddingTransfer() {
+  addTransferShowing.value = false
 }
 
 

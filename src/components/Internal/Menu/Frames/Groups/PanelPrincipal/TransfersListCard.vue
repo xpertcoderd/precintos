@@ -17,8 +17,7 @@ import { defineProps, defineEmits } from 'vue'
 
 const incomingData = defineProps(['fullTransfer']);
 
-const outGoingData = defineEmits(['transfer_id', 'showAddTransfer']);
-
+const outGoingData = defineEmits(['transfer_id', 'showAddTransfer', 'close']);
 
 function crearTraslado() {
 	outGoingData('showAddTransfer')

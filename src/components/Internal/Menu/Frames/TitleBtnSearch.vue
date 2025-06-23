@@ -1,14 +1,13 @@
 <template>
 	<div class="headerContainer">
 
-		<div>
-			<img class="icons" src="@/assets/icons/bl.svg">
-
-			<strong>{{ incomingData.title }}</strong>
+		<div class="flex justify-content-around">
+      <img style="display: inline" class="icons" src="@/assets/icons/bl.svg">
+			<span class="text-lg font-bold mt-1 mx-2">{{ incomingData.title }}</span>
 			<span style="font-size: 12px;">{{ incomingData.subtitle }}</span>
 
-			<button v-if="!incomingData.right" @click="outGoingData('functionBtn')" style="margin-left: 20px"
-				type="button" class="btn btn-primary mybtn">{{ incomingData.btnTitle }}</button>
+			<button v-if="!incomingData.right" @click="outGoingData('functionBtn')"
+				type="button" class="ml-2 px-4 py-2 rounded-lg bg-custom-blue text-sm text-white font-semibold shadow hover:bg-sky-600 transition">{{ incomingData.btnTitle }}</button>
 		</div>
 
 

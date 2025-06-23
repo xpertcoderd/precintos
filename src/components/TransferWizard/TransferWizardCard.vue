@@ -32,13 +32,15 @@
 <script setup>
 import addClientBg from '@/assets/fondos/addClient.png'
 import auroraLogo from '@/assets/logo/auroraLogob.png'
-import { ref, computed, reactive } from 'vue';
+import {ref, computed, reactive, defineEmits} from 'vue';
 import TransferStep1Form from './TransferStep1Form.vue';
 import TransferStep2Form from './TransferStep2Form.vue';
 import TransferStep3Form from './TransferStep3Form.vue';
 import TransferStep4Form from './TransferStep4Form.vue';
 import TransferStep5Form from './TransferStep5Form.vue';
 import TransferWizardSteps from './TransferWizardSteps.vue';
+
+const outGoingData = defineEmits([ 'close']);
 
 const step = ref(1);
 const wizardData = reactive({
@@ -56,12 +58,13 @@ const errors = reactive({
   step5: {},
 });
 
-const stepIndicators = computed(() => [1, 2, 3, 4, 5].map(n => step.value >= n));
+const stepIndicators = computed(() => [1, 2, 3, 4, 5].map(n => step.value > n));
 
 function close() {
   step.value = 1;
   Object.keys(wizardData).forEach(k => wizardData[k] = {});
   Object.keys(errors).forEach(k => errors[k] = {});
+  outGoingData('close')
 }
 
 function validateAndNext(currentStep) {
