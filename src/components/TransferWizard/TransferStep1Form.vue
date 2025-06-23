@@ -7,15 +7,13 @@
         <div>
           <select id="finalClient"  class="bg-white rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200 w-full h-12" :class="{ 'ring-2 ring-red-400': errors.finalClient }" v-model="localModel.finalClient" required>
             <option value="" selected disabled >Cliente Final</option>
-            <option value="PRUEBA">Cliente Final</option>
-            <option v-for="(client, index) in incomingData.final_Clients" :key="index" :value="client.client">{{ client.client.name }}</option>
+            <option v-for="(client, index) in incomingData.finalClients" :key="index" :value="client.client">{{ client.client.name }}</option>
           </select>
           <p v-if="errors.finalClient" class="text-xs text-red-500 mt-1">{{ errors.finalClient }}</p>
         </div>
         <div>
           <select @change="$emit('searchMyTarifa')" id="type" class="bg-white rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200 w-full h-12" :class="{ 'ring-2 ring-red-400': errors.type }" v-model="localModel.type">
             <option :value="null" selected disabled>Tipo de Traslado</option>
-            <option value="PRUEBA">Cliente Final</option>
             <option v-for="(tipo, index) in incomingData.transferTypes" :key="index" :value="tipo">{{ tipo.name }}</option>
           </select>
           <p v-if="errors.type" class="text-xs text-red-500 mt-1">{{ errors.type }}</p>
@@ -23,16 +21,14 @@
         <div>
           <select @change="$emit('searchMyTarifa')" id="startPlace" class="bg-white rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200 w-full h-12" :class="{ 'ring-2 ring-red-400': errors.startPlace }" v-model="localModel.startPlace">
             <option :value="null" selected disabled>Origen</option>
-            <option value="PRUEBA">Cliente Final</option>
-            <option v-for="(startPlace, index) in incomingData.startplaces_List" :key="index" :value="startPlace">{{ startPlace.label }}</option>
+            <option v-for="(startPlace, index) in incomingData.startPlaces" :key="index" :value="startPlace">{{ startPlace.label }}</option>
           </select>
           <p v-if="errors.startPlace" class="text-xs text-red-500 mt-1">{{ errors.startPlace }}</p>
         </div>
         <div>
           <select @change="$emit('searchMyTarifa')" id="endPlace" class="bg-white rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200 w-full h-12" :class="{ 'ring-2 ring-red-400': errors.endPlace }" v-model="localModel.endPlace">
             <option :value="null" selected disabled>Destino</option>
-            <option value="PRUEBA">Cliente Final</option>
-            <option v-for="(endPlace, index) in incomingData.endplaces_List" :key="index" :value="endPlace">{{ endPlace.label }}</option>
+            <option v-for="(endPlace, index) in incomingData.endPlaces" :key="index" :value="endPlace">{{ endPlace.label }}</option>
           </select>
           <p v-if="errors.endPlace" class="text-xs text-red-500 mt-1">{{ errors.endPlace }}</p>
         </div>
@@ -46,10 +42,10 @@
         </div>
         <div class="col-span-2 flex gap-4">
           <div class="flex-1">
-            <input v-model="localModel.unitPrice" class="bg-white rounded-lg px-4 py-2 text-gray-700 focus:outline-none w-full" maxlength="40" placeholder="Tarifa" type="number" >
+            <input v-model="unitPrice" class="bg-white rounded-lg px-4 py-2 text-gray-700 focus:outline-none w-full" maxlength="40" placeholder="Tarifa" type="number" disabled >
           </div>
           <div class="flex-1">
-            <input v-model="localModel.timeTravelEst" class="bg-white rounded-lg px-4 py-2 text-gray-700 focus:outline-none w-full" type="date" min="2025-06-09"  />
+            <input v-model="localModel.timeTravelEst" class="bg-white rounded-lg px-4 py-2 text-gray-700 focus:outline-none w-full" type="date" :min="new Date().toISOString().split('T')[0]"  />
           </div>
         </div>
         <div class="col-span-2">
@@ -65,7 +61,10 @@
 </template>
 
 <script setup>
-import { computed, defineEmits, defineProps } from 'vue';
+import {computed, defineEmits, defineProps, ref, watch} from 'vue';
+import {calculateTariff} from "@/components/TransferWizard/helpers/fetchBrokerData";
+
+const unitPrice = ref(null)
 
 const props = defineProps({
   modelValue: { type: Object, required: true },
@@ -78,4 +77,32 @@ const localModel = computed({
   get: () => props.modelValue,
   set: (val) => emit('update:modelValue', val),
 });
+
+watch(
+    () => localModel.value.endPlace,
+    (newPlace) => {
+      if (newPlace) {
+        localModel.value = {
+          ...localModel.value,
+          address: newPlace.address,
+          city: newPlace.province,
+        };
+      }
+    }
+)
+
+watch(
+    () => [localModel.value.type, localModel.value.startPlace, localModel.value.endPlace],
+    async ([type, start, end]) => {
+      if (type && start && end) {
+        const price = await calculateTariff(type, start, end);
+        unitPrice.value = price;
+        localModel.value = {
+          ...localModel.value,
+          unitPrice: unitPrice.value,
+        }
+      }
+    }
+);
+
 </script>

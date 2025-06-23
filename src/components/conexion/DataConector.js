@@ -50,8 +50,23 @@ export const transfer_Types = () => safeRequest(() => axios.get(`/api/v1/transfe
 export const tariffs_List = () => safeRequest(() => axios.get(`/api/v1/tariffs/all`, axiosConfig));
 
 export async function tariffs_calculation(trTypeId, startPlace, endPlace) {
-    return safeRequest(() => axios.get(`/api/v1/tariffs/calc/${trTypeId.id}/${startPlace.id}/${endPlace.id}`, axiosConfig));
+    try {
+        const response = await axios.get(`/api/v1/tariffs/calc/${trTypeId.id}/${startPlace.id}/${endPlace.id}`, {
+            withCredentials: true
+        });
+
+        if (response.status === 200 && response.data) {
+            return response.data;
+        } else {
+            console.warn("Unexpected response status:", response.status);
+            return { success: false };
+        }
+    } catch (error) {
+        console.error("Error fetching tariff calculation:", error);
+        return { success: false };
+    }
 }
+
 
 export async function transfers_Create(params) {
     try {

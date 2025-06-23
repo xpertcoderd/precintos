@@ -18,7 +18,7 @@
           <img :src="auroraLogo" alt="Aurora Logo" class="h-12" />
         </div>
         <div class="flex-1 flex flex-col justify-center bg-gray-100 ">
-          <TransferStep1Form v-if="step === 1"  v-model="wizardData.step1" :errors="errors.step1" @cerrar="close" @next="validateAndNext(1)" @searchMyTarifa="calculateTariff" />
+          <TransferStep1Form v-if="step === 1" :incoming-data="initialData" v-model="wizardData.step1" :errors="errors.step1" @cerrar="close" @next="validateAndNext(1)" @searchMyTarifa="calculateTariff" />
           <TransferStep2Form v-if="step === 2" v-model="wizardData.step2" :errors="errors.step2" @cerrar="close" @next="validateAndNext(2)" />
           <TransferStep3Form v-if="step === 3" :incoming-data="wizardData.step2" v-model="wizardData.step3" :errors="errors.step3" @cerrar="close" @next="validateAndNext(3)" />
           <TransferStep4Form v-if="step === 4" v-model="wizardData.step4" :errors="errors.step4" @cerrar="close" @next="validateAndNext(4)" />
@@ -32,13 +32,14 @@
 <script setup>
 import addClientBg from '@/assets/fondos/addClient.png'
 import auroraLogo from '@/assets/logo/auroraLogob.png'
-import {ref, computed, reactive, defineEmits} from 'vue';
+import {ref, computed, reactive, onMounted} from 'vue';
 import TransferStep1Form from './TransferStep1Form.vue';
 import TransferStep2Form from './TransferStep2Form.vue';
 import TransferStep3Form from './TransferStep3Form.vue';
 import TransferStep4Form from './TransferStep4Form.vue';
 import TransferStep5Form from './TransferStep5Form.vue';
 import TransferWizardSteps from './TransferWizardSteps.vue';
+import {fetchInitialData} from "@/components/TransferWizard/helpers/fetchBrokerData";
 
 const outGoingData = defineEmits([ 'close']);
 
@@ -58,7 +59,30 @@ const errors = reactive({
   step5: {},
 });
 
-const stepIndicators = computed(() => [1, 2, 3, 4, 5].map(n => step.value > n));
+
+const initialData = ref({
+  transferTypes: [],
+  startPlaces: [],
+  endPlaces: [],
+  finalClients: []
+})
+
+const loading = ref(false)
+const error = ref(null)
+
+onMounted(async () => {
+  loading.value = true
+  error.value = null
+  try {
+    initialData.value = await fetchInitialData()
+  } catch (err) {
+    error.value = 'Error cargando datos iniciales.'
+    console.error(err)
+  } finally {
+    loading.value = false
+  }
+})
+const stepIndicators = computed(() => [1, 2, 3, 4, 5].map(n => step.value >= n));
 
 function close() {
   step.value = 1;

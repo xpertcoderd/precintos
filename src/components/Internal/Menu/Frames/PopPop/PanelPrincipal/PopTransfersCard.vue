@@ -732,7 +732,7 @@ onMounted(() => {
 
   if (token) {
     let user_session = decodeBase64Token(token);
-
+    console.log('user_session:',user_session)
     session.value.serverClientId = user_session.clientId || 0
     session.value.id = user_session.id || 0
 
