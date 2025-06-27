@@ -20,7 +20,6 @@
       </div>
     </div>
     <div class="flex justify-end gap-4 mt-4">
-      <button @click="$emit('cerrar')" type="button" class="px-8 py-2 rounded-lg bg-gray-200 text-gray-500 font-semibold">Subir Pago</button>
       <button type="submit" class="px-8 py-2 rounded-lg bg-sky-400 text-white font-semibold shadow hover:bg-sky-500 transition">Finalizar</button>
     </div>
   </form>

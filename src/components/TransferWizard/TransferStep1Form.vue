@@ -73,8 +73,6 @@ const emit = defineEmits(['update:modelValue', 'cerrar', 'next']);
 
 const unitPrice = ref(props.modelValue.unitPrice || null);
 
-const emit = defineEmits(['update:modelValue', 'cerrar', 'next', 'searchMyTarifa']);
-
 const localModel = computed({
   get: () => props.modelValue,
   set: (val) => emit('update:modelValue', val),
