@@ -2,19 +2,19 @@
   <form @submit.prevent="$emit('next')" class="flex flex-col gap-6 bg-gray-50 rounded-xl p-6 shadow">
     <div class="flex flex-col gap-2">
       <div class="bg-white rounded-lg p-4 mb-2">
-        <TablaDetailsOrden :ordenes="localModel.ordenes" class="w-full max-h-60 overflow-y-auto" />
+        <TablaDetailsOrden :ordenes="incomingData.orders" class="w-full max-h-60 overflow-y-auto" />
         <div class="flex justify-between mt-4">
           <div class="text-center">
             <div class="text-xs font-bold text-gray-700">Total BL</div>
-            <div class="text-base font-semibold text-gray-900">{{ localModel.totales?.bl }}</div>
+            <div class="text-base font-semibold text-gray-900">{{ incomingData.orderSummary?.bl }}</div>
           </div>
           <div class="text-center">
             <div class="text-xs font-bold text-gray-700">Total Contenedores</div>
-            <div class="text-base font-semibold text-gray-900">{{ localModel.totales?.containers }}</div>
+            <div class="text-base font-semibold text-gray-900">{{ incomingData.orderSummary?.containers }}</div>
           </div>
           <div class="text-center">
             <div class="text-xs font-bold text-gray-700">Total</div>
-            <div class="text-base font-semibold text-gray-900">{{ `RD$${localModel.totales?.amount}` }}</div>
+            <div class="text-base font-semibold text-gray-900">{{ `RD$${incomingData.orderSummary?.amount}` }}</div>
           </div>
         </div>
       </div>
@@ -27,17 +27,9 @@
 </template>
 
 <script setup>
-import { computed, defineEmits, defineProps } from 'vue';
+import { defineEmits, defineProps } from 'vue';
 import TablaDetailsOrden from '@/components/Internal/tablas/TablaDetailsOrden.vue';
 
-const props = defineProps({
-  modelValue: { type: Object, required: true },
-  errors: { type: Object, default: () => ({}) },
-});
-const emit = defineEmits(['update:modelValue', 'cerrar', 'next']);
-
-const localModel = computed({
-  get: () => props.modelValue,
-  set: (val) => emit('update:modelValue', val),
-});
+defineProps(['incomingData']);
+defineEmits(['update:modelValue', 'cerrar', 'next']);
 </script>

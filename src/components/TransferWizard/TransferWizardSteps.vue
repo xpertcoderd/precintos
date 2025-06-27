@@ -1,5 +1,5 @@
 <template>
-  <div class="flex justify-around w-full pt-6">
+  <div class="flex justify-around w-full pt-6 gap-5">
     <button
         v-for="(active, index) in count.count"
         :key="index"

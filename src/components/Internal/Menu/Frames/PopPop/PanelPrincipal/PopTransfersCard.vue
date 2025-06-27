@@ -1,11 +1,7 @@
 <template>
   <div class="popContainer">
-
     <div class="areaContent">
-
-
       <div class="targeta">
-
 
         <div v-show="step == 1" class="addClientIMG">
           <SecuenciaPage2 :count="[true, false, false, false, false]" />
@@ -323,9 +319,6 @@ function close() {
 
 
 function preSaveform1(form1) {
-
-  //console.log(form1)
-
   allData.value.headerData.unitPrice = unitPrice.value || null
 
   allData.value.headerData.serverClient = buscarClientByid(session.value.serverClientId) || 'N/A'

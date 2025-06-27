@@ -1,11 +1,10 @@
 <template>
-  <form @submit.prevent="$emit('next')" class="flex flex-col gap-6 bg-gray-50 rounded-xl p-6 shadow">
+  <form @submit.prevent="$emit('next')" class="flex flex-col gap-6 bg-gray-50 rounded-xl p-6 shadow min-h-full">
     <div class="flex flex-col gap-2">
       <span class="font-semibold text-gray-700 mb-2">Datos</span>
       <div class="flex gap-2 items-center mb-2">
         <select id="bl" class="bg-gray-100 rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200 w-full" v-model="localModel.bl" required>
           <option :value="null" selected disabled>BL</option>
-          <option value="PRUEBA" selected >PRUEBA</option>
           <option v-for="(bl, index) in incomingData.listBl" :key="index" :value="bl.text">{{ bl.text}}</option>
         </select>
         <input v-model="localModel.container" class="bg-gray-100 rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200 w-full" :class="{ 'ring-2 ring-red-400': errors.container }" maxlength="20" placeholder="Contenedor" type="text">

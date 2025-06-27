@@ -53,14 +53,18 @@ async function getFinalClientsList(sc_id) {
     }
 }
 
-export async function fetchInitialData() {
+export function getTokenPublicInfo() {
     const token = Cookies.get(PUBLIC_COOKIE);
     const user_session = decodeBase64Token(token);
     if (!user_session) {
         console.error('No Active Session')
         return;
     }
+    return user_session;
+}
 
+export async function fetchInitialData() {
+    const user_session = getTokenPublicInfo();
     const initialData = {
         transferTypes: [],
         startPlaces: [],

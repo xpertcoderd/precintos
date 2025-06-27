@@ -12,21 +12,21 @@
           <p v-if="errors.finalClient" class="text-xs text-red-500 mt-1">{{ errors.finalClient }}</p>
         </div>
         <div>
-          <select @change="$emit('searchMyTarifa')" id="type" class="bg-white rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200 w-full h-12" :class="{ 'ring-2 ring-red-400': errors.type }" v-model="localModel.type">
+          <select id="type" class="bg-white rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200 w-full h-12" :class="{ 'ring-2 ring-red-400': errors.type }" v-model="localModel.type">
             <option :value="null" selected disabled>Tipo de Traslado</option>
             <option v-for="(tipo, index) in incomingData.transferTypes" :key="index" :value="tipo">{{ tipo.name }}</option>
           </select>
           <p v-if="errors.type" class="text-xs text-red-500 mt-1">{{ errors.type }}</p>
         </div>
         <div>
-          <select @change="$emit('searchMyTarifa')" id="startPlace" class="bg-white rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200 w-full h-12" :class="{ 'ring-2 ring-red-400': errors.startPlace }" v-model="localModel.startPlace">
+          <select id="startPlace" class="bg-white rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200 w-full h-12" :class="{ 'ring-2 ring-red-400': errors.startPlace }" v-model="localModel.startPlace">
             <option :value="null" selected disabled>Origen</option>
             <option v-for="(startPlace, index) in incomingData.startPlaces" :key="index" :value="startPlace">{{ startPlace.label }}</option>
           </select>
           <p v-if="errors.startPlace" class="text-xs text-red-500 mt-1">{{ errors.startPlace }}</p>
         </div>
         <div>
-          <select @change="$emit('searchMyTarifa')" id="endPlace" class="bg-white rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200 w-full h-12" :class="{ 'ring-2 ring-red-400': errors.endPlace }" v-model="localModel.endPlace">
+          <select id="endPlace" class="bg-white rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200 w-full h-12" :class="{ 'ring-2 ring-red-400': errors.endPlace }" v-model="localModel.endPlace">
             <option :value="null" selected disabled>Destino</option>
             <option v-for="(endPlace, index) in incomingData.endPlaces" :key="index" :value="endPlace">{{ endPlace.label }}</option>
           </select>
@@ -71,7 +71,7 @@ const props = defineProps({
   errors: { type: Object, default: () => ({}) },
   incomingData: { type: Object, default: () => ({}) },
 });
-const emit = defineEmits(['update:modelValue', 'cerrar', 'next', 'searchMyTarifa']);
+const emit = defineEmits(['update:modelValue', 'cerrar', 'next']);
 
 const localModel = computed({
   get: () => props.modelValue,
@@ -95,14 +95,10 @@ watch(
     () => [localModel.value.type, localModel.value.startPlace, localModel.value.endPlace],
     async ([type, start, end]) => {
       if (type && start && end) {
-        const price = await calculateTariff(type, start, end);
-        unitPrice.value = price;
-        localModel.value = {
-          ...localModel.value,
-          unitPrice: unitPrice.value,
-        }
+        const price = await calculateTariff(type, start, end)
+        unitPrice.value = price
+        localModel.value.unitPrice = price
       }
     }
-);
-
+)
 </script>

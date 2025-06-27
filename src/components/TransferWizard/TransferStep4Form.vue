@@ -1,16 +1,14 @@
 <template>
-  <form @submit.prevent="$emit('next')" class="flex flex-col gap-6 bg-gray-50 rounded-xl p-6 shadow">
-    <div class="flex flex-col gap-2">
-      <div class="bg-white rounded-lg p-4 mb-2">
-        <TablaAddingConfirmation :headerData="localModel.headerData" :bl_ContainerList="localModel.bl_ContainerList" class="w-full max-h-64 overflow-y-auto" />
-        <div class="flex justify-end text-xs mt-2">
+  <form @submit.prevent="$emit('next')" class="flex flex-col h-fit p-6 mt-0">
+    <div class="flex flex-col gap-2 h-fit">
+        <TablaAddingConfirmation :headerData="localModel.headerData" :bl_ContainerList="localModel.bl_ContainerList"/>
+        <div class="flex justify-end text-sm mt-2">
           <strong>Total: </strong>
           <span class="ml-1">{{ `RD$${localModel.totalAmount?.toLocaleString('es-419')}` }}</span>
         </div>
-      </div>
       <div class="flex items-center gap-2 text-xs">
         <input type="checkbox" id="check" v-model="localModel.check" class="accent-sky-400" />
-        <label for="check">Acepto los términos y condiciones de esta aplicación</label>
+        <label for="check" class="mb-0">Acepto los términos y condiciones de esta aplicación</label>
       </div>
       <p v-if="errors.check" class="text-xs text-red-500">{{ errors.check }}</p>
     </div>
@@ -22,17 +20,40 @@
 </template>
 
 <script setup>
-import { computed, defineEmits, defineProps } from 'vue';
+import {ref, watch, defineEmits,defineProps, onMounted} from 'vue';
 import TablaAddingConfirmation from '@/components/Internal/tablas/TablaAddingConfirmation.vue';
 
-const props = defineProps({
-  modelValue: { type: Object, required: true },
-  errors: { type: Object, default: () => ({}) },
-});
+const orderData = defineProps(['orderData', 'errors'])
+
+const localModel = ref(
+    {
+      headerData: {
+        serverClient: "serverClient",
+        finalClient: "finalClient",
+        startPlace: "startPlace",
+        endPlace: "endPlace",
+        typeName: "typeName",
+        unitPrice: 0
+
+      },
+      bl_ContainerList: [
+        {
+          bl: "bl",
+          bl_count: 0,
+          amount: 0,
+          check: false,
+        }
+      ],
+      totalAmount: 0,
+      check: false,
+    })
+
+onMounted(() => {
+  localModel.value = orderData.orderData;
+})
 const emit = defineEmits(['update:modelValue', 'cerrar', 'next']);
 
-const localModel = computed({
-  get: () => props.modelValue,
-  set: (val) => emit('update:modelValue', val),
+watch(localModel, (newVal) => {
+  emit('update:modelValue', newVal);
 });
 </script>

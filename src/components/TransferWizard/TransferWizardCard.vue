@@ -1,13 +1,13 @@
 <template>
-  <div class="fixed inset-0 z-30 flex items-center justify-center bg-black bg-opacity-10" >
-    <div class="flex rounded-2xl shadow-2xl overflow-hidden bg-white max-w-6xl ">
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 overflow-auto p-4"  >
+    <div class="flex rounded-2xl shadow-2xl overflow-hidden bg-white h-fit" style="min-width: 1480px; min-height: 700px; max-width: 1480px;">
       <!-- Left: Image and Steps -->
 
       <div class="relative w-[480px] h-[600px]">
-        <div class=" absolute top-8 pb-4 left-auto w-full">
-          <TransferWizardSteps @setStep="setStep" :count="stepIndicators" />
+        <div class=" absolute top-8 pl-5 pb-4 left-auto">
+        <TransferWizardSteps @setStep="setStep" :count="stepIndicators" />
         </div>
-        <img :src="addClientBg" class="max-w-xl h-full" />
+        <img :src="addClientBg" class="object-cover h-full max-w-xl" />
       </div>
       <!-- Right: Form Card -->
       <div class="flex-1 flex flex-col bg-white h-[400px] ">
@@ -17,12 +17,12 @@
           </div>
           <img :src="auroraLogo" alt="Aurora Logo" class="h-12" />
         </div>
-        <div class="flex-1 flex flex-col justify-center bg-gray-100 ">
-          <TransferStep1Form v-if="step === 1" :incoming-data="initialData" v-model="wizardData.step1" :errors="errors.step1" @cerrar="close" @next="validateAndNext(1)" @searchMyTarifa="calculateTariff" />
+        <div class="flex-1 flex flex-col justify-start bg-gray-100 ">
+          <TransferStep1Form v-if="step === 1" :incoming-data="initialData" v-model="wizardData.step1" :errors="errors.step1" @cerrar="close" @next="validateAndNext(1)" />
           <TransferStep2Form v-if="step === 2" v-model="wizardData.step2" :errors="errors.step2" @cerrar="close" @next="validateAndNext(2)" />
           <TransferStep3Form v-if="step === 3" :incoming-data="wizardData.step2" v-model="wizardData.step3" :errors="errors.step3" @cerrar="close" @next="validateAndNext(3)" />
-          <TransferStep4Form v-if="step === 4" v-model="wizardData.step4" :errors="errors.step4" @cerrar="close" @next="validateAndNext(4)" />
-          <TransferStep5Form v-if="step === 5" v-model="wizardData.step5" :errors="errors.step5" @cerrar="close" />
+          <TransferStep4Form v-if="step === 4" :order-data="allData" v-model="wizardData.step4" :errors="errors.step4" @cerrar="close" @next="validateAndNext(4)" />
+          <TransferStep5Form v-if="step === 5" :incoming-data="{orders, orderSummary }" v-model="wizardData.step5" :errors="errors.step5" @cerrar="close" @next="close" />
         </div>
       </div>
     </div>
@@ -32,41 +32,56 @@
 <script setup>
 import addClientBg from '@/assets/fondos/addClient.png'
 import auroraLogo from '@/assets/logo/auroraLogob.png'
-import {ref, computed, reactive, onMounted, defineEmits} from 'vue';
-import TransferStep1Form from './TransferStep1Form.vue';
-import TransferStep2Form from './TransferStep2Form.vue';
-import TransferStep3Form from './TransferStep3Form.vue';
-import TransferStep4Form from './TransferStep4Form.vue';
-import TransferStep5Form from './TransferStep5Form.vue';
-import TransferWizardSteps from './TransferWizardSteps.vue';
-import {fetchInitialData} from "@/components/TransferWizard/helpers/fetchBrokerData";
+import { ref, onMounted, defineEmits } from 'vue'
+import TransferStep1Form from './TransferStep1Form.vue'
+import TransferStep2Form from './TransferStep2Form.vue'
+import TransferStep3Form from './TransferStep3Form.vue'
+import TransferStep4Form from './TransferStep4Form.vue'
+import TransferStep5Form from './TransferStep5Form.vue'
+import TransferWizardSteps from './TransferWizardSteps.vue'
+import { fetchInitialData } from "@/components/TransferWizard/helpers/fetchBrokerData"
+import {useTransferWizardState} from "@/components/TransferWizard/composables/useTransferWizardState";
+import {useTransferLogic} from "@/components/TransferWizard/composables/useTransferLogic";
+import {useTransferValidation} from "@/components/TransferWizard/composables/useTransferValidation";
 
-const outGoingData = defineEmits([ 'close']);
+const outGoingData = defineEmits(['close'])
 
-const step = ref(1);
-const wizardData = reactive({
-  step1: {},
-  step2: {},
-  step3: {},
-  step4: {},
-  step5: {},
-});
-const errors = reactive({
-  step1: {},
-  step2: {},
-  step3: {},
-  step4: {},
-  step5: {},
-});
+// 🔧 Wizard state
+const {
+  step,
+  wizardData,
+  errors,
+  stepIndicators,
+  setStep,
+  resetWizard
+} = useTransferWizardState()
 
+// 🔧 Result data
+const allData = ref({
+  headerData: {
+    serverClient: "serverClient",
+    finalClient: "finalClient",
+    startPlace: "startPlace",
+    endPlace: "endPlace",
+    typeName: "typeName",
+    unitPrice: 0
+  },
+  bl_ContainerList: [],
+  totalAmount: 0,
+  check: false,
+})
 
+// 🔧 Logic and processing
+const { orders, orderSummary, processOrder } = useTransferLogic(wizardData)
+const { validateStep } = useTransferValidation(wizardData, errors, allData)
+
+// 🔧 Initial data
 const initialData = ref({
   transferTypes: [],
   startPlaces: [],
   endPlaces: [],
   finalClients: []
 })
-
 const loading = ref(false)
 const error = ref(null)
 
@@ -82,74 +97,22 @@ onMounted(async () => {
     loading.value = false
   }
 })
-const stepIndicators = computed(() => [1, 2, 3, 4, 5].map(n => step.value >= n));
 
+// 🔧 Navigation
 function close() {
-  step.value = 1;
-  Object.keys(wizardData).forEach(k => wizardData[k] = {});
-  Object.keys(errors).forEach(k => errors[k] = {});
+  resetWizard()
   outGoingData('close')
 }
 
-function validateAndNext(currentStep) {
-  const valid = validateStep(currentStep);
-  if (valid && step.value < 5) step.value++;
-}
+async function validateAndNext(currentStep) {
+  const valid = validateStep(currentStep)
 
-function setStep(newStep) {
-  step.value = newStep + 1
-}
-
-
-function validateStep(currentStep) {
-  // Step 1: Client and transfer details
-  if (currentStep === 1) {
-    const data = wizardData.step1;
-    const stepErrors = {};
-    if (!data.finalClient) stepErrors.finalClient = 'Cliente Final es requerido';
-    if (!data.type) stepErrors.type = 'Tipo de Traslado es requerido';
-    if (!data.startPlace) stepErrors.startPlace = 'Origen es requerido';
-    if (!data.endPlace) stepErrors.endPlace = 'Destino es requerido';
-    if (!data.address) stepErrors.address = 'Dirección es requerida';
-    if (!data.city) stepErrors.city = 'Ciudad es requerida';
-    errors.step1 = stepErrors;
-    return Object.keys(stepErrors).length === 0;
+  if (valid && currentStep === 4) {
+    await processOrder(allData.value, () => {
+      outGoingData('updateTransfersList')
+    })
   }
-  // Step 2: BL list
-  if (currentStep === 2) {
-    const data = wizardData.step2;
-    const stepErrors = {};
-    if (!data.listBl || data.listBl.size === 0) {
-      stepErrors.bl = 'Debe agregar al menos un BL.';
-    }
-    errors.step2 = stepErrors;
-    return Object.keys(stepErrors).length === 0;
-  }
-  // Step 3: BL-Container assignments
-  if (currentStep === 3) {
-    const data = wizardData.step3;
-    const stepErrors = {};
-    if (!data.listBl_container || data.listBl_container.size === 0) {
-      stepErrors.container = 'Debe asignar al menos un contenedor a un BL.';
-    }
-    errors.step3 = stepErrors;
-    return Object.keys(stepErrors).length === 0;
-  }
-  // Step 4: Confirmation and terms
-  if (currentStep === 4) {
-    const data = wizardData.step4;
-    const stepErrors = {};
-    if (!data.check) {
-      stepErrors.check = 'Debe aceptar los términos y condiciones.';
-    }
-    errors.step4 = stepErrors;
-    return Object.keys(stepErrors).length === 0;
-  }
-  // Step 5: Final review (no required fields, but you can add checks if needed)
-  errors.step5 = {};
-  return true;
-}
-
-function calculateTariff() {
+  if (valid && step.value < 5) step.value++
 }
 </script>
+

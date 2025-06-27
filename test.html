@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tabla de Carga</title>
+    <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap"
+            rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        blueHeader: '#2EC3E4',
+                        tableHeader: '#F9FAFB',
+                        tableBorder: '#E5E7EB',
+                        tableBg: '#F7F8FA',
+                        grayText: '#6B7280',
+                    },
+                },
+            },
+        };
+    </script>
+</head>
+<body class="font-inter bg-gray-100 flex items-center justify-center min-h-screen">
+<div class="w-[1100px] h-[640px] bg-white shadow-lg rounded-[16px] overflow-hidden">
+    <!-- Top Blue Header -->
+    <div class="bg-blueHeader text-white px-6 py-4 grid grid-cols-4 gap-4 text-sm">
+        <div>
+            <p class="font-bold">Broker</p>
+            <p>Marítima Dominicana</p>
+        </div>
+        <div>
+            <p class="font-bold">Cliente Final</p>
+            <p>La Sirena</p>
+        </div>
+        <div>
+            <p class="font-bold">Tipo de Carga</p>
+            <p>Carga Suelta</p>
+        </div>
+        <div>
+            <p class="font-bold">Costo por Contenedor</p>
+            <p>RD$2,400<sup class="align-top text-xs">.00</sup></p>
+        </div>
+        <div>
+            <p class="font-bold">Origen</p>
+            <p>Puerto Caucedo</p>
+        </div>
+        <div>
+            <p class="font-bold">Destino</p>
+            <p>Marítima Dominicana (MARDOM)</p>
+        </div>
+    </div>
+
+    <!-- Table Header -->
+    <div class="bg-tableHeader text-[#6B7280] text-center font-bold text-lg px-6 py-3 grid grid-cols-3 border-b border-gray-200">
+        <div>No. BL</div>
+        <div>Contenedores</div>
+        <div>Total</div>
+    </div>
+
+    <!-- Table Rows -->
+    <div class="bg-tableBg px-4 py-2 space-y-2">
+        <!-- Row 1 -->
+        <div class="bg-white rounded-md shadow-sm grid grid-cols-3 items-center px-6 py-4 text-center text-gray-900">
+            <div>4567890FGHJK</div>
+            <div>5</div>
+            <div>RD$10,800<sup class="align-top text-xs">.00</sup></div>
+        </div>
+        <!-- Row 2 -->
+        <div class="bg-white rounded-md shadow-sm grid grid-cols-3 items-center px-6 py-4 text-center text-gray-900">
+            <div>4567890FGHJK</div>
+            <div>5</div>
+            <div>RD$10,800<sup class="align-top text-xs">.00</sup></div>
+        </div>
+        <!-- Row 3 -->
+        <div class="bg-white rounded-md shadow-sm grid grid-cols-3 items-center px-6 py-4 text-center text-gray-900">
+            <div>4567890FGHJK</div>
+            <div>5</div>
+            <div>RD$10,800<sup class="align-top text-xs">.00</sup></div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
