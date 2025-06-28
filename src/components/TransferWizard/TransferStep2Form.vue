@@ -4,7 +4,7 @@
       <span class="font-semibold text-gray-700 mb-2">BL</span>
       <div class="flex gap-2 items-center mb-2">
         <input v-model="localModel.bl" class="bg-gray-100 rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200 w-full" :class="{ 'ring-2 ring-red-400': errors.bl }" maxlength="20" placeholder="BL" type="text">
-        <button type="button" @click="addBL" class="flex items-center justify-center text-green-500 text-2xl focus:outline-none"><i class="bi bi-plus-square-fill"></i></button>
+        <button type="button" @click="addBL" class="flex items-center justify-center text-green-500 text-3xl focus:outline-none"><i class="bi bi-plus-square-fill"></i></button>
       </div>
       <p v-if="errors.bl" class="text-xs text-red-500 mb-2">{{ errors.bl }}</p>
       <TablaAddingBL class="w-full max-h-64 overflow-y-auto" :columnName="'BL'" :blList="localModel.listBl" @removeBl="removeBL" />
@@ -45,6 +45,6 @@ function addBL() {
 }
 
 function removeBL(bl_Selected) {
-  if (localModel.value.listBl) localModel.value.listBl.delete(bl_Selected);
+  if (localModel.value.listBl) localModel.value.listBl = localModel.value.listBl.filter(bl => bl.text !== bl_Selected);
 }
 </script>

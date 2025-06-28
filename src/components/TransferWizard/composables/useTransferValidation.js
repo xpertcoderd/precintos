@@ -51,6 +51,7 @@ export function useTransferValidation(wizardData, errors, allData) {
             const isValid = Object.keys(stepErrors).length === 0;
 
             const unfilteredContainerList = [];
+            allData.value.bl_ContainerList = []
             if (isValid) {
                 data.listBl_container.forEach((container) => {
                     unfilteredContainerList.push({

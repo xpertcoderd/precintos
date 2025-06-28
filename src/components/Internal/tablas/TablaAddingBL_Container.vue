@@ -30,7 +30,7 @@
 
 						<i @click="outGoingData('removeBl', `${dato[1].text1}-${dato[1].text2}`)"
 							class="bi bi-dash-square-fill"
-               style="cursor: pointer; color: red; float: right; padding-right: 20px; font-size: 17px"></i>
+               style="cursor: pointer; color: red; float: right; padding-right: 20px; font-size: 19px"></i>
 					</td>
 
 				</tr>

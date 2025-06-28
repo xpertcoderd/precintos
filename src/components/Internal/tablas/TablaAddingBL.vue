@@ -21,8 +21,8 @@
 					<td class="datoTable " :class="{ 'listaSelected': dato.check }">
 						<span>{{ dato.text }}</span>
 
-						<i @click="outGoingData('removeBl', dato[1].text)" class="bi bi-dash-square-fill"
-							style="cursor: pointer; color: red; float: right; padding-right: 20px; font-size: 17px"></i>
+						<i @click="outGoingData('removeBl', dato.text)" class="bi bi-dash-square-fill"
+							style="cursor: pointer; color: red; float: right; padding-right: 20px; font-size: 19px"></i>
 					</td>
 
 				</tr>

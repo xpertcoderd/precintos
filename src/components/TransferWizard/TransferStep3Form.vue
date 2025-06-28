@@ -8,7 +8,7 @@
           <option v-for="(bl, index) in incomingData.listBl" :key="index" :value="bl.text">{{ bl.text}}</option>
         </select>
         <input v-model="localModel.container" class="bg-gray-100 rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200 w-full" :class="{ 'ring-2 ring-red-400': errors.container }" maxlength="20" placeholder="Contenedor" type="text">
-        <button type="button" @click="addBL_Container" class="flex items-center justify-center text-green-500 text-2xl focus:outline-none"><i class="bi bi-plus-square-fill"></i></button>
+        <button type="button" @click="addBL_Container" class="flex items-center justify-center text-green-500 text-3xl focus:outline-none"><i class="bi bi-plus-square-fill"></i></button>
       </div>
       <p v-if="errors.container" class="text-xs text-red-500 mb-2">{{ errors.container }}</p>
       <TablaAddingBL_Container class="w-full max-h-64 overflow-y-auto" :columnName1="'BL'" :columnName2="'CONTENEDOR'" :blList="localModel.listBl_container" @removeBl="removeBL" />
