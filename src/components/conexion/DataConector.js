@@ -46,7 +46,7 @@ async function safeRequest(fn) {
     }
 }
 
-export const transfer_Types = () => safeRequest(() => axios.get(`/api/v1/transferTypes/all`, axiosConfig));
+export const transfer_Types = () => safeRequest(() => axios.get(`/api/v1/transferTypes/filtered`, axiosConfig));
 export const tariffs_List = () => safeRequest(() => axios.get(`/api/v1/tariffs/all`, axiosConfig));
 
 export async function tariffs_calculation(trTypeId, startPlace, endPlace) {
@@ -88,9 +88,9 @@ export async function assgin_Containers(params) {
     }
 }
 
-export const transfers_listAll = () => safeRequest(() => axios.get(`/api/v1/transfers/all`, axiosConfig));
-export const transfer_UnitsAll = () => safeRequest(() => axios.get(`/api/v1/transferUnits/all`, axiosConfig));
-export const transfers_list = () => safeRequest(() => axios.get(`/api/v1/transfers/list`, axiosConfig));
+export const transfers_listAll = () => safeRequest(() => axios.get(`/api/v1/transfers/filtered`, axiosConfig));
+export const transfer_UnitsAll = () => safeRequest(() => axios.get(`/api/v1/transferUnits/filtered`, axiosConfig));
+export const transfers_list = () => safeRequest(() => axios.get(`/api/v1/transfers/filteredSummary`, axiosConfig));
 export const check_Session = () => safeRequest(() => axios.get(`/api/v1/auth/checkSession`, axiosConfig));
 
 export async function transfersCheckBL(name) {
@@ -145,3 +145,81 @@ export async function openSeal(params, pin) {
 
 export const counterCandado = () => safeRequest(() => axios.get(`/api/v1/devices/allStats`, axiosConfig));
 export const blitsTranfers = (hash, id) => safeRequest(() => axios.get(`/v1/transferBlits/list/${hash}/${id}`, axiosConfig));
+
+// =================================================================
+// == Carrier Endpoints (NEW RESOURCE)
+// =================================================================
+/**
+ * NEW: Creates a new carrier.
+ */
+export const carriers_create = (body) => safeRequest(() => axios.post(`/api/v1/carriers/create`, body, axiosConfig));
+/**
+ * NEW: Reads a single carrier by ID.
+ */
+export const carriers_read = (id) => safeRequest(() => axios.get(`/api/v1/carriers/read/${id}`, axiosConfig));
+/**
+ * NEW: Retrieves a filtered list of carriers.
+ */
+export const carriers_filtered = (params) => safeRequest(() => axios.get(`/api/v1/carriers/filtered`, { ...axiosConfig, params }));
+/**
+ * NEW: Updates a carrier by ID.
+ */
+export const carriers_update = (id, body) => safeRequest(() => axios.put(`/api/v1/carriers/update/${id}`, body, axiosConfig));
+/**
+ * NEW: Deletes a carrier by ID.
+ */
+export const carriers_delete = (id) => safeRequest(() => axios.delete(`/api/v1/carriers/delete/${id}`, axiosConfig));
+
+
+// =================================================================
+// == Vehicle Endpoints (NEW RESOURCE)
+// =================================================================
+/**
+ * NEW: Creates a new vehicle. Expects FormData.
+ */
+export const vehicles_create = (formData) => safeRequest(() => axios.post(`/api/v1/vehicles/create`, formData, {
+    ...axiosConfig,
+    headers: { 'Content-Type': 'multipart/form-data' }
+}));
+/**
+ * NEW: Reads a single vehicle by ID.
+ */
+export const vehicles_read = (id) => safeRequest(() => axios.get(`/api/v1/vehicles/read/${id}`, axiosConfig));
+/**
+ * NEW: Retrieves a filtered list of vehicles.
+ */
+export const vehicles_filtered = (params) => safeRequest(() => axios.get(`/api/v1/vehicles/filtered`, { ...axiosConfig, params }));
+/**
+ * NEW: Updates a vehicle's photo.
+ */
+export const vehicles_updatePhoto = (formData) => safeRequest(() => axios.post(`/api/v1/vehicles/updatePhoto`, formData, {
+    ...axiosConfig,
+    headers: { 'Content-Type': 'multipart/form-data' }
+}));
+
+
+// =================================================================
+// == Driver Endpoints (NEW RESOURCE)
+// =================================================================
+/**
+ * NEW: Creates a new driver. Expects FormData.
+ */
+export const drivers_create = (formData) => safeRequest(() => axios.post(`/api/v1/drivers/create`, formData, {
+    ...axiosConfig,
+    headers: { 'Content-Type': 'multipart/form-data' }
+}));
+/**
+ * NEW: Reads a single driver by ID.
+ */
+export const drivers_read = (id) => safeRequest(() => axios.get(`/api/v1/drivers/read/${id}`, axiosConfig));
+/**
+ * NEW: Retrieves a filtered list of drivers.
+ */
+export const drivers_filtered = (params) => safeRequest(() => axios.get(`/api/v1/drivers/filtered`, { ...axiosConfig, params }));
+/**
+ * NEW: Updates a driver's photo.
+ */
+export const drivers_updatePhoto = (formData) => safeRequest(() => axios.post(`/api/v1/drivers/updatePhoto`, formData, {
+    ...axiosConfig,
+    headers: { 'Content-Type': 'multipart/form-data' }
+}));

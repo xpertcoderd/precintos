@@ -1,327 +1,50 @@
 <template>
+  <div class="p-4 md:p-8">
+    <DashboardHeader />
 
-	<PopEnlazar :containerSelected="containerSelected" @cerrar="closeEnlacePop" v-if="enlaceShowing" />
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
+      <SummaryCard v-for="card in summaryCards" :key="card.title" :title="card.title" :value="card.value" :chart-color="card.chartColor" />
+    </div>
 
-  <TransferWizardCard v-if="addTransferShowing" @close="closeAddingTransfer"/>
-
-
-	<div class="containerPage">
-
-
-		<section>
-
-
-			<HeaderLog />
-
-			<DatePicker class="datePicker" />
-
-			<CounterCards :counters="incomingData.counters" />
-
-			<div class="selectorVista">
-				<SelectorVista @fuction_uno="showContainier" @fuction_dos="showBl" @fuction_tres="showETA"
-					@fuction_cuatro="showMapa" ref="selectorBtn" />
-			</div>
-
-
-
-		</section>
-
-
-		<div class="vistaStandarList">
-
-			<div class="contendorBlanco" style="height: 100%;">
-
-				<ContenedoresCard @showEnlacePop="showEnlacePop" v-if="views.contenedor"
-					:containersList="containersList" @showAddTransfer="showAddingTransfer" />
-
-				<TransfersListCard v-if="views.bl" :fullTransfer="transferList.fullTransfer"
-					@showAddTransfer="showAddingTransfer" @transfer_id="cargarMapa" />
-
-				<EtaCard v-if="views.eta" :fullTransfer="transferList.fullTransfer"
-					@showAddTransfer="showAddingTransfer" @transfer_id="cargarMapa" />
-
-				<MapaContainers v-if="views.mapa" :transfer_id="transferIdSelected"
-					@showAddTransfer="showAddingTransfer" class="miMapa" />
-
-
-			</div>
-
-
-		</div>
-
-
-	</div>
+    <MainContent :shipment-data="shipments" @track-shipment="trackShipment" />
+  </div>
 </template>
 
-
 <script setup>
+import { ref, onMounted } from 'vue';
+import DashboardHeader from './PanelPrincipal/DashboardHeader.vue';
+import SummaryCard from './PanelPrincipal/SummaryCard.vue';
+import MainContent from './PanelPrincipal/MainContent.vue';
+import { transfers_list} from '@/components/conexion/DataConector.js';
 
-import HeaderLog from '@/components/external/components/HeaderLog.vue'
+const summaryCards = ref([
+  { title: 'Pendiente', value: 5, chartColor: 'stroke-yellow-500' },
+  { title: 'Aprobado', value: 23, chartColor: 'stroke-green-500' },
+  // Kept as blue per your request
+  { title: 'En Tránsito', value: 12, chartColor: 'stroke-blue-500' },
+  { title: 'Retenido', value: 2, chartColor: 'stroke-red-500' },
+  { title: 'Completado', value: 156, chartColor: 'stroke-slate-500' },
+]);
 
+const shipments = ref([]);
 
-// import PopTransfersCard from '@/components/Internal/Menu/Frames/PopPop/PanelPrincipal/PopTransfersCard.vue'
+const trackShipment = () => {
+  console.log(`Tracking shipment: ${shipments.value[0].bl}`);
+};
 
-import CounterCards from '@/components/Internal/CounterCards.vue'
-
-import DatePicker from '@/components/external/frames/DatePicker.vue'
-
-import { transfers_list, transfer_UnitsAll } from '@/components/conexion/DataConector.js'
-
-import SelectorVista from '@/components/external/components/SelectorVista.vue'
-
-import TransfersListCard from '@/components/Internal/Menu/Frames/Groups/PanelPrincipal/TransfersListCard.vue'
-
-import EtaCard from '@/components/Internal/Menu/Frames/Groups/PanelPrincipal/EtaCard.vue'
-
-import ContenedoresCard from '@/components/Internal/Menu/Frames/Groups/PanelPrincipal/ContenedoresCard.vue'
-
-import MapaContainers from '@/components/Internal/Menu/Frames/Groups/PanelPrincipal/MapaContainers.vue'
-
-import PopEnlazar from '@/components/Internal/Menu/Frames/PopPop/PanelPrincipal/PopEnlazar.vue'
-
-
-
-import { ref, onMounted, defineProps } from 'vue'
-import TransferWizardCard from "@/components/TransferWizard/TransferWizardCard.vue";
-
-//let addUsuarioShowing=ref(false)
-
-let transferList = ref({
-	client: {
-		name: "Loading... "
-	},
-
-	fullTransfer: []
-
+onMounted(async () => {
+  try {
+    const response = await transfers_list()
+    shipments.value = response.data.transfers;
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  }
 });
-
-const containersList = ref([
-	{
-		id: 1,
-		container: "container",
-		device: "device",
-		startDate: "2025-02-11 13:38:12",
-		startPlaceName: "startPlaceName",
-		endPlaceName: "endPlaceName",
-		state: "state"
-	}
-])
-
-const views = ref({
-	contenedor: false,
-	bl: true,
-	eta: false,
-	mapa: false
-})
-
-const transferIdSelected = ref()
-
-const selectorBtn = ref(null);
-
-const addTransferShowing = ref(false)
-
-const enlaceShowing = ref(false)
-
-const containerSelected = ref({
-	id: 1,
-	container: "1234"
-})
-
-const incomingData = defineProps(['counters']);
-
-function showContainier() {
-	views.value.contenedor = true
-	views.value.bl = false
-	views.value.eta = false
-	views.value.mapa = false
-}
-
-function showBl() {
-	views.value.contenedor = false
-	views.value.bl = true
-	views.value.eta = false
-	views.value.mapa = false
-}
-
-function showETA() {
-	views.value.contenedor = false
-	views.value.bl = false
-	views.value.eta = true
-	views.value.mapa = false
-}
-
-function showMapa() {
-	views.value.contenedor = false
-	views.value.bl = false
-	views.value.eta = false
-	views.value.mapa = true
-
-}
-
-function cargarMapa(transfer_id) {
-
-	showMapa()
-	selectorBtn.value.fuction_cuatro()
-
-	transferIdSelected.value = transfer_id
-
-}
-
-
-
-
-
-// function closeAddTransfer() {
-//
-// 	addTransferShowing.value = false
-//
-// }
-
-function closeEnlacePop() {
-	enlaceShowing.value = false
-}
-
-function showEnlacePop(contenedorSelected) {
-	containerSelected.value = contenedorSelected
-
-	enlaceShowing.value = true
-}
-
-
-function showAddingTransfer() {
-	addTransferShowing.value = true
-}
-
-function closeAddingTransfer() {
-  addTransferShowing.value = false
-}
-
-
-
-
-async function consultarTransfers() {
-
-  const result = await transfers_list();
-
-		if (result.success) {
-			transferList.value = result.clientFullTransfers;
-		}else {
-			console.log(result)
-		}
-
-}
-
-function consultarContenedoresAll() {
-
-
-	transfer_UnitsAll().then(result => {
-
-		if (result.success) {
-
-			containersList.value = result.transfersUnitTransfer;
-		} else {
-			console.log(result)
-		}
-	}).catch(error => {
-		console.log(error)
-		console.log("Error al Hacer La peticion")
-	}).finally(() => {
-		console.log("consutla done")
-	})
-
-
-}
-
-
-
-
-onMounted(() => {
-
-
-	consultarTransfers().then(() => {
-		consultarContenedoresAll()
-	})
-
-});
-
 </script>
 
-<style scoped>
-.containerPage {
-	height: 100vh;
-	width: 100%;
-	display: flex;
-	flex-direction: column;
-
-
-
-}
-
-.selectorVista {
-	padding-top: 15px;
-	padding-left: 1%;
-}
-
-.datePicker {
-	padding-top: 20px;
-	padding-bottom: 15px;
-	padding-left: 1%;
-	padding-right: 2%;
-}
-
-.vistaStandarList {
-	width: 100%;
-	height: 100%;
-	overflow: auto;
-	padding-top: 15px;
-	padding-right: 2%;
-	padding-left: 1%;
-}
-
-.contendorTabla {
-
-	display: flex;
-	flex-direction: column;
-	height: 100%;
-	width: 100%;
-	padding-left: 10px;
-	padding-right: 10px;
-}
-
-
-.mainTitulo {
-	padding: 1px;
-	padding-left: 29px;
-	width: 100%;
-	font-size: 22px;
-	font-weight: 400;
-	border-bottom: solid 1px;
-	border-color: #80808030;
-	background-color: white;
-}
-
-
-
-.contendorBlanco {
-	/*	padding: 20px;*/
-	height: 100%;
-	display: flex;
-	/*	border: solid 1px;
-	border-color: #80808030;*/
-	border-radius: 12px;
-	background-color: white;
-}
-
-
-.myTable {
-	height: auto;
-	overflow: auto;
-	padding-left: 15px;
-	padding-right: 15px;
-}
-
-.miMapa {
-
-	height: 100%;
+<style>
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #f8fafc;
 }
 </style>

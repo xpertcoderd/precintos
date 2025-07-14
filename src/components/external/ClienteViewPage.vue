@@ -139,7 +139,7 @@ export default {
 
 				if (result.success) {
 
-					transferList.value = result.clientFullTransfers;
+					transferList.value.fullTransfer = result.data.transfers;
 				} else if (result.note) {
 
 					transferList.value.fullTransfer = []
@@ -209,7 +209,9 @@ export default {
 
 					if (result.success) {
 
-						transferList.value = result.clientFullTransfers;
+
+										transferList.value.fullTransfer = result.data.transfers;
+
 					} else if (result.note) {
 
 						transferList.value.fullTransfer = []
@@ -282,7 +284,9 @@ export default {
 
 					if (result.success) {
 
-						transferList.value = result.clientFullTransfers;
+
+										transferList.value.fullTransfer = result.data.transfers;
+
 					} else {
 						console.log(result)
 					}

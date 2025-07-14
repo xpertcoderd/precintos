@@ -13,7 +13,7 @@ async function getTransferTypes() {
     try {
         const typeList = await transfer_Types();
         if (typeList.success) {
-            return typeList.transferTypes;
+            return typeList.data.transferTypes;
         }
     } catch (error) {
         console.error("Error al hacer la petición de tipos de transferencia:", error);
@@ -24,7 +24,7 @@ async function getStartPlaces(sc_Id) {
     try {
         const listPlaces = await startPlace_Points(sc_Id);
         if (listPlaces.success) {
-            return listPlaces.places;
+            return listPlaces.data.places;
         }
     } catch (error) {
         console.error("Error al obtener puntos de inicio:", error);
@@ -35,7 +35,7 @@ async function getEndPlaces(sc_Id) {
     try {
         const listPlaces = await endPlace_Points(sc_Id);
         if (listPlaces.success) {
-            return listPlaces.places;
+            return listPlaces.data.places;
         }
     } catch (error) {
         console.error("Error al obtener puntos de destino:", error);
@@ -46,7 +46,7 @@ async function getFinalClientsList(sc_id) {
     try {
         const clientList = await finalClientsList(sc_id);
         if (clientList.success) {
-            return clientList.clients;
+            return clientList.data.clients;
         }
     } catch (error) {
         console.error("Error al obtener clientes finales:", error);
@@ -100,7 +100,7 @@ export async function calculateTariff(trTypeId, startPlaceID, endPlaceId) {
 
     try {
         const response = await tariffs_calculation(trTypeId, startPlaceID, endPlaceId);
-        return response.tariff.price || 0;
+        return response.data.tariff.price || 0;
     } catch (error) {
         console.error("Error al consultar la tarifa:", error);
     }

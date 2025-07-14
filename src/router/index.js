@@ -1,54 +1,98 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router';
+import jsCookie from 'js-cookie';
 
-
-import PrivateDashboard from '../views/PrivateDashboard.vue'
-import LoginPage from '../views/LoginPage.vue'
-// import TransferWizardCard from '../components/TransferWizard/TransferWizardCard.vue'
-
-
-import ATM_Local  from '@/components/conexion/socket/Atmosphere/Socket_Local.vue'
-import ATM_Navixy from '@/components/conexion/socket/Atmosphere/Socket_Navixy.vue'
-import ATM_Navixy_Mejorado from '@/components/conexion/socket/Atmosphere/Socket_Navixy_Mejorado.vue'
-
-import WS_Navixy from '@/components/conexion/socket/WS/Socket_Navixy.vue'
-
+/**
+ * Helper function to check if the user is authenticated.
+ * It checks for the existence of the authentication cookies from your project.
+ * @returns {boolean} True if the user is authenticated, false otherwise.
+ */
+const isAuthenticated = () => {
+  // Using the cookie names found in your LoginPage.vue
+  return !!jsCookie.get('userPublicInfo') || !!jsCookie.get('PLAY_SESSION');
+};
 
 const routes = [
+  // --- Public Routes ---
   {
+    path: '/login',
+    name: 'Login',
+    // Lazy-load the component for better performance.
+    component: () => import(/* webpackChunkName: "login" */ '../views/LoginPage.vue'),
+    // This guard prevents authenticated users from seeing the login page again.
+    beforeEnter: (to, from, next) => {
+      if (isAuthenticated()) {
+        // If logged in, redirect to the main dashboard.
+        next({ name: 'Dashboard' });
+      } else {
+        next();
+      }
+    },
+  },
+  {
+    // Redirect the root path to the login page for a clear user flow.
     path: '/',
-    name: 'precintos',
-    component: LoginPage
+    redirect: '/login',
   },
+
+  // --- Protected Routes (Dashboard Layout) ---
   {
-    path: '/socket1/',
-    name: 'ATM_Local',
-    component: ATM_Local
+    path: '/dashboard',
+    // This component acts as a layout for all authenticated routes.
+    // It contains a <router-view /> to render its children.
+    component: () => import(/* webpackChunkName: "dashboard-layout" */ '../views/PrivateDashboard.vue'),
+    meta: { requiresAuth: true }, // Mark this route and its children as requiring authentication.
+    children: [
+      {
+        path: '', // Default child for /dashboard
+        name: 'Dashboard',
+        // This is the main content for the dashboard homepage.
+        component: () => import(/* webpackChunkName: "panel-principal" */ '@/components/Internal/Menu/Frames/Pages/PanelPrincipal.vue'),
+      },
+      // Add other dashboard pages here, e.g.:
+      // {
+      //   path: 'settings', // accessible at /dashboard/settings
+      //   name: 'Settings',
+      //   component: () => import('../views/SettingsPage.vue'),
+      // },
+    ],
   },
-  {
-    path: '/socket2/',
-    name: 'ATM_Navixy',
-    component: ATM_Navixy
-  },
-  {
-    path: '/socket3/',
-    name: 'WS_Navixy',
-    component: WS_Navixy
-  },
-  {
-    path: '/socket4/',
-    name: 'ATM_Navixy_Mejorado',
-    component: ATM_Navixy_Mejorado
-  },
-  {
-    path: '/dashboard/',
-    name: 'PrivateDashboard',
-    component: PrivateDashboard
-  },
-]
+];
+
+// --- Development-Only Routes ---
+// These routes will only be available in your development environment.
+if (process.env.NODE_ENV === 'development') {
+  const devRoutes = [
+    {
+      path: '/dev-sockets',
+      name: 'DevSockets',
+      meta: { requiresAuth: true }, // Also protect dev routes if needed
+      component: () => import(/* webpackChunkName: "dev-layout" */ '../views/PrivateDashboard.vue'),
+      children: [
+        // Add any development-specific routes here
+      ]
+    }
+  ];
+  routes.push(...devRoutes);
+}
 
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
-  routes
-})
+  routes,
+});
 
-export default router
+// --- Global Navigation Guard ---
+// This function runs before every single navigation.
+router.beforeEach((to, from, next) => {
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
+
+  if (requiresAuth && !isAuthenticated()) {
+    // If the route requires auth and the user is not logged in,
+    // redirect them to the login page.
+    next({ name: 'Login' });
+  } else {
+    // Otherwise, allow the navigation to proceed.
+    next();
+  }
+});
+
+export default router;

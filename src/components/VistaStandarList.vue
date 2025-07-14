@@ -1,311 +1,123 @@
 <template>
-	<div class="vistaStandarList">
+  <div class="bg-slate-100 p-4 min-h-full">
+    <div v-if="!incomingData.transfers_list || incomingData.transfers_list.length === 0" class="flex items-center justify-center h-full">
+      <p class="text-center text-slate-500 text-lg">No hay traslados para mostrar.</p>
+    </div>
 
-		<div v-if="incomingData.transfers_list.length == 0">
-
-			<h5 class="noFound">
-				No Hay Registros para este Cliente
-			</h5>
-		</div>
-
-		<div v-else class="listaTabla" v-for=" (dato, index) in incomingData.transfers_list" :key="index">
-
-			<div @click="toggleCollapse(index, dato.transfer.id)" :class="{ 'listaSelected': isOpen(index) }"
-				class="targeticas ">
-
-
-				<div class="rowInfo">
-					<div>
-						<div style="font-size: 9px;">Bill of Lading</div>
-						<strong>{{ dato.transfer.bl }}</strong>
-
-						<div>
-							<i class="bi bi-circle-fill vineta" style="color: #72c9eb;"></i>
-
-							<span v-if="dato.transfer.startPlace" class="miniLetra">{{ dato.transfer.startPlace.label
-								}}</span>
-							<span v-else class="miniLetra">{{ "N/A" }}</span>
-							<img style="height: 25px; margin-left: 5px;" src="../assets/icons/flechaAzul.svg">
-
-
-
-							<i class="bi bi-circle-fill vineta"></i>
-							<span v-if="dato.transfer.endPlace" class="miniLetra">{{ dato.transfer.endPlace.label
-								}}</span>
-							<span v-else class="miniLetra">{{ "N/A" }}</span>
-						</div>
-
-
-
-					</div>
-
-
-					<div class="infoRows">
-
-						<div class="cuadroCounter">{{ (dato.transferLnk).length || 0 }}</div>
-						<img @click="sendId(dato.transfer.id)" style="height: 55px;" src="../assets/hombrecito.svg">
-
-					</div>
-
-				</div>
-
-			</div>
-
-			<div v-if="incomingData.vista == 2" v-show="isOpen(index)" class="contendorTabla">
-
-				<TablaHeader />
-
-
-				<TablaList :indice="index" :transferLnk="incomingData.transfers_list" class="myTable" />
-
-
-
-			</div>
-		</div>
-
-
-	</div>
+    <div v-else class="space-y-6">
+      <!-- The Shipment Card -->
+      <div v-for="dato in incomingData.transfers_list" :key="dato.id" class="w-full bg-white rounded-2xl shadow-lg p-6 md:p-8 transition-all duration-300">
+        
+        <!-- Top Section: B/L and ETA -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 pb-6 mb-6">
+          <!-- Bill of Lading Section -->
+          <div class="flex items-center gap-4">
+              <div class="bg-blue-100 text-blue-600 p-3 rounded-lg">
+                  <ShipIcon class="w-6 h-6"></ShipIcon>
+              </div>
+              <div>
+                  <p class="text-sm font-medium text-slate-500">Bill of Lading</p>
+                  <p class="text-xl font-bold text-slate-800 tracking-wider">{{ dato.bl || 'N/A' }}</p>
+              </div>
+          </div>
+  
+          <!-- ETA Section -->
+          <div class="text-left md:text-right">
+            <p class="text-sm font-medium text-slate-500">ETA</p>
+            <p class="text-lg font-semibold text-slate-700">{{ formatDateTime(dato.timeTravelEst) }}</p>
+          </div>
+        </div>
+  
+        <!-- Bottom Section: Route and Status -->
+        <div class="flex flex-col md:flex-row justify-between items-start gap-6">
+          
+          <!-- Route Section -->
+          <div class="w-full">
+            <h3 class="text-md font-semibold text-slate-600 mb-4">Ruta</h3>
+            <div class="flex items-center w-full">
+              <!-- Origin -->
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="flex-shrink-0 w-4 h-4 bg-green-500 rounded-full border-2 border-white ring-2 ring-green-500"></div>
+                <p class="text-slate-700 font-medium truncate" :title="dato.startPlace.label">
+                  {{ dato.startPlace.label || 'Origen no especificado' }}
+                </p>
+              </div>
+  
+              <!-- Connecting Line -->
+              <div class="flex-grow mx-4 h-px bg-slate-300 border-t border-dashed border-slate-400"></div>
+  
+              <!-- Destination -->
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="flex-shrink-0 w-4 h-4 bg-red-500 rounded-full border-2 border-white ring-2 ring-red-500"></div>
+                <p class="text-slate-700 font-medium truncate" :title="dato.endPlace.label">
+                  {{ dato.endPlace.label || 'Destino no especificado' }}
+                </p>
+              </div>
+            </div>
+          </div>
+  
+          <!-- Status Icons Section -->
+          <div class="flex-shrink-0 flex flex-row md:flex-col gap-2 pt-4 md:pt-0 md:border-l md:pl-6 border-slate-200">
+              <div class="flex items-center gap-2 bg-slate-100 p-2 rounded-lg">
+                  <BoxIcon class="w-5 h-5 text-indigo-500"></BoxIcon>
+                  <span class="text-sm font-medium text-slate-600 hidden sm:inline">
+                      {{ 0 }} Contenedores
+                  </span>
+              </div>
+              <div @click="trackShipment(dato.id)" class="flex items-center gap-2 bg-slate-100 p-2 rounded-lg cursor-pointer hover:bg-slate-200 transition-colors">
+                  <MapPin class="w-5 h-5 text-rose-500"></MapPin>
+                  <span class="text-sm font-medium text-slate-600 hidden sm:inline">Tracking</span>
+              </div>
+          </div>
+  
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
+
 <script setup>
+import { defineProps, defineEmits, h } from 'vue';
 
-import { ref } from 'vue'
-import TablaList from './TablaList.vue'
-import TablaHeader from './TablaHeader.vue'
+const incomingData = defineProps(['transfers_list']);
+const outGoingData = defineEmits(['transfer_id']);
 
-import { defineProps, defineEmits } from 'vue' //onMounted defineExpose ref
-
-const incomingData = defineProps(['vista', 'transfers_list']);
-
-const outGoingData = defineEmits(
-	['indice', 'transfer_id', 'contarStatus']
-)
-
-let openIndex = ref()
-
-
-function toggleCollapse(index, tranfer_id) {
-
-	//console.log("toggleCollapse")
-
-	openIndex.value = openIndex.value === index ? null : index;
-
-	outGoingData('contarStatus', tranfer_id);
-
-	outGoingData('indice', index);
-
+function trackShipment(id) {
+  outGoingData('transfer_id', id);
 }
 
-function isOpen(index) {
-
-	//console.log("isOpen")
-
-	return openIndex.value === index;
+function formatDateTime(dateTimeString) {
+  if (!dateTimeString) return 'No especificada';
+  try {
+    const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+    return new Date(dateTimeString).toLocaleDateString('es-ES', options);
+  } catch (e) {
+    return 'Fecha inválida';
+  }
 }
 
-function sendId(id) {
-	outGoingData('transfer_id', id);
-}
+// --- Icon Components ---
+const MapPin = (props, { attrs }) => h('svg', { ...attrs, xmlns: "http://www.w3.org/2000/svg", width: "24", height: "24", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round" }, [
+  h('path', { d: "M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" }),
+  h('circle', { cx: "12", cy: "10", r: "3" })
+]);
 
+const BoxIcon = (props, { attrs }) => h('svg', { ...attrs, xmlns: "http://www.w3.org/2000/svg", width: "24", height: "24", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round" }, [
+  h('path', { d: "M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" }),
+  h('polyline', { points: "3.27 6.96 12 12.01 20.73 6.96" }),
+  h('line', { x1: "12", y1: "22.08", x2: "12", y2: "12" })
+]);
 
+const ShipIcon = (props, { attrs }) => h('svg', { ...attrs, xmlns: "http://www.w3.org/2000/svg", width: "24", height: "24", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round" }, [
+  h('path', { d: "M2 21h20" }),
+  h('path', { d: "M6.5 21.5V17" }),
+  h('path', { d: "M17.5 21.5V17" }),
+  h('path', { d: "M22 17H2a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h1.34a1 1 0 0 1 .96.76L5 8h14l.7-3.24a1 1 0 0 1 .96-.76H22a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2z" }),
+  h('path', { d: "M12 17V5" }),
+  h('path', { d: "M6 5l6-3 6 3" })
+]);
 </script>
+
 <style scoped>
-.vistaStandarList {
-	width: 100%;
-	height: 100%;
-	overflow: auto;
-	background-color: white;
-	border-right: solid 1px;
-	border-left: solid 1px;
-	border-bottom: solid 1px;
-	border-color: #80808030;
-	padding: 10px;
-}
-
-
-.listaTabla {
-	padding: 10px;
-	padding-top: 2px;
-	padding-bottom: 0.5px;
-	width: 100%;
-}
-
-.contendorTabla {
-	margin-left: 20px;
-	border-radius: 8px 8px 0px 0px;
-	border: solid 1px;
-	padding: 10px;
-	border-color: #80808030;
-}
-
-.myTable {
-	max-height: 230px;
-	overflow: auto;
-}
-
-.listaSelected {
-	box-shadow: 0px 0px 10px 5px rgba(102, 185, 217, 0.7)
-}
-
-.targeticas:hover {
-	/* box-shadow: none;*/
-	box-shadow: 0px 0px 10px 5px rgba(102, 185, 217, 0.7)
-}
-
-.targeticas {
-	border: solid 1px;
-	padding: 8px;
-	border-color: #80808030;
-	cursor: pointer;
-	/*	min-height: 65px;*/
-	border-radius: 8px 8px 8px 8px;
-}
-
-
-.infoRows {
-	display: flex;
-	padding-right: 10px;
-}
-
-.rowInfo {
-	display: flex;
-	justify-content: space-between;
-
-}
-
-.noFound {
-	display: flex;
-	/* Utiliza Flexbox */
-	justify-content: center;
-	/* Centra horizontalmente */
-	align-items: center;
-	/* Centra verticalmente */
-	height: 200px;
-	/* Ajusta la altura según tus necesidades */
-	color: #46b0d1;
-}
-
-.miniLetra {
-	font-size: 10px;
-}
-
-.vineta {
-	font-size: 8px;
-	color: #3aaa35;
-	padding: 5px;
-}
-
-.rowMenu {
-	display: flex;
-	justify-content: space-between;
-}
-
-
-.softBorders {
-	margin-right: 20px;
-	border: solid 1px;
-	border-color: #80808030;
-	border-radius: 7px 7px 7px 7px;
-}
-
-.filter {
-	padding-left: 15px;
-	padding-right: 15px;
-	cursor: pointer;
-	color: #cacaca;
-}
-
-.textInput {
-	margin-left: 5px;
-	background-color: transparent;
-	color: grey;
-	/*color: #cacaca;*/
-	outline: none;
-	width: 100%;
-	border: none
-}
-
-.titleTable {
-	font-size: 14px;
-	font-weight: 600;
-}
-
-.datoTable {
-	font-size: 12px;
-	padding-top: 5px;
-	padding-bottom: 5px;
-}
-
-.estatusTable {
-	border-radius: 5px;
-	background-color: pink;
-	padding: 4px;
-	padding-right: 15px;
-	padding-left: 15px;
-	font-weight: 700;
-	color: red;
-}
-
-
-
-
-.icons {
-	width: 25px;
-	border: solid 1px;
-	border-color: #80808030;
-	padding: 2px;
-	border-radius: 6px 6px 6px 6px;
-}
-
-
-
-.titlePop {
-	padding: 2px;
-	padding-left: 4px;
-	font-size: 14px;
-	font-weight: 600;
-}
-
-.columnaName {
-	position: sticky;
-	top: 0px;
-
-}
-
-.cuadroCounter {
-	width: 48px;
-	height: 48px;
-	border-radius: 9px 9px 9px 9px;
-	background-color: #ec6061;
-	color: white;
-	font-weight: 650;
-	display: flex;
-	justify-content: center;
-	/* Centra horizontalmente */
-	align-items: center;
-	/* Centra verticalmente */
-	font-size: 19px;
-	/* Tamaño del texto */
-	border: 1px solid #000;
-	/* Borde del cuadrado */
-	border-color: #afa7a7f2;
-
-	margin-top: auto;
-	margin-bottom: auto;
-	margin-right: 35px;
-}
-
-
-
-
-/*  scrollbar stiyles width */
-
-::-webkit-scrollbar {
-	width: 10px;
-}
-
-/* scrollbar stiyles Handle */
-::-webkit-scrollbar-thumb {
-	background-color: #66b9d9;
-	border-radius: 10px;
-}
+/* Tailwind CSS handles all styling. */
 </style>

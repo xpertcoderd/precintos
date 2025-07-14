@@ -1,28 +1,15 @@
+// tailwind.config.js
 /** @type {import('tailwindcss').Config} */
-const colors = require('tailwindcss/colors')
 module.exports = {
   content: [
     "./src/**/*.{vue,js,ts,jsx,tsx}",
+    "./index.html", // Also good to add this
   ],
   theme: {
     extend: {
       colors: {
         'custom-gray': '#f5f6f7',
         'custom-blue': '#2ec0e2',
-        transparent: 'transparent',
-        current: 'currentColor',
-        black: colors.black,
-        white: colors.white,
-        emerald: colors.emerald,
-        indigo: colors.indigo,
-        yellow: colors.yellow,
-        stone: colors.warmGray,
-        sky: colors.lightBlue,
-        neutral: colors.trueGray,
-        gray: colors.coolGray,
-        slate: colors.blueGray,
-        lime: colors.lime,
-        rose: colors.rose,
       },
       boxShadow: {
         'custom-left': '-2px 0px 5px 2px rgba(52, 52, 52, 0.4)',
@@ -30,5 +17,6 @@ module.exports = {
       },
     },
   },
+  // The safelist is no longer needed for this use case in v3
   plugins: [],
 }

@@ -1,91 +1,177 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tabla de Carga</title>
-    <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap"
-            rel="stylesheet"
-    />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard with Sidebar</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        inter: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        blueHeader: '#2EC3E4',
-                        tableHeader: '#F9FAFB',
-                        tableBorder: '#E5E7EB',
-                        tableBg: '#F7F8FA',
-                        grayText: '#6B7280',
-                    },
-                },
-            },
-        };
-    </script>
+    <!-- Vue 3 CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Custom Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        html, body {
+            height: 100%;
+            overflow: hidden; /* Prevent double scrollbars */
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        .chart-line {
+            stroke-width: 2;
+        }
+    </style>
 </head>
-<body class="font-inter bg-gray-100 flex items-center justify-center min-h-screen">
-<div class="w-[1100px] h-[640px] bg-white shadow-lg rounded-[16px] overflow-hidden">
-    <!-- Top Blue Header -->
-    <div class="bg-blueHeader text-white px-6 py-4 grid grid-cols-4 gap-4 text-sm">
-        <div>
-            <p class="font-bold">Broker</p>
-            <p>Marítima Dominicana</p>
-        </div>
-        <div>
-            <p class="font-bold">Cliente Final</p>
-            <p>La Sirena</p>
-        </div>
-        <div>
-            <p class="font-bold">Tipo de Carga</p>
-            <p>Carga Suelta</p>
-        </div>
-        <div>
-            <p class="font-bold">Costo por Contenedor</p>
-            <p>RD$2,400<sup class="align-top text-xs">.00</sup></p>
-        </div>
-        <div>
-            <p class="font-bold">Origen</p>
-            <p>Puerto Caucedo</p>
-        </div>
-        <div>
-            <p class="font-bold">Destino</p>
-            <p>Marítima Dominicana (MARDOM)</p>
-        </div>
-    </div>
+<body>
 
-    <!-- Table Header -->
-    <div class="bg-tableHeader text-[#6B7280] text-center font-bold text-lg px-6 py-3 grid grid-cols-3 border-b border-gray-200">
-        <div>No. BL</div>
-        <div>Contenedores</div>
-        <div>Total</div>
-    </div>
-
-    <!-- Table Rows -->
-    <div class="bg-tableBg px-4 py-2 space-y-2">
-        <!-- Row 1 -->
-        <div class="bg-white rounded-md shadow-sm grid grid-cols-3 items-center px-6 py-4 text-center text-gray-900">
-            <div>4567890FGHJK</div>
-            <div>5</div>
-            <div>RD$10,800<sup class="align-top text-xs">.00</sup></div>
-        </div>
-        <!-- Row 2 -->
-        <div class="bg-white rounded-md shadow-sm grid grid-cols-3 items-center px-6 py-4 text-center text-gray-900">
-            <div>4567890FGHJK</div>
-            <div>5</div>
-            <div>RD$10,800<sup class="align-top text-xs">.00</sup></div>
-        </div>
-        <!-- Row 3 -->
-        <div class="bg-white rounded-md shadow-sm grid grid-cols-3 items-center px-6 py-4 text-center text-gray-900">
-            <div>4567890FGHJK</div>
-            <div>5</div>
-            <div>RD$10,800<sup class="align-top text-xs">.00</sup></div>
-        </div>
-    </div>
+<div id="app" class="flex h-screen">
+    <!-- The combined layout will be rendered here -->
 </div>
+
+<script>
+    const { createApp, ref, computed } = Vue;
+
+    // --- Create the main Vue App ---
+    const app = createApp({
+        template: `
+                <div class="flex h-full w-full">
+                    <sidebar-menu></sidebar-menu>
+                    <div class="flex-grow overflow-y-auto">
+                        <dashboard-content></dashboard-content>
+                    </div>
+                </div>
+            `
+    });
+
+    // --- Icon Component Definitions (from both components) ---
+    const iconComponents = {
+        LayoutDashboard: { template: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>` },
+        FileText: { template: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><line x1="10" y1="9" x2="8" y2="9"></line></svg>` },
+        Server: { template: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>` },
+        BarChart2: { template: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>` },
+        DollarSign: { template: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>` },
+        Building: { template: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><path d="M9 22v-4h6v4"></path><path d="M8 6h.01"></path><path d="M16 6h.01"></path><path d="M12 6h.01"></path><path d="M12 10h.01"></path><path d="M12 14h.01"></path><path d="M16 10h.01"></path><path d="M16 14h.01"></path><path d="M8 10h.01"></path><path d="M8 14h.01"></path></svg>` },
+        Users: { template: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>` },
+        Truck: { template: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" /><polygon points="16,8 20,8 23,11 23,16 16,16 16,8" /><circle cx="5.5" cy="18.5" r="2.5" /><circle cx="18.5" cy="18.5" r="2.5" /></svg>` },
+        Settings: { template: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 0 2l-.15.08a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1 0-2l.15-.08a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>` },
+        Info: { template: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>` },
+        LogOut: { template: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>` },
+        UserCircle: { template: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="10" r="3" /><path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662" /></svg>`},
+        CalendarIcon: { template: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>` },
+        XIcon: { template: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>` },
+        ListIcon: { template: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>` },
+        SearchIcon: { template: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>` },
+        MapPin: { template: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>` },
+        BoxIcon: { template: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>` },
+        ShipIcon: { template: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 21h20"/><path d="M6.5 21.5V17"/><path d="M17.5 21.5V17"/><path d="M22 17H2a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h1.34a1 1 0 0 1 .96.76L5 8h14l.7-3.24a1 1 0 0 1 .96-.76H22a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2z"/><path d="M12 17V5"/><path d="M6 5l6-3 6 3"/></svg>` },
+    };
+    for (const [name, component] of Object.entries(iconComponents)) {
+        app.component(name, component);
+    }
+
+    // --- Sidebar Menu Component ---
+    app.component('sidebar-menu', {
+        setup() {
+            const menuSections = ref([
+                { title: 'Menu Principal', items: [ { name: 'Panel Principal', icon: 'LayoutDashboard' }, { name: 'Solicitudes', icon: 'FileText' }, { name: 'Dispositivos', icon: 'Server' }, { name: 'Analitica', icon: 'BarChart2' }, { name: 'Tarifa', icon: 'DollarSign' } ] },
+                { title: 'Entidades', items: [ { name: 'Clientes', icon: 'Building' }, { name: 'Usuarios', icon: 'Users' }, { name: 'Transportistas', icon: 'Truck' } ] },
+                { title: 'Otras opciones', items: [ { name: 'Configuracion', icon: 'Settings' }, { name: 'Informacion', icon: 'Info' } ] }
+            ]);
+            const activeItem = ref('Panel Principal');
+            const setActive = (itemName) => { activeItem.value = itemName; };
+            return { menuSections, activeItem, setActive };
+        },
+        template: `
+                <aside class="w-64 h-full bg-white border-r border-slate-200 flex flex-col p-4 flex-shrink-0">
+                    <div class="py-4 mb-4 text-center"><h1 class="text-2xl font-bold text-slate-800 tracking-widest">AURORA</h1></div>
+                    <div class="flex items-center gap-3 p-3 mb-6 rounded-lg bg-slate-50 border border-slate-200"><user-circle class="w-8 h-8 text-slate-500" /><span class="font-semibold text-slate-700">Aurora Central</span></div>
+                    <nav class="flex flex-col gap-6">
+                        <div v-for="section in menuSections" :key="section.title">
+                            <h3 class="px-3 mb-2 text-xs font-semibold tracking-wider text-slate-400 uppercase">{{ section.title }}</h3>
+                            <ul class="flex flex-col gap-1">
+                                <li v-for="item in section.items" :key="item.name">
+                                    <a href="#" @click.prevent="setActive(item.name)" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors" :class="[activeItem === item.name ? 'bg-sky-100 text-sky-700 font-semibold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-800']">
+                                        <component :is="item.icon" class="w-5 h-5" />
+                                        <span>{{ item.name }}</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </nav>
+                    <div class="mt-auto"><a href="#" class="flex items-center gap-3 px-3 py-3 rounded-lg text-slate-600 bg-slate-100 hover:bg-red-100 hover:text-red-700 transition-colors"><log-out class="w-5 h-5" /><span class="font-medium">Cerrar Sesion</span></a></div>
+                </aside>
+            `
+    });
+
+    // --- Dashboard Content Component ---
+    app.component('dashboard-content', {
+        setup() {
+            const summaryCards = ref([ { title: 'Pendiente', value: 5, chartColor: 'text-yellow-500' }, { title: 'Aprobado', value: 23, chartColor: 'text-green-500' }, { title: 'En Tránsito', value: 12, chartColor: 'text-sky-500' }, { title: 'Retenido', value: 2, chartColor: 'text-red-500' }, { title: 'Completado', value: 156, chartColor: 'text-slate-500' } ]);
+            const tabs = ref(['Contenedor', 'BL', 'ETA', 'Mapa']);
+            const activeTab = ref('Contenedor');
+            const shipmentData = ref({ billOfLading: '12341234', eta: '17 de enero de 2025, 16:00', origin: 'Port of Shanghai', destination: 'Port of Long Beach', containerCount: 2, hasTracking: true });
+            const trackShipment = () => { console.log(`Tracking shipment: ${shipmentData.value.billOfLading}`); };
+            const selectTab = (tab) => { activeTab.value = tab; };
+            const containerText = computed(() => { const count = shipmentData.value.containerCount; return `${count} Container${count > 1 ? 's' : ''}`; });
+
+            return { summaryCards, tabs, activeTab, shipmentData, trackShipment, selectTab, containerText };
+        },
+        template: `
+                <div class="p-4 md:p-8">
+                    <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+                        <h1 class="text-3xl font-bold text-slate-800 mb-4 md:mb-0">Dashboard</h1>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <div class="flex items-center gap-2">
+                                <button class="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50">Hoy</button>
+                                <button class="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50">Semanal</button>
+                                <button class="px-4 py-2 text-sm font-medium text-white bg-sky-500 border border-sky-500 rounded-lg">Mensual</button>
+                            </div>
+                            <div class="flex items-center gap-2 p-2 text-sm text-slate-700 bg-white border border-slate-200 rounded-lg">
+                                <calendar-icon class="w-5 h-5 text-slate-500"></calendar-icon>
+                                <span>07/04/2025, 00:00 - 07/11/2025, 12:10</span>
+                                <button class="ml-2 text-slate-400 hover:text-slate-600"><x-icon class="w-4 h-4"></x-icon></button>
+                            </div>
+                        </div>
+                    </header>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
+                        <div v-for="card in summaryCards" :key="card.title" class="bg-white p-4 rounded-xl border border-slate-200 flex justify-between items-center">
+                            <div><p class="text-sm text-slate-500">{{ card.title }}</p><p class="text-2xl font-bold text-slate-800">{{ card.value }}</p></div>
+                            <div class="w-20 h-10"><svg viewBox="0 0 80 40" :class="card.chartColor"><polyline fill="none" class="chart-line" points="0,30 10,20 20,25 30,15 40,18 50,10 60,15 70,25 80,20" /></svg></div>
+                        </div>
+                    </div>
+                    <main class="bg-white rounded-2xl shadow-lg p-6">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-200 pb-4 mb-6">
+                            <div class="flex items-center gap-3"><list-icon class="w-6 h-6 text-sky-600"></list-icon><h2 class="text-xl font-bold text-slate-800">Traslados</h2></div>
+                            <div class="flex items-center gap-4 mt-4 md:mt-0 w-full md:w-auto">
+                                <button class="w-full md:w-auto px-5 py-2.5 text-sm font-medium text-white bg-sky-500 rounded-lg hover:bg-sky-600 focus:ring-4 focus:ring-sky-300">Crear Traslado</button>
+                                <div class="relative w-full md:w-64"><input type="text" placeholder="Search..." class="w-full pl-10 pr-4 py-2 text-sm border border-slate-300 rounded-lg focus:ring-sky-500 focus:border-sky-500"><search-icon class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></search-icon></div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 mb-6">
+                            <button v-for="tab in tabs" :key="tab" @click="selectTab(tab)" :class="['px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200', activeTab === tab ? 'bg-sky-100 text-sky-700' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800']">{{ tab }}</button>
+                        </div>
+                        <div class="w-full bg-slate-50 rounded-lg transition-all duration-300 p-6 border border-slate-200">
+                            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 pb-6 mb-6">
+                                <div class="flex items-center gap-4"><div class="bg-sky-100 text-sky-600 p-3 rounded-lg"><ship-icon class="w-6 h-6"></ship-icon></div><div><p class="text-sm font-medium text-slate-500">Bill of Lading</p><p class="text-xl font-bold text-slate-800 tracking-wider">{{ shipmentData.billOfLading }}</p></div></div>
+                                <div class="text-left md:text-right"><p class="text-sm font-medium text-slate-500">ETA</p><p class="text-lg font-semibold text-slate-700">{{ shipmentData.eta }}</p></div>
+                            </div>
+                            <div class="flex flex-col md:flex-row justify-between items-start gap-6">
+                                <div class="w-full"><h3 class="text-md font-semibold text-slate-600 mb-4">Route</h3><div class="flex items-center w-full"><div class="flex items-center gap-3 min-w-0"><div class="flex-shrink-0 w-4 h-4 bg-green-500 rounded-full border-2 border-white ring-2 ring-green-500"></div><p class="text-slate-700 font-medium truncate" :title="shipmentData.origin">{{ shipmentData.origin }}</p></div><div class="flex-grow mx-4 h-px bg-slate-300 border-t border-dashed border-slate-400"></div><div class="flex items-center gap-3 min-w-0"><div class="flex-shrink-0 w-4 h-4 bg-red-500 rounded-full border-2 border-white ring-2 ring-red-500"></div><p class="text-slate-700 font-medium truncate" :title="shipmentData.destination">{{ shipmentData.destination }}</p></div></div></div>
+                                <div class="flex-shrink-0 flex flex-row items-center gap-4 pt-4 md:pt-0"><div v-if="shipmentData.containerCount > 0" class="flex items-center gap-2 text-sm font-medium text-slate-600"><box-icon class="w-5 h-5 text-indigo-500"></box-icon><span>{{ containerText }}</span></div><div v-if="shipmentData.hasTracking" @click="trackShipment" class="flex items-center gap-2 text-sm font-medium text-slate-600 cursor-pointer hover:text-sky-600"><map-pin class="w-5 h-5 text-rose-500"></map-pin><span>Tracking</span></div></div>
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            `
+    });
+
+    // --- Mount the App ---
+    app.mount('#app');
+</script>
+
 </body>
 </html>
