@@ -46,6 +46,8 @@ async function safeRequest(fn) {
     }
 }
 
+// ... (keep all your existing functions like transfer_Types, tariffs_List, etc.)
+
 export const transfer_Types = () => safeRequest(() => axios.get(`/api/v1/transferTypes/filtered`, axiosConfig));
 export const tariffs_List = () => safeRequest(() => axios.get(`/api/v1/tariffs/all`, axiosConfig));
 
@@ -146,52 +148,27 @@ export async function openSeal(params, pin) {
 export const counterCandado = () => safeRequest(() => axios.get(`/api/v1/devices/allStats`, axiosConfig));
 export const blitsTranfers = (hash, id) => safeRequest(() => axios.get(`/v1/transferBlits/list/${hash}/${id}`, axiosConfig));
 
+
 // =================================================================
-// == Carrier Endpoints (NEW RESOURCE)
+// == Carrier Endpoints
 // =================================================================
-/**
- * NEW: Creates a new carrier.
- */
 export const carriers_create = (body) => safeRequest(() => axios.post(`/api/v1/carriers/create`, body, axiosConfig));
-/**
- * NEW: Reads a single carrier by ID.
- */
 export const carriers_read = (id) => safeRequest(() => axios.get(`/api/v1/carriers/read/${id}`, axiosConfig));
-/**
- * NEW: Retrieves a filtered list of carriers.
- */
 export const carriers_filtered = (params) => safeRequest(() => axios.get(`/api/v1/carriers/filtered`, { ...axiosConfig, params }));
-/**
- * NEW: Updates a carrier by ID.
- */
 export const carriers_update = (id, body) => safeRequest(() => axios.put(`/api/v1/carriers/update/${id}`, body, axiosConfig));
-/**
- * NEW: Deletes a carrier by ID.
- */
 export const carriers_delete = (id) => safeRequest(() => axios.delete(`/api/v1/carriers/delete/${id}`, axiosConfig));
 
 
 // =================================================================
-// == Vehicle Endpoints (NEW RESOURCE)
+// == Vehicle Endpoints
 // =================================================================
-/**
- * NEW: Creates a new vehicle. Expects FormData.
- */
 export const vehicles_create = (formData) => safeRequest(() => axios.post(`/api/v1/vehicles/create`, formData, {
     ...axiosConfig,
     headers: { 'Content-Type': 'multipart/form-data' }
 }));
-/**
- * NEW: Reads a single vehicle by ID.
- */
-export const vehicles_read = (id) => safeRequest(() => axios.get(`/api/v1/vehicles/read/${id}`, axiosConfig));
-/**
- * NEW: Retrieves a filtered list of vehicles.
- */
+export const vehicles_update = (id, body) => safeRequest(() => axios.put(`/api/v1/vehicles/update/${id}`, body, axiosConfig));
+export const vehicles_delete = (id) => safeRequest(() => axios.delete(`/api/v1/vehicles/delete/${id}`, axiosConfig));
 export const vehicles_filtered = (params) => safeRequest(() => axios.get(`/api/v1/vehicles/filtered`, { ...axiosConfig, params }));
-/**
- * NEW: Updates a vehicle's photo.
- */
 export const vehicles_updatePhoto = (formData) => safeRequest(() => axios.post(`/api/v1/vehicles/updatePhoto`, formData, {
     ...axiosConfig,
     headers: { 'Content-Type': 'multipart/form-data' }
@@ -199,26 +176,15 @@ export const vehicles_updatePhoto = (formData) => safeRequest(() => axios.post(`
 
 
 // =================================================================
-// == Driver Endpoints (NEW RESOURCE)
+// == Driver Endpoints
 // =================================================================
-/**
- * NEW: Creates a new driver. Expects FormData.
- */
 export const drivers_create = (formData) => safeRequest(() => axios.post(`/api/v1/drivers/create`, formData, {
     ...axiosConfig,
     headers: { 'Content-Type': 'multipart/form-data' }
 }));
-/**
- * NEW: Reads a single driver by ID.
- */
-export const drivers_read = (id) => safeRequest(() => axios.get(`/api/v1/drivers/read/${id}`, axiosConfig));
-/**
- * NEW: Retrieves a filtered list of drivers.
- */
+export const drivers_update = (id, body) => safeRequest(() => axios.put(`/api/v1/drivers/update/${id}`, body, axiosConfig));
+export const drivers_delete = (id) => safeRequest(() => axios.delete(`/api/v1/drivers/delete/${id}`, axiosConfig));
 export const drivers_filtered = (params) => safeRequest(() => axios.get(`/api/v1/drivers/filtered`, { ...axiosConfig, params }));
-/**
- * NEW: Updates a driver's photo.
- */
 export const drivers_updatePhoto = (formData) => safeRequest(() => axios.post(`/api/v1/drivers/updatePhoto`, formData, {
     ...axiosConfig,
     headers: { 'Content-Type': 'multipart/form-data' }

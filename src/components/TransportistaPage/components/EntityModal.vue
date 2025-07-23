@@ -9,7 +9,6 @@
           </button>
         </div>
         <div class="p-6 max-h-[70vh] overflow-y-auto">
-          <!-- The specific form will be injected here -->
           <slot></slot>
         </div>
         <div class="flex justify-end items-center p-4 bg-slate-50 rounded-b-xl">
@@ -22,12 +21,14 @@
 </template>
 
 <script setup>
-import XIcon from '../icons/XIcon.vue';
 import { defineProps, defineEmits } from 'vue';
+import XIcon from '../icons/XIcon.vue';
+
 defineProps({
   visible: Boolean,
   title: String,
   saveText: String,
 });
+
 defineEmits(['close', 'save']);
 </script>
