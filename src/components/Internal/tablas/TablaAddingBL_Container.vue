@@ -1,114 +1,43 @@
-<template>
-	<div class="expandible">
-
-		<table class="table table-lg requests-table">
-
-
-			<thead>
-				<tr class="columnaName">
-					<th class="titleTable">NO</th>
-					<th class="titleTable ">{{ incomingData.columnName1 }}</th>
-					<th class="titleTable ">{{ incomingData.columnName2 }}</th>
-				</tr>
-			</thead>
-
-			<tbody>
-				<tr v-for=" (dato, index) in incomingData.blList" :key="index" class="hovertabla">
-
-					<td class="datoTable" :class="{ 'listaSelected': dato.check }">
-						{{ index + 1 }}
-					</td>
-
-					<td class="datoTable " :class="{ 'listaSelected': dato.check }">
-						<span>{{ dato[1].text1 }}</span>
-					</td>
-
-					<td class="datoTable " :class="{ 'listaSelected': dato.check }">
-						<span>{{ dato[1].text2 }}</span>
-
-						<!-- font-size: 18px; -->
-
-						<i @click="outGoingData('removeBl', `${dato[1].text1}-${dato[1].text2}`)"
-							class="bi bi-dash-square-fill"
-               style="cursor: pointer; color: red; float: right; padding-right: 20px; font-size: 19px"></i>
-					</td>
-
-				</tr>
-
-			</tbody>
-		</table>
-
-
-
-
-	</div>
-</template>
-
 <script setup>
-
 import { defineProps, defineEmits } from 'vue';
+import TrashIcon from "@/components/TransportistaPage/icons/TrashIcon.vue";
 
-const incomingData = defineProps(['blList', 'columnName1', 'columnName2']);
+const props = defineProps(['blList', 'columnName1', 'columnName2']);
+const emit = defineEmits(['removeBl']);
 
-const outGoingData = defineEmits(['removeBl'])
-
-console.log(incomingData.blList)
-
-
+const handleRemove = (dato) => {
+  emit('removeBl', `${dato[1].text1}-${dato[1].text2}`);
+};
 </script>
 
-<style scoped>
-.expandible {
-	width: 100%;
-	height: 100%;
-	overflow: auto;
-}
-
-.titleTable {
-	background-color: #f7f8fa;
-	font-size: 14px;
-	font-weight: 700;
-}
-
-.datoTable {
-  font-size: 15px;
-  padding-top: 5px;
-  padding-bottom: 0px;
-}
-
-.checkIcon {
-	/*	float: left;
-	padding-left: 20px;*/
-	font-size: 14px;
-	padding-right: 20px;
-
-}
-
-.columnaName {
-	position: sticky;
-	top: 0px;
-}
-
-.listaSelected {
-	background-color: lightblue;
-}
-
-.hovertabla:hover td {
-
-	background-color: lightblue;
-	/*lightgrey*/
-}
-
-
-/*  scrollbar stiyles width */
-
-::-webkit-scrollbar {
-	width: 10px;
-}
-
-/* scrollbar stiyles Handle */
-::-webkit-scrollbar-thumb {
-	background-color: #66b9d9;
-	border-radius: 10px;
-}
-</style>
+<template>
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-slate-200">
+      <thead class="bg-slate-50">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">NO</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">{{ props.columnName1 }}</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">{{ props.columnName2 }}</th>
+          <th class="px-6 py-3 text-center text-xs font-medium text-slate-500 uppercase tracking-wider">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-slate-200">
+        <tr v-if="!props.blList || props.blList.length === 0">
+          <td colspan="4" class="px-6 py-12 text-center text-slate-500">No hay datos para mostrar.</td>
+        </tr>
+        <tr v-for="(dato, index) in props.blList" :key="index" class="hover:bg-slate-50 transition-colors">
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ index + 1 }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ dato[1].text1 }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ dato[1].text2 }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+            <div class="flex items-center justify-center">
+              <button @click="handleRemove(dato)" class="text-slate-400 hover:text-red-600 p-1 rounded-full transition-colors" title="Eliminar">
+                <TrashIcon class="w-5 h-5" />
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</template>

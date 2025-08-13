@@ -9,6 +9,8 @@
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^1.16.6",
+    "@headlessui/vue": "^1.7.23",
+    "@heroicons/vue": "^2.2.0",
     "@tailwindcss/forms": "^0.5.10",
     "@vuepic/vue-datepicker": "^7.0.0",
     "atmosphere.js": "^4.0.1",
@@ -43,7 +45,8 @@
   "eslintConfig": {
     "root": true,
     "env": {
-      "node": true
+      "node": true,
+      "vue/setup-compiler-macros": true
     },
     "extends": [
       "plugin:vue/vue3-essential",
@@ -52,7 +55,9 @@
     "parserOptions": {
       "parser": "@babel/eslint-parser"
     },
-    "rules": {}
+    "rules": {
+      "vue/multi-word-component-names": "off"
+    }
   },
   "browserslist": [
     "> 1%",

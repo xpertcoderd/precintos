@@ -1,28 +1,8 @@
-<template>
-  <form @submit.prevent="$emit('next')" class="flex flex-col gap-6 bg-gray-50 rounded-xl p-6 shadow min-h-full">
-    <div class="flex flex-col gap-2">
-      <span class="font-semibold text-gray-700 mb-2">Datos</span>
-      <div class="flex gap-2 items-center mb-2">
-        <select id="bl" class="bg-gray-100 rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200 w-full" v-model="localModel.bl" required>
-          <option :value="null" selected disabled>BL</option>
-          <option v-for="(bl, index) in incomingData.listBl" :key="index" :value="bl.text">{{ bl.text}}</option>
-        </select>
-        <input v-model="localModel.container" class="bg-gray-100 rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200 w-full" :class="{ 'ring-2 ring-red-400': errors.container }" maxlength="20" placeholder="Contenedor" type="text">
-        <button type="button" @click="addBL_Container" class="flex items-center justify-center text-green-500 text-3xl focus:outline-none"><i class="bi bi-plus-square-fill"></i></button>
-      </div>
-      <p v-if="errors.container" class="text-xs text-red-500 mb-2">{{ errors.container }}</p>
-      <TablaAddingBL_Container class="w-full max-h-64 overflow-y-auto" :columnName1="'BL'" :columnName2="'CONTENEDOR'" :blList="localModel.listBl_container" @removeBl="removeBL" />
-    </div>
-    <div class="flex justify-end gap-4 mt-4">
-      <button @click="$emit('cerrar')" type="button" class="px-8 py-2 rounded-lg bg-gray-200 text-gray-500 font-semibold">Cancelar</button>
-      <button type="submit" class="px-8 py-2 rounded-lg bg-sky-400 text-white font-semibold shadow hover:bg-sky-500 transition">Siguiente</button>
-    </div>
-  </form>
-</template>
-
 <script setup>
 import { computed, defineEmits, defineProps } from 'vue';
 import TablaAddingBL_Container from '@/components/Internal/tablas/TablaAddingBL_Container.vue';
+import PlusIcon from "@/components/icons/PlusIcon.vue";
+import ChevronDownIcon from "@/components/icons/ChevronDownIcon.vue";
 
 const props = defineProps({
   modelValue: { type: Object, required: true },
@@ -37,14 +17,83 @@ const localModel = computed({
 });
 
 function addBL_Container() {
-  if (localModel.value.bl && localModel.value.container) {
-    if (!localModel.value.listBl_container) localModel.value.listBl_container = new Map();
-    localModel.value.listBl_container.set(`${localModel.value.bl}-${localModel.value.container}`, { text1: localModel.value.bl, text2: localModel.value.container, id: 1 });
-    localModel.value.container = null;
+  const bl = localModel.value.bl;
+  const container = localModel.value.container?.trim().toUpperCase();
+
+  if (bl && container) {
+    if (!localModel.value.listBl_container) {
+      localModel.value.listBl_container = new Map();
+    }
+    const key = `${bl}-${container}`;
+    if (!localModel.value.listBl_container.has(key)) {
+      localModel.value.listBl_container.set(key, { text1: bl, text2: container, id: Date.now() });
+    }
+    localModel.value.container = '';
   }
 }
 
 function removeBL(bl_Selected) {
-  if (localModel.value.listBl_container) localModel.value.listBl_container.delete(bl_Selected);
+  if (localModel.value.listBl_container) {
+    localModel.value.listBl_container.delete(bl_Selected);
+  }
 }
 </script>
+
+<template>
+  <form @submit.prevent="$emit('next')" class="space-y-10 p-4">
+    <div>
+      <h2 class="text-base/7 font-semibold text-slate-900">Asignar Contenedores a BLs</h2>
+      <div class="mt-6 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-3">
+        <div class="sm:col-span-1">
+          <label for="bl-select" class="block text-sm/6 font-medium text-slate-700">BL</label>
+          <div class="mt-2 grid grid-cols-1">
+            <select id="bl-select" v-model="localModel.bl" required class="col-start-1 row-start-1 w-full appearance-none rounded-md bg-transparent px-3 py-1.5 text-slate-900 outline outline-1 -outline-offset-1 outline-slate-300 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sky-500 sm:text-sm/6">
+              <option :value="null" selected disabled>Seleccione un BL</option>
+              <option v-for="(bl, index) in incomingData.listBl" :key="index" :value="bl.text">{{ bl.text }}</option>
+            </select>
+            <ChevronDownIcon class="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end text-slate-400" aria-hidden="true" />
+          </div>
+        </div>
+        <div class="sm:col-span-2">
+          <label for="container-input" class="block text-sm/6 font-medium text-slate-700">Contenedor</label>
+          <div class="mt-2 flex items-start gap-x-3">
+            <div class="flex-grow">
+              <input
+                  id="container-input"
+                  v-model="localModel.container"
+                  @keydown.enter.prevent="addBL_Container"
+                  type="text"
+                  placeholder="Número de contenedor"
+                  class="block w-full rounded-md bg-transparent px-3 py-1.5 text-slate-900 outline outline-1 -outline-offset-1 outline-slate-300 placeholder:text-slate-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sky-500 sm:text-sm/6"
+                  :class="{ 'outline-red-500': errors.container }"
+              />
+              <p v-if="errors.container" class="text-xs text-red-500 mt-1">{{ errors.container }}</p>
+            </div>
+            <button @click="addBL_Container" type="button" class="rounded-md bg-sky-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-sky-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 flex items-center gap-2">
+              <PlusIcon class="w-5 h-5" />
+              <span>Agregar</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="-mx-4">
+      <TablaAddingBL_Container
+          v-if="localModel.listBl_container && localModel.listBl_container.size > 0"
+          :columnName1="'BL'"
+          :columnName2="'CONTENEDOR'"
+          :blList="localModel.listBl_container"
+          @removeBl="removeBL"
+      />
+      <div v-else class="px-6 py-12 text-center text-slate-500 border-t border-slate-200">
+        <p>No se han asignado contenedores.</p>
+      </div>
+    </div>
+
+    <div class="mt-6 flex items-center justify-end gap-x-4 border-t border-gray-200 pt-6">
+      <button @click="$emit('cerrar')" type="button" class="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">Cancelar</button>
+      <button type="submit" class="rounded-md bg-sky-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-sky-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500">Siguiente</button>
+    </div>
+  </form>
+</template>

@@ -73,6 +73,7 @@ export function useTransferLogic(wizardData) {
     async function createTransfersBl(params) {
         try {
             const response = await transfers_Create(params);
+            console.log(response)
             return response.success ? response["transfer:"].id : (alert(response.message), false);
         } catch (error) {
             console.error("❌ Error en createTransfersBl:", error);

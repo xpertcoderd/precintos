@@ -7,7 +7,7 @@
     <div v-else class="space-y-6">
       <!-- The Shipment Card -->
       <div v-for="dato in incomingData.transfers_list" :key="dato.id" class="w-full bg-white rounded-2xl shadow-lg p-6 md:p-8 transition-all duration-300">
-        
+
         <!-- Top Section: B/L and ETA -->
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 pb-6 mb-6">
           <!-- Bill of Lading Section -->
@@ -20,17 +20,17 @@
                   <p class="text-xl font-bold text-slate-800 tracking-wider">{{ dato.bl || 'N/A' }}</p>
               </div>
           </div>
-  
+
           <!-- ETA Section -->
           <div class="text-left md:text-right">
             <p class="text-sm font-medium text-slate-500">ETA</p>
             <p class="text-lg font-semibold text-slate-700">{{ formatDateTime(dato.timeTravelEst) }}</p>
           </div>
         </div>
-  
+
         <!-- Bottom Section: Route and Status -->
         <div class="flex flex-col md:flex-row justify-between items-start gap-6">
-          
+
           <!-- Route Section -->
           <div class="w-full">
             <h3 class="text-md font-semibold text-slate-600 mb-4">Ruta</h3>
@@ -42,10 +42,10 @@
                   {{ dato.startPlace.label || 'Origen no especificado' }}
                 </p>
               </div>
-  
+
               <!-- Connecting Line -->
               <div class="flex-grow mx-4 h-px bg-slate-300 border-t border-dashed border-slate-400"></div>
-  
+
               <!-- Destination -->
               <div class="flex items-center gap-3 min-w-0">
                 <div class="flex-shrink-0 w-4 h-4 bg-red-500 rounded-full border-2 border-white ring-2 ring-red-500"></div>
@@ -55,7 +55,7 @@
               </div>
             </div>
           </div>
-  
+
           <!-- Status Icons Section -->
           <div class="flex-shrink-0 flex flex-row md:flex-col gap-2 pt-4 md:pt-0 md:border-l md:pl-6 border-slate-200">
               <div class="flex items-center gap-2 bg-slate-100 p-2 rounded-lg">
@@ -69,7 +69,7 @@
                   <span class="text-sm font-medium text-slate-600 hidden sm:inline">Tracking</span>
               </div>
           </div>
-  
+
         </div>
       </div>
     </div>

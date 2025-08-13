@@ -1,3 +1,4 @@
+
 <template>
 	<div class="AreaTrabajoPage">
 
@@ -31,17 +32,16 @@
 
 <script setup>
 
+// Refactored Pages
+import DispositivoPage from '@/pages/DispositivoPage.vue'
+import SolicitudesPage from '@/pages/SolicitudesPage.vue'
+import ClientesPage from '@/pages/ClientesPage.vue'
+import UsuariosPage from '@/pages/UsuariosPage.vue'
+import TransportistaPage from '@/pages/TransportistaPage.vue'
+import TarifasPage from '@/pages/TarifasPage.vue'
 
-
-import DispositivoPage from '@/components/Internal/Menu/Frames/Pages/DispositivoPage.vue'
-import SolicitudesPage from '@/components/Internal/Menu/Frames/Pages/SolicitudesPage.vue'
-
+// Unchanged Pages
 import PanelPrincipal from '@/components/Internal/Menu/Frames/Pages/PanelPrincipal.vue'
-import TarifasPage from '@/components/Internal/Menu/Frames/Pages/TarifasPage.vue'
-import ClientesPage from '@/components/Internal/Menu/Frames/Pages/ClientesPage.vue'
-import UsuariosPage from '@/components/Internal/Menu/Frames/Pages/UsuariosPage.vue'
-import TransportistaPage from '@/components/Internal/Menu/Frames/Pages/TransportistaPage.vue'
-
 
 
 
@@ -111,14 +111,15 @@ onMounted(() => {
 
 
 	consultarCounters()
-	/*	if (window.$cookies.isKey('PLAY_SESSION')) {
-	
+	/*
+		if (window.$cookies.isKey('PLAY_SESSION')) {
+
 			console.log("Welcome Back")
-	
-		
-	
+
+
+
 		} else {
-	
+
 			console.log("logueate por favor")
 			window.location.replace("./");
 		}

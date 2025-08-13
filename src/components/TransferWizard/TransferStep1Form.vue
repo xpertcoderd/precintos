@@ -1,68 +1,7 @@
-<template>
-  <form @submit.prevent="$emit('next')" class="flex flex-col gap-6 p-6 ">
-    <div class="flex flex-col gap-2">
-      <span class="text-gray-400 text-sm">Nombre del Broker</span>
-      <span class="font-semibold text-sm text-gray-700">Datos de traslado</span>
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <select id="finalClient"  class="bg-white rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200 w-full h-12" :class="{ 'ring-2 ring-red-400': errors.finalClient }" v-model="localModel.finalClient" required>
-            <option value="" selected disabled >Cliente Final</option>
-            <option v-for="(client, index) in incomingData.finalClients" :key="index" :value="client.client">{{ client.client.name }}</option>
-          </select>
-          <p v-if="errors.finalClient" class="text-xs text-red-500 mt-1">{{ errors.finalClient }}</p>
-        </div>
-        <div>
-          <select id="type" class="bg-white rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200 w-full h-12" :class="{ 'ring-2 ring-red-400': errors.type }" v-model="localModel.type">
-            <option :value="null" selected disabled>Tipo de Traslado</option>
-            <option v-for="(tipo, index) in incomingData.transferTypes" :key="index" :value="tipo">{{ tipo.name }}</option>
-          </select>
-          <p v-if="errors.type" class="text-xs text-red-500 mt-1">{{ errors.type }}</p>
-        </div>
-        <div>
-          <select id="startPlace" class="bg-white rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200 w-full h-12" :class="{ 'ring-2 ring-red-400': errors.startPlace }" v-model="localModel.startPlace">
-            <option :value="null" selected disabled>Origen</option>
-            <option v-for="(startPlace, index) in incomingData.startPlaces" :key="index" :value="startPlace">{{ startPlace.label }}</option>
-          </select>
-          <p v-if="errors.startPlace" class="text-xs text-red-500 mt-1">{{ errors.startPlace }}</p>
-        </div>
-        <div>
-          <select id="endPlace" class="bg-white rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200 w-full h-12" :class="{ 'ring-2 ring-red-400': errors.endPlace }" v-model="localModel.endPlace">
-            <option :value="null" selected disabled>Destino</option>
-            <option v-for="(endPlace, index) in incomingData.endPlaces" :key="index" :value="endPlace">{{ endPlace.label }}</option>
-          </select>
-          <p v-if="errors.endPlace" class="text-xs text-red-500 mt-1">{{ errors.endPlace }}</p>
-        </div>
-        <div class="col-span-2">
-          <input v-model="localModel.address" class="bg-white rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200 w-full h-12" maxlength="40" placeholder="Direccion del Destino" type="text" required>
-          <p v-if="errors.address" class="text-xs text-red-500 mt-1">{{ errors.address }}</p>
-        </div>
-        <div class="col-span-2">
-          <input v-model="localModel.city" class="bg-white rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200 w-full h-12" maxlength="40" placeholder="Ciudad" type="text" required>
-          <p v-if="errors.city" class="text-xs text-red-500 mt-1">{{ errors.city }}</p>
-        </div>
-        <div class="col-span-2 flex gap-4">
-          <div class="flex-1">
-            <input v-model="unitPrice" class="bg-white rounded-lg px-4 py-2 text-gray-700 focus:outline-none w-full" maxlength="40" placeholder="Tarifa" type="number" disabled >
-          </div>
-          <div class="flex-1">
-            <input v-model="localModel.timeTravelEst" class="bg-white rounded-lg px-4 py-2 text-gray-700 focus:outline-none w-full" type="date" :min="new Date().toISOString().split('T')[0]"  />
-          </div>
-        </div>
-        <div class="col-span-2">
-          <textarea class="bg-white rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200 w-full h-12" placeholder="Comentario" style="min-height: 80px;" v-model="localModel.note" rows="4"></textarea>
-        </div>
-      </div>
-    </div>
-    <div class="flex justify-end gap-4">
-      <button @click="$emit('cerrar')" type="button" class="px-8 py- rounded-lg bg-gray-200 text-gray-500 font-semibold">Cancelar</button>
-      <button @click="$emit('next')" type="submit" class="px-8 py-2 rounded-lg bg-sky-400 text-white font-semibold shadow hover:bg-sky-500 transition">Siguiente</button>
-    </div>
-  </form>
-</template>
-
 <script setup>
-import {computed, defineEmits, defineProps, ref, watch} from 'vue';
-import {calculateTariff} from "@/components/TransferWizard/helpers/fetchBrokerData";
+import { computed, defineEmits, defineProps, ref, watch } from 'vue';
+import { calculateTariff } from "@/components/TransferWizard/helpers/fetchBrokerData";
+import ChevronDownIcon from "@/components/icons/ChevronDownIcon.vue";
 
 const props = defineProps({
   modelValue: { type: Object, required: true },
@@ -78,7 +17,6 @@ const localModel = computed({
   set: (val) => emit('update:modelValue', val),
 });
 
-// Sync unitPrice with localModel.unitPrice
 watch(
     () => localModel.value.unitPrice,
     (newPrice) => {
@@ -110,3 +48,94 @@ watch(
     }
 )
 </script>
+
+<template>
+  <form @submit.prevent="$emit('next')" class="space-y-4 p-4">
+    <div>
+      <h2 class="text-base/7 font-semibold text-slate-900">Datos del Traslado</h2>
+      <div class="mt-6 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2">
+        <div>
+          <label for="finalClient" class="block text-sm/6 font-medium text-slate-700">Cliente Final</label>
+          <div class="mt-2 grid grid-cols-1">
+            <select id="finalClient" v-model="localModel.finalClient" required class="col-start-1 row-start-1 w-full appearance-none rounded-md bg-transparent px-3 py-1.5 text-slate-900 outline outline-1 -outline-offset-1 outline-slate-300 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sky-500 sm:text-sm/6" :class="{ 'outline-red-500': errors.finalClient }">
+              <option value="" selected disabled>Seleccione un cliente</option>
+              <option v-for="(client, index) in incomingData.finalClients" :key="index" :value="client.client">{{ client.client.name }}</option>
+            </select>
+            <ChevronDownIcon class="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end text-slate-400" aria-hidden="true" />
+          </div>
+          <p v-if="errors.finalClient" class="text-xs text-red-500 mt-1">{{ errors.finalClient }}</p>
+        </div>
+        <div>
+          <label for="type" class="block text-sm/6 font-medium text-slate-700">Tipo de Traslado</label>
+          <div class="mt-2 grid grid-cols-1">
+            <select id="type" v-model="localModel.type" class="col-start-1 row-start-1 w-full appearance-none rounded-md bg-transparent px-3 py-1.5 text-slate-900 outline outline-1 -outline-offset-1 outline-slate-300 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sky-500 sm:text-sm/6" :class="{ 'outline-red-500': errors.type }">
+              <option :value="null" selected disabled>Seleccione un tipo</option>
+              <option v-for="(tipo, index) in incomingData.transferTypes" :key="index" :value="tipo">{{ tipo.name }}</option>
+            </select>
+            <ChevronDownIcon class="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end text-slate-400" aria-hidden="true" />
+          </div>
+          <p v-if="errors.type" class="text-xs text-red-500 mt-1">{{ errors.type }}</p>
+        </div>
+        <div>
+          <label for="startPlace" class="block text-sm/6 font-medium text-slate-700">Origen</label>
+          <div class="mt-2 grid grid-cols-1">
+            <select id="startPlace" v-model="localModel.startPlace" class="col-start-1 row-start-1 w-full appearance-none rounded-md bg-transparent px-3 py-1.5 text-slate-900 outline outline-1 -outline-offset-1 outline-slate-300 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sky-500 sm:text-sm/6" :class="{ 'outline-red-500': errors.startPlace }">
+              <option :value="null" selected disabled>Seleccione un origen</option>
+              <option v-for="(startPlace, index) in incomingData.startPlaces" :key="index" :value="startPlace">{{ startPlace.label }}</option>
+            </select>
+            <ChevronDownIcon class="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end text-slate-400" aria-hidden="true" />
+          </div>
+          <p v-if="errors.startPlace" class="text-xs text-red-500 mt-1">{{ errors.startPlace }}</p>
+        </div>
+        <div>
+          <label for="endPlace" class="block text-sm/6 font-medium text-slate-700">Destino</label>
+          <div class="mt-2 grid grid-cols-1">
+            <select id="endPlace" v-model="localModel.endPlace" class="col-start-1 row-start-1 w-full appearance-none rounded-md bg-transparent px-3 py-1.5 text-slate-900 outline outline-1 -outline-offset-1 outline-slate-300 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sky-500 sm:text-sm/6" :class="{ 'outline-red-500': errors.endPlace }">
+              <option :value="null" selected disabled>Seleccione un destino</option>
+              <option v-for="(endPlace, index) in incomingData.endPlaces" :key="index" :value="endPlace">{{ endPlace.label }}</option>
+            </select>
+            <ChevronDownIcon class="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end text-slate-400" aria-hidden="true" />
+          </div>
+          <p v-if="errors.endPlace" class="text-xs text-red-500 mt-1">{{ errors.endPlace }}</p>
+        </div>
+        <div class="sm:col-span-2">
+          <label for="address" class="block text-sm/6 font-medium text-slate-700">Dirección del Destino</label>
+          <div class="mt-2">
+            <input id="address" v-model="localModel.address" type="text" required placeholder="Calle, Número, Sector" class="block w-full rounded-md bg-transparent px-3 py-1.5 text-slate-900 outline outline-1 -outline-offset-1 outline-slate-300 placeholder:text-slate-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sky-500 sm:text-sm/6" :class="{ 'outline-red-500': errors.address }">
+          </div>
+          <p v-if="errors.address" class="text-xs text-red-500 mt-1">{{ errors.address }}</p>
+        </div>
+        <div class="sm:col-span-2">
+          <label for="city" class="block text-sm/6 font-medium text-slate-700">Ciudad</label>
+          <div class="mt-2">
+            <input id="city" v-model="localModel.city" type="text" required placeholder="Ciudad de destino" class="block w-full rounded-md bg-transparent px-3 py-1.5 text-slate-900 outline outline-1 -outline-offset-1 outline-slate-300 placeholder:text-slate-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sky-500 sm:text-sm/6" :class="{ 'outline-red-500': errors.city }">
+          </div>
+          <p v-if="errors.city" class="text-xs text-red-500 mt-1">{{ errors.city }}</p>
+        </div>
+        <div>
+          <label for="unitPrice" class="block text-sm/6 font-medium text-slate-700">Tarifa</label>
+          <div class="mt-2">
+            <input id="unitPrice" v-model="unitPrice" type="number" placeholder="Tarifa" disabled class="block w-full rounded-md bg-slate-50 px-3 py-1.5 text-slate-900 outline outline-1 -outline-offset-1 outline-slate-300 placeholder:text-slate-400 sm:text-sm/6">
+          </div>
+        </div>
+        <div>
+          <label for="timeTravelEst" class="block text-sm/6 font-medium text-slate-700">Fecha Estimada</label>
+          <div class="mt-2">
+            <input id="timeTravelEst" v-model="localModel.timeTravelEst" type="date" :min="new Date().toISOString().split('T')[0]" class="block w-full rounded-md bg-transparent px-3 py-1.5 text-slate-900 outline outline-1 -outline-offset-1 outline-slate-300 placeholder:text-slate-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sky-500 sm:text-sm/6">
+          </div>
+        </div>
+        <div class="sm:col-span-2">
+          <label for="note" class="block text-sm/6 font-medium text-slate-700">Comentario (Opcional)</label>
+          <div class="mt-2">
+            <textarea id="note" v-model="localModel.note" placeholder="Alguna nota o comentario sobre el traslado" rows="4" class="block w-full rounded-md bg-transparent px-3 py-1.5 text-slate-900 outline outline-1 -outline-offset-1 outline-slate-300 placeholder:text-slate-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sky-500 sm:text-sm/6"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-6 flex items-center justify-end gap-x-4 border-t border-gray-200 pt-6">
+      <button @click="$emit('cerrar')" type="button" class="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">Cancelar</button>
+      <button type="submit" class="rounded-md bg-sky-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-sky-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500">Siguiente</button>
+    </div>
+  </form>
+</template>

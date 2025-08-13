@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full bg-slate-50 rounded-lg transition-all duration-300 p-6 border border-slate-200">
+  <div class="w-full mb-2 bg-slate-50 rounded-lg transition-all duration-300 p-6 border border-slate-200">
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 pb-6 mb-6">
       <div class="flex items-center gap-4">
         <div class="bg-blue-100 text-sky-600 p-3 rounded-lg">

@@ -1,36 +1,33 @@
 <template>
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 overflow-auto p-4"  >
-    <div class="flex rounded-2xl shadow-2xl overflow-hidden bg-white h-fit" style="min-width: 1480px; min-height: 700px; max-width: 1480px;">
-      <!-- Left: Image and Steps -->
-
-      <div class="relative w-[480px] h-[600px]">
-        <div class=" absolute top-8 pl-5 pb-4 left-auto">
-        <TransferWizardSteps @setStep="setStep" :count="stepIndicators" />
-        </div>
-        <img :src="addClientBg" class="object-cover h-full max-w-xl" />
-      </div>
-      <!-- Right: Form Card -->
-      <div class="flex-1 flex flex-col bg-white h-[400px] ">
-        <div class="flex items-center justify-between mb-6 p-6 pb-0">
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 overflow-auto p-4">
+    <div class="flex w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden bg-white flex-col">
+      <!-- Header -->
+      <div class="p-6 pb-0 border-b border-gray-200">
+        <div class="flex items-center justify-between">
           <div>
-            <h2 class="text-sm font-semibold text-gray-800 mb-1 mt-auto">Creación de traslado</h2>
+            <h2 class="text-xl font-bold text-gray-900">Nuevo Traslado</h2>
+            <p class="mt-1 text-sm text-gray-500">Siga los pasos para completar la transferencia.</p>
           </div>
           <img :src="auroraLogo" alt="Aurora Logo" class="h-12" />
         </div>
-        <div class="flex-1 flex flex-col justify-start bg-gray-100 ">
-          <TransferStep1Form v-if="step === 1" :incoming-data="initialData" v-model="wizardData.step1" :errors="errors.step1" @cerrar="close" @next="validateAndNext(1)" />
-          <TransferStep2Form v-if="step === 2" v-model="wizardData.step2" :errors="errors.step2" @cerrar="close" @next="validateAndNext(2)" />
-          <TransferStep3Form v-if="step === 3" :incoming-data="wizardData.step2" v-model="wizardData.step3" :errors="errors.step3" @cerrar="close" @next="validateAndNext(3)" />
-          <TransferStep4Form v-if="step === 4" :order-data="allData" v-model="wizardData.step4" :errors="errors.step4" @cerrar="close" @next="validateAndNext(4)" />
-          <TransferStep5Form v-if="step === 5" :incoming-data="{orders, orderSummary }" v-model="wizardData.step5" :errors="errors.step5" @cerrar="close" @next="close" />
+        <div class="mt-4">
+          <TransferWizardSteps @setStep="setStep" :count="stepIndicators" :current-step="step" />
         </div>
+      </div>
+
+      <!-- Form Content -->
+      <div class="p-6 flex-1 overflow-y-auto">
+        <TransferStep1Form v-if="step === 1" :incoming-data="initialData" v-model="wizardData.step1" :errors="errors.step1" @cerrar="close" @next="validateAndNext(1)" />
+        <TransferStep2Form v-if="step === 2" v-model="wizardData.step2" :errors="errors.step2" @cerrar="close" @next="validateAndNext(2)" />
+        <TransferStep3Form v-if="step === 3" :incoming-data="wizardData.step2" v-model="wizardData.step3" :errors="errors.step3" @cerrar="close" @next="validateAndNext(3)" />
+        <TransferStep4Form v-if="step === 4" :order-data="allData" v-model="wizardData.step4" :errors="errors.step4" @cerrar="close" @next="validateAndNext(4)" />
+        <TransferStep5Form v-if="step === 5" :incoming-data="{orders, orderSummary }" v-model="wizardData.step5" :errors="errors.step5" @cerrar="close" @next="close" />
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import addClientBg from '@/assets/fondos/addClient.png'
 import auroraLogo from '@/assets/logo/auroraLogob.png'
 import { ref, onMounted, defineEmits } from 'vue'
 import TransferStep1Form from './TransferStep1Form.vue'
@@ -40,9 +37,9 @@ import TransferStep4Form from './TransferStep4Form.vue'
 import TransferStep5Form from './TransferStep5Form.vue'
 import TransferWizardSteps from './TransferWizardSteps.vue'
 import { fetchInitialData } from "@/components/TransferWizard/helpers/fetchBrokerData"
-import {useTransferWizardState} from "@/components/TransferWizard/composables/useTransferWizardState";
-import {useTransferLogic} from "@/components/TransferWizard/composables/useTransferLogic";
-import {useTransferValidation} from "@/components/TransferWizard/composables/useTransferValidation";
+import { useTransferWizardState } from "@/components/TransferWizard/composables/useTransferWizardState";
+import { useTransferLogic } from "@/components/TransferWizard/composables/useTransferLogic";
+import { useTransferValidation } from "@/components/TransferWizard/composables/useTransferValidation";
 
 const outGoingData = defineEmits(['close'])
 
@@ -115,4 +112,3 @@ async function validateAndNext(currentStep) {
   if (valid && step.value < 5) step.value++
 }
 </script>
-
