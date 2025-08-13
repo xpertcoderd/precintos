@@ -31,7 +31,7 @@
         </div>
       </div>
       <div class="flex-shrink-0 flex flex-row items-center gap-4 pt-2 md:pt-0">
-        <div class="flex items-center gap-2 text-sm font-medium text-slate-600">
+        <div @click="$emit('groupContainers')" class="flex items-center gap-2 text-sm font-medium text-slate-600 cursor-pointer hover:text-blue-600">
           <BoxIcon class="w-5 h-5 text-indigo-500" />
           <span>{{ shipmentData.countainerCount}} Containers</span>
         </div>
