@@ -91,8 +91,8 @@ export async function assgin_Containers(params) {
 }
 
 export const transfers_listAll = () => safeRequest(() => axios.get(`/api/v1/transfers/filtered`, axiosConfig));
-export const transfer_UnitsAll = () => safeRequest(() => axios.get(`/api/v1/transferUnits/filtered`, axiosConfig));
-export const transfers_list = () => safeRequest(() => axios.get(`/api/v1/transfers/filteredSummary`, axiosConfig));
+export const transfer_UnitsByTransferId = (id) => safeRequest(() => axios.get(`/api/v1/transferUnits/filtered?transferId=${id}`, axiosConfig));
+export const transfers_list = (params) => safeRequest(() => axios.get(`/api/v1/transfers/filteredSummary`, { ...axiosConfig, params }));
 export const check_Session = () => safeRequest(() => axios.get(`/api/v1/auth/checkSession`, axiosConfig));
 
 export async function transfersCheckBL(name) {
@@ -104,10 +104,13 @@ export async function transfersCheckBL(name) {
         return { success: false };
     }
 }
-
+export const linkTransferUnits = (formData) => safeRequest(() => axios.post(`/api/v1/transferUnits/linked`, formData, {
+    ...axiosConfig,
+    headers: { 'Content-Type': 'multipart/form-data' }
+}));
 export const auth = (params) => safeRequest(() => axios.post(`/api/v1/auth/login`, params, axiosConfig));
 export const logOut = () => safeRequest(() => axios.get(`/api/v1/auth/logout`, axiosConfig));
-export const devicesAll = () => safeRequest(() => axios.get(`/api/v1/devices/all`, axiosConfig));
+export const devicesAll = () => safeRequest(() => axios.get(`/api/v1/devices/filtered`, axiosConfig));
 export const placesList_All = (id) => safeRequest(() => axios.get(`/api/v1/places/list/${id}`, axiosConfig));
 export const startPlace_Points = (id) => safeRequest(() => axios.get(`/api/v1/places/getStartPoints/${id}`, axiosConfig));
 export const endPlace_Points = (id) => safeRequest(() => axios.get(`/api/v1/places/getEndPoints/${id}`, axiosConfig));
@@ -189,3 +192,5 @@ export const drivers_updatePhoto = (formData) => safeRequest(() => axios.post(`/
     ...axiosConfig,
     headers: { 'Content-Type': 'multipart/form-data' }
 }));
+
+export const transferBlits = (id) => safeRequest( () => axios.get(`(/api/v1/transferBlits/read/${id})`,axiosConfig));

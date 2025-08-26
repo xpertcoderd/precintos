@@ -6,7 +6,15 @@
       <SummaryCard v-for="card in summaryCards" :key="card.title" :title="card.title" :value="card.value" :chart-color="card.chartColor" />
     </div>
 
-    <MainContent :shipment-data="shipments" @track-shipment="trackShipment" />
+    <MainContent
+        :shipment-data="shipments"
+        :current-page="currentPage"
+        :total-pages="totalPages"
+        :total-shipments="totalShipments"
+        :loading="loading"
+        @track-shipment="trackShipment"
+        @update-page="handlePageChange"
+    />
   </div>
 </template>
 
@@ -17,28 +25,46 @@ import SummaryCard from './PanelPrincipal/SummaryCard.vue';
 import MainContent from './PanelPrincipal/MainContent.vue';
 import { transfers_list} from '@/components/conexion/DataConector.js';
 
-const summaryCards = ref([
+const summaryCards = [
   { title: 'Pendiente', value: 5, chartColor: 'stroke-yellow-500' },
   { title: 'Aprobado', value: 23, chartColor: 'stroke-green-500' },
-  // Kept as blue per your request
   { title: 'En Tránsito', value: 12, chartColor: 'stroke-blue-500' },
   { title: 'Retenido', value: 2, chartColor: 'stroke-red-500' },
   { title: 'Completado', value: 156, chartColor: 'stroke-slate-500' },
-]);
+];
 
 const shipments = ref([]);
+const currentPage = ref(1);
+const totalPages = ref(1);
+const totalShipments = ref(0);
+const pageSize = 5;
+const loading = ref(false);
 
 const trackShipment = () => {
   console.log(`Tracking shipment: ${shipments.value[0].bl}`);
 };
 
-onMounted(async () => {
+const fetchShipments = async (page) => {
+  loading.value = true;
   try {
-    const response = await transfers_list()
+    const response = await transfers_list({ page: page, pageSize: pageSize });
     shipments.value = response.data.transfers;
+    totalPages.value = Math.ceil(response.data.total / pageSize);
+    totalShipments.value = response.data.total;
+    currentPage.value = page;
   } catch (error) {
     console.error('Error fetching data:', error);
+  } finally {
+    loading.value = false;
   }
+};
+
+const handlePageChange = (newPage) => {
+  fetchShipments(newPage);
+};
+
+onMounted(async () => {
+  await fetchShipments(1);
 });
 </script>
 

@@ -25,10 +25,6 @@ import { ref } from 'vue'
 import InternalMenu from '@/components/Internal/Menu/InternalMenu.vue'
 import PrecintosPage from '@/components/Internal/Menu/PrecintosPage.vue'
 
-import { logOut } from '@/components/conexion/DataConector.js'
-
-import Cookies from 'js-cookie';
-
 let vistaSelected = ref(1);
 let logined = ref(true)
 
@@ -39,53 +35,22 @@ let transferList = ref({
 	fullTransfer: []
 });
 
-
-
-
 function changeVista(vista_Selected) {
-
 	vistaSelected.value = vista_Selected
-
 }
-
 
 function logout() {
+    const cookies = document.cookie.split(";");
 
+    for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i];
+        const eqPos = cookie.indexOf("=");
+        const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+        document.cookie = name.trim() + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+    }
 
-	if (Cookies.get('userPublicInfo')) {
-
-		logOut().then(respuesta => {
-
-			if (respuesta.success) {
-
-				console.log("Hasta luego ...")
-
-				//Cookies.remove('userPublicInfo'); //optinal
-				window.location.replace("./");
-
-
-			} else {
-				console.log("Error al hacer Login ")
-			}
-
-		}).catch(error => {
-			console.log(error)
-
-		})
-			.finally(() => {
-
-				console.log("Se Desloguio resquet donde")
-
-			})
-
-	} else {
-		window.location.replace("./");
-
-	}
-
-
+    window.location.replace("/login");
 }
-
 
 </script>
 

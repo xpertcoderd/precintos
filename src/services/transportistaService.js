@@ -29,7 +29,7 @@ const handleResponse = (response) => {
  * @param {object} data - The form data object, which may contain a 'photo' property.
  * @returns {FormData}
  */
-const prepareFormData = (data) => {
+export const prepareFormData = (data) => {
     const formData = new FormData();
     const photo = data.photo;
 

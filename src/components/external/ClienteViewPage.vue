@@ -2,9 +2,6 @@
 	<div class="windows_Page">
 		<div class="DashBoardPage">
 
-			<!-- 		<NewMenu :logined="logined" @logout="logout" :LegalName="transferList.client.name" @vista="changeVista"
-			style=" width:15%;" ref="menuRef" /> -->
-
 			<MenuClient :logined="logined" :LegalName="transferList.client.name" :isLoguer="true" @vista="changeVista"
 				@logout="logout" style=" width:15%;" ref="menuRef" />
 
@@ -41,8 +38,6 @@ import NewDashboardPage from '@/components/external/frames/NewDashboardPage.vue'
 import VistaMapaPage from '@/components/Menu/VistaMapaPage.vue'
 import HistorialPage from '@/components/Menu/HistorialPage.vue'
 
-//import NewMenu from '@/components/NewMenu.vue'
-
 import MenuClient from '@/components/external/components/MenuClient.vue'
 
 import { transfers_list, transfers_listFrame, transfers_listRange, counterGeneral, counterGeneralFrame, counterGeneralRange } from '@/components/conexion/DataConector.js'
@@ -61,7 +56,6 @@ export default {
 		VistaMapaPage,
 		HistorialPage,
 		NewDashboardPage,
-		/*		NewMenu,*/
 		MenuClient
 	},
 	setup() { //props

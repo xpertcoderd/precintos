@@ -21,7 +21,7 @@
         <TransferStep2Form v-if="step === 2" v-model="wizardData.step2" :errors="errors.step2" @cerrar="close" @next="validateAndNext(2)" />
         <TransferStep3Form v-if="step === 3" :incoming-data="wizardData.step2" v-model="wizardData.step3" :errors="errors.step3" @cerrar="close" @next="validateAndNext(3)" />
         <TransferStep4Form v-if="step === 4" :order-data="allData" v-model="wizardData.step4" :errors="errors.step4" @cerrar="close" @next="validateAndNext(4)" />
-        <TransferStep5Form v-if="step === 5" :incoming-data="{orders, orderSummary }" v-model="wizardData.step5" :errors="errors.step5" @cerrar="close" @next="close" />
+        <TransferStep5Form v-if="step === 5" :all-data="allData" @cerrar="close" @next="close" />
       </div>
     </div>
   </div>
@@ -69,7 +69,7 @@ const allData = ref({
 })
 
 // 🔧 Logic and processing
-const { orders, orderSummary, processOrder } = useTransferLogic(wizardData)
+const { processOrder } = useTransferLogic(wizardData)
 const { validateStep } = useTransferValidation(wizardData, errors, allData)
 
 // 🔧 Initial data
