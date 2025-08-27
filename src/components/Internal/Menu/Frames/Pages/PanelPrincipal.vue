@@ -36,7 +36,7 @@ const summaryCards = [
 const shipments = ref([]);
 const currentPage = ref(1);
 const totalPages = ref(1);
-const totalShipments = ref(0);
+const totalShipments = ref(0)
 const pageSize = 5;
 const loading = ref(false);
 
