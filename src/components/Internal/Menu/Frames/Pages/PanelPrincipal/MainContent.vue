@@ -45,7 +45,7 @@
               v-for="shipment in shipmentData"
               :key="shipment.id"
               :shipment-data="shipment"
-              @track-shipment="trackShipment"
+              @track-shipment="handleTrackShipment"
               @group-containers="handleGroupContainers"
           />
           <div v-if="!shipmentData || shipmentData.length === 0 && !loading" class="text-center py-10">
@@ -74,7 +74,11 @@
       </div>
     </div>
 
-    <div v-if="activeTab !== 'BL' && activeTab !== 'Contenedor'" class="text-center py-10">
+    <div v-if="activeTab === 'Mapa'">
+      <MapComponent :tracking-data="containerTrackingData" />
+    </div>
+
+    <div v-if="activeTab !== 'BL' && activeTab !== 'Contenedor' && activeTab !== 'Mapa'" class="text-center py-10">
       <p class="text-slate-500">Contenido para la pestaña '{{ activeTab }}' estará disponible próximamente.</p>
     </div>
 
@@ -104,9 +108,9 @@
   import ContainerComponent from './ContainerView/ContainerComponent.vue';
   import CreateLinkComponent from '@/components/CreateLink/CreateLinkComponent.vue';
   import Pagination from './Pagination.vue';
-  import { devicesAll, transfer_UnitsByTransferId } from "@/components/conexion/DataConector";
-  import { fetchInitialData } from "@/components/TransferWizard/helpers/fetchBrokerData";
-  import { transportistaService } from '@/services/transportistaService';
+  import MapComponent from './MapComponent.vue';
+  import { transfer_UnitsByTransferId, transferBlits } from "@/components/conexion/DataConector";
+  import { useCreateLinkData } from '@/components/TransferWizard/composables/useCreateLinkData.js';
   import { getContainerStatusText, getContainerStatusColor } from './utils/statusUtils.js';
 
   const tabs = ref(['Contenedor', 'BL', 'ETA', 'Mapa']);
@@ -115,8 +119,11 @@
   const showCreateLinkModal = ref(false);
   const activeContainers = ref([]);
   const selectedContainerForLink = ref(null);
-  const containerBLData = ref(null);
-  const isLinkModalDataLoading = ref(false);
+  const containerTrackingData = ref([]);
+
+  const containerCache = new Map();
+
+  const { linkModalData, fetchCreateLinkData } = useCreateLinkData();
 
   defineProps({
     shipmentData: Array,
@@ -128,70 +135,92 @@
 
   const emit = defineEmits(['trackShipment', 'update-page']);
 
-  const linkModalData = ref({
-    devices: [],
-    clients: [],
-    carriers: [],
-    drivers: [],
-    vehicles: [],
-  });
-
-  const trackShipment = () => emit('trackShipment');
   const selectTab = (tab) => { activeTab.value = tab; };
+
+  const fetchContainerData = async (transferId) => {
+    if (containerCache.has(transferId)) {
+      return containerCache.get(transferId);
+    }
+    const response = await transfer_UnitsByTransferId(transferId);
+    if (response.success) {
+      containerCache.set(transferId, response.data.transferUnits);
+      return response.data.transferUnits;
+    }
+    return [];
+  };
+
+  const transformContainerData = (container, shipment, lastBlit = null) => {
+    const { transfer } = shipment;
+    const startDate = new Date(transfer.timeRequest).toLocaleDateString();
+    const endDate = new Date(transfer.timeTravelEst).toLocaleDateString();
+    const progress = lastBlit ? lastBlit.completed : 0;
+
+    return {
+      id: `${transfer.bl}-${container.id}`,
+      transferUnitId: container.id,
+      container: `Contenedor # ${container.container}`,
+      origin: transfer.startPlace.label,
+      destination: transfer.endPlace.label,
+      status: getContainerStatusText(container.statusId),
+      statusColorClass: getContainerStatusColor(container.statusId),
+      progress: progress,
+      startDate,
+      endDate,
+      isOverdue: new Date() > new Date(endDate),
+    };
+  };
 
   const handleGroupContainers = async (shipment) => {
     if (!shipment || !shipment.transfer) return;
-    containerBLData.value = shipment;
-    const generatedContainers = [];
-    const containers = (await transfer_UnitsByTransferId(containerBLData.value.transfer.id)).data.transferUnits;
-    for (let i = 0; i < containerBLData.value.countainerCount; i++) {
-      const startDate = new Date(containerBLData.value.transfer.timeRequest).toLocaleDateString();
-      const endDate = new Date(containerBLData.value.transfer.timeTravelEst).toLocaleDateString();
-      const currentContainer = containers[i];
-      generatedContainers.push({
-        id: `${containerBLData.value.transfer.bl}-${i + 1}`,
-        transferUnitId: currentContainer.id,
-        container: `Contenedor # ${currentContainer.container}`,
-        origin: containerBLData.value.transfer.startPlace.label,
-        destination: containerBLData.value.transfer.endPlace.label,
-        status: getContainerStatusText(currentContainer.statusId),
-        statusColorClass: getContainerStatusColor(currentContainer.statusId),
-        progress: 0,
-        startDate,
-        endDate,
-        isOverdue: new Date() > new Date(endDate),
-      });
-    }
-    activeContainers.value = generatedContainers;
+
+    const containers = await fetchContainerData(shipment.transfer.id);
+    if (containers.length === 0) return;
+    await fetchCreateLinkData();
+    const trackingDataPromises = containers.map(container =>
+      transferBlits({ trLnkId: container.id, lastBlit: true })
+    );
+
+    const trackingResults = await Promise.all(trackingDataPromises);
+
+    activeContainers.value = containers.map((container, index) => {
+      const trackingResponse = trackingResults[index];
+      const lastBlit = (trackingResponse.success && trackingResponse.data.transferBlits.length > 0)
+        ? trackingResponse.data.transferBlits[0]
+        : null;
+      return transformContainerData(container, shipment, lastBlit);
+    });
+
     activeTab.value = 'Contenedor';
   };
 
   const handleCreateLink = async (container) => {
     selectedContainerForLink.value = container;
-    isLinkModalDataLoading.value = true;
-    try {
-      if (linkModalData.value.clients.length === 0) {
-        const initialData = await fetchInitialData();
-        linkModalData.value.clients = initialData.finalClients;
+    showCreateLinkModal.value = true;
+  };
+
+  const handleTrackShipment = async (shipment) => {
+    if (!shipment || !shipment.transfer) return;
+
+    const containers = await fetchContainerData(shipment.transfer.id);
+    if (containers.length === 0) return;
+
+    const trackingDataPromises = containers.map(async (container) => {
+      const response = await transferBlits({ trLnkId: container.id, short: true });
+      if (response.success && response.data.transferBlitsShort.length > 0) {
+        return {
+          id: container.id,
+          name: `Contenedor # ${container.container}`,
+          route: response.data.transferBlitsShort.map(blit => ({ lat: blit.lat, lng: blit.lng }))
+        };
       }
-      if (linkModalData.value.devices.length === 0) {
-        const devices = await devicesAll();
-        linkModalData.value.devices = devices.data.devices;
-      }
-      if (linkModalData.value.carriers.length === 0) {
-        linkModalData.value.carriers = await transportistaService.getCarriers({});
-      }
-      if (linkModalData.value.drivers.length === 0) {
-        linkModalData.value.drivers = await transportistaService.getDrivers({});
-      }
-      if (linkModalData.value.vehicles.length === 0) {
-        linkModalData.value.vehicles = await transportistaService.getVehicles({});
-      }
-      showCreateLinkModal.value = true;
-    } catch (error) {
-      console.error("Error fetching data for link modal:", error);
-    } finally {
-      isLinkModalDataLoading.value = false;
+      return null;
+    });
+
+    const trackingResults = await Promise.all(trackingDataPromises);
+    containerTrackingData.value = trackingResults.filter(Boolean);
+
+    if (containerTrackingData.value.length > 0) {
+      activeTab.value = 'Mapa';
     }
   };
 

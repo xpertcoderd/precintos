@@ -35,7 +35,7 @@
           <BoxIcon class="w-4 h-4 text-indigo-500" />
           <span>{{ shipmentData.countainerCount}} Containers</span>
         </div>
-        <div @click="$emit('trackShipment')" class="flex items-center gap-1 text-xs font-medium text-slate-600 cursor-pointer hover:text-sky-600">
+        <div @click="$emit('trackShipment', shipmentData)" class="flex items-center gap-1 text-xs font-medium text-slate-600 cursor-pointer hover:text-sky-600">
           <MapPin class="w-4 h-4 text-rose-500" />
           <span>Tracking</span>
         </div>

@@ -149,8 +149,6 @@ export async function openSeal(params, pin) {
 }
 
 export const counterCandado = () => safeRequest(() => axios.get(`/api/v1/devices/allStats`, axiosConfig));
-export const blitsTranfers = (hash, id) => safeRequest(() => axios.get(`/v1/transferBlits/list/${hash}/${id}`, axiosConfig));
-
 
 // =================================================================
 // == Carrier Endpoints
@@ -193,4 +191,4 @@ export const drivers_updatePhoto = (formData) => safeRequest(() => axios.post(`/
     headers: { 'Content-Type': 'multipart/form-data' }
 }));
 
-export const transferBlits = (id) => safeRequest( () => axios.get(`(/api/v1/transferBlits/read/${id})`,axiosConfig));
+export const transferBlits = (params) => safeRequest(() => axios.get(`/api/v1/transferBlits/read`, { ...axiosConfig, params }));

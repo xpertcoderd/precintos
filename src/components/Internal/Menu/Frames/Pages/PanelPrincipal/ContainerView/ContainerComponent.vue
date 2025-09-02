@@ -16,7 +16,16 @@
           </button>
           <!-- Dropdown Menu -->
           <div v-if="openMenuId === container.id" @click.stop class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-slate-200">
-            <a href="#" @click.prevent="$emit('create-link', container)" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">Enlace</a>
+            <a
+              href="#"
+              :class="[
+                'block px-4 py-2 text-sm',
+                container.status === 'Pendiente'
+                  ? 'text-slate-700 hover:bg-slate-100'
+                  : 'text-slate-400 cursor-not-allowed'
+              ]"
+              @click.prevent="container.status === 'Pendiente' ? $emit('create-link', container) : null"
+            >Enlace</a>
             <a href="#" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">Alertar Contacto</a>
             <a href="#" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50">Cancelar</a>
           </div>

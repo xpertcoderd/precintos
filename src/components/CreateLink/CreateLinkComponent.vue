@@ -51,6 +51,13 @@ const selectDevice = (device) => {
   isDeviceDropdownOpen.value = false;
 };
 
+const handleBlur = () => {
+  // Use a short delay to allow click events on the dropdown to register
+  setTimeout(() => {
+    isDeviceDropdownOpen.value = false;
+  }, 200);
+};
+
 // Watch for changes in the selected container and re-initialize the form
 watch(() => props.selectedContainer, (newContainer) => {
   initializeLinkData(newContainer);
@@ -117,7 +124,7 @@ const UploadCloud = { template: `<svg xmlns="http://www.w3.org/2000/svg" width="
                           type="text"
                           v-model="deviceSearchText"
                           @focus="isDeviceDropdownOpen = true"
-                          @blur="setTimeout(() => isDeviceDropdownOpen = false, 200)"
+                          @blur="handleBlur"
                           placeholder="Buscar candado..."
                           class="border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-sky-500 focus:border-sky-500 block w-full p-2.5"
                         />

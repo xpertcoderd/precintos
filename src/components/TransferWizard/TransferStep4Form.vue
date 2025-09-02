@@ -23,7 +23,8 @@
 import {ref, watch, defineEmits,defineProps, onMounted} from 'vue';
 import TablaAddingConfirmation from '@/components/Internal/tablas/TablaAddingConfirmation.vue';
 
-const orderData = defineProps(['orderData', 'errors'])
+const props = defineProps(['orderData', 'errors']);
+const emit = defineEmits(['update:modelValue', 'cerrar', 'next', 'update-table-data']);
 
 const localModel = ref(
     {
@@ -46,14 +47,15 @@ const localModel = ref(
       ],
       totalAmount: 0,
       check: false,
-    })
+    });
 
 onMounted(() => {
-  localModel.value = orderData.orderData;
-})
-const emit = defineEmits(['update:modelValue', 'cerrar', 'next']);
+  localModel.value = props.orderData;
+  emit('update-table-data', localModel.value.bl_ContainerList);
+});
 
 watch(localModel, (newVal) => {
   emit('update:modelValue', newVal);
-});
+  emit('update-table-data', newVal.bl_ContainerList);
+}, { deep: true });
 </script>

@@ -20,8 +20,8 @@
         <TransferStep1Form v-if="step === 1" :incoming-data="initialData" v-model="wizardData.step1" :errors="errors.step1" @cerrar="close" @next="validateAndNext(1)" />
         <TransferStep2Form v-if="step === 2" v-model="wizardData.step2" :errors="errors.step2" @cerrar="close" @next="validateAndNext(2)" />
         <TransferStep3Form v-if="step === 3" :incoming-data="wizardData.step2" v-model="wizardData.step3" :errors="errors.step3" @cerrar="close" @next="validateAndNext(3)" />
-        <TransferStep4Form v-if="step === 4" :order-data="allData" v-model="wizardData.step4" :errors="errors.step4" @cerrar="close" @next="validateAndNext(4)" />
-        <TransferStep5Form v-if="step === 5" :all-data="allData" @cerrar="close" @next="close" />
+        <TransferStep4Form v-if="step === 4" :order-data="allData" v-model="wizardData.step4" :errors="errors.step4" @cerrar="close" @next="validateAndNext(4)" @update-table-data="handleUpdateStep4Data" />
+        <TransferStep5Form v-if="step === 5" :all-data="allData" :step4-data="step4TableData" @cerrar="close" @next="close" />
       </div>
     </div>
   </div>
@@ -52,6 +52,8 @@ const {
   setStep,
   resetWizard
 } = useTransferWizardState()
+
+const step4TableData = ref([]);
 
 // 🔧 Result data
 const allData = ref({
@@ -99,6 +101,10 @@ onMounted(async () => {
 function close() {
   resetWizard()
   outGoingData('close')
+}
+
+function handleUpdateStep4Data(data) {
+  step4TableData.value = data;
 }
 
 async function validateAndNext(currentStep) {

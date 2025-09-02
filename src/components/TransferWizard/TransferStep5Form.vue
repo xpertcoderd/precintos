@@ -32,18 +32,26 @@
       <!-- Section 2: Cost Breakdown -->
       <div>
         <h4 class="text-lg font-semibold text-slate-700 mb-4 pb-2 border-b border-slate-200">Desglose de Costos</h4>
-        <div class="flow-root">
-          <ul role="list" class="divide-y divide-slate-200">
-            <li v-for="(item, index) in costBreakdown" :key="index" class="flex justify-between gap-4 py-3">
-              <p class="text-sm text-slate-600">
-                {{ item.containerCount }} Contenedores (BL: <span class="font-medium text-slate-800">#{{ item.bl_number }}</span>)
-              </p>
-              <p class="text-sm font-semibold text-slate-800">{{ formatCurrency(item.containerCount * summaryDetails.unitPrice) }}</p>
-            </li>
-             <li v-if="!costBreakdown.length" class="text-center py-4">
-                <p class="text-sm text-slate-500">No hay desglose para mostrar.</p>
-            </li>
-          </ul>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-slate-200">
+            <thead class="bg-slate-100">
+              <tr>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">BL</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Cantidad</th>
+                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Monto</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-slate-200">
+              <tr v-for="(item, index) in step4Data" :key="index">
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">#{{ item.bl }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ item.bl_count }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500 text-right">{{ formatCurrency(item.amount) }}</td>
+              </tr>
+              <tr v-if="!step4Data.length">
+                <td colspan="3" class="text-center py-4 text-sm text-slate-500">No hay desglose para mostrar.</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -80,13 +88,16 @@ const props = defineProps({
       bl_ContainerList: [],
       totalAmount: 0,
     })
+  },
+  step4Data: {
+    type: Array,
+    default: () => []
   }
 });
 
 defineEmits(['cerrar', 'next']);
 
 const summaryDetails = computed(() => props.allData.headerData || {});
-const costBreakdown = computed(() => props.allData.bl_ContainerList || []);
 const grandTotal = computed(() => props.allData.totalAmount || 0);
 
 const formatCurrency = (value) => {
