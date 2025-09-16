@@ -1,108 +1,85 @@
-import { ref, computed } from 'vue';
-
-// Mock data to simulate the original state
-const mockDispositivos = [
-  { id: 1, nombre: 'Dispositivo Alpha', serial: 'SN-ALPHA-001', imei: '123456789012345' },
-  { id: 2, nombre: 'Dispositivo Beta', serial: 'SN-BETA-002', imei: '543210987654321' },
-  { id: 3, nombre: 'Dispositivo Gamma', serial: 'SN-GAMMA-003', imei: '987654321012345' },
-];
+import { ref, watch } from 'vue';
+import { useNotifications } from '@/composables/useNotifications';
+import { devicesAll } from '@/components/conexion/DataConector.js';
 
 export function useDispositivoPage() {
-  const items = ref([...mockDispositivos]);
-  const editingItem = ref(null);
+  const { sendNotification } = useNotifications();
+  const items = ref([]);
   const isModalVisible = ref(false);
-  const isConfirmationVisible = ref(false);
-  const itemToDelete = ref(null);
   const isLoading = ref(false);
   const error = ref(null);
   const errors = ref({});
 
+  // Pagination state
+  const currentPage = ref(1);
+  const totalPages = ref(1);
+  const totalItems = ref(0);
+  const pageSize = ref(20); // Default page size
+
   const pageTitle = 'Gestionar Dispositivos';
   const createButtonText = 'Crear Dispositivo';
-  const modalTitle = computed(() =>
-    editingItem.value ? 'Editar Dispositivo' : 'Crear Nuevo Dispositivo'
-  );
-  const saveButtonText = computed(() => (editingItem.value ? 'Guardar Cambios' : 'Crear'));
+  const modalTitle = 'Crear Nuevo Dispositivo';
+  const saveButtonText = 'Crear';
 
-  // This function can be used to reset the data or for future use.
-  async function fetchItems() {
+  async function fetchItems(page = 1) {
     isLoading.value = true;
     error.value = null;
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 200));
-    items.value = [...mockDispositivos]; // Reset to mock data
-    isLoading.value = false;
+    try {
+      const response = await devicesAll({ page: page, pageSize: pageSize.value });
+      if (response && response.success) {
+        items.value = response.data.devices;
+        totalItems.value = response.data.total;
+        totalPages.value = Math.ceil(response.data.total / response.data.pageSize);
+        currentPage.value = response.data.page;
+      } else {
+        const errorMessage = 'Error al cargar los dispositivos.';
+        error.value = errorMessage;
+        sendNotification(errorMessage, 'error');
+        items.value = [];
+      }
+    } catch (err) {
+      const errorMessage = `Error al cargar los dispositivos: ${err.message}`;
+      error.value = errorMessage;
+      sendNotification(errorMessage, 'error');
+      items.value = [];
+      console.error(err);
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   function openCreateModal() {
-    editingItem.value = null;
-    errors.value = {};
-    isModalVisible.value = true;
-  }
-
-  function openEditModal(item) {
-    editingItem.value = { ...item };
     errors.value = {};
     isModalVisible.value = true;
   }
 
   function closeModal() {
     isModalVisible.value = false;
-    editingItem.value = null;
   }
 
-  function openDeleteConfirmation(item) {
-    itemToDelete.value = item;
-    isConfirmationVisible.value = true;
-  }
-
-  function closeDeleteConfirmation() {
-    isConfirmationVisible.value = false;
-    itemToDelete.value = null;
-  }
-
-  async function saveItem(formData) {
-    isLoading.value = true;
-    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
-
-    if (editingItem.value) {
-      // Update existing item
-      const index = items.value.findIndex(i => i.id === editingItem.value.id);
-      if (index !== -1) {
-        items.value[index] = { ...editingItem.value, ...formData };
-      }
-    } else {
-      // Create new item
-      const newItem = {
-        id: Date.now(), // Simple unique ID
-        ...formData,
-      };
-      items.value.push(newItem);
-    }
-    
-    isLoading.value = false;
+  async function saveItem() {
+    // TODO: Implement the actual API call for creating a device
+    sendNotification('Funcionalidad de creación no implementada con API real.', 'warning');
+    // Example of what it might look like:
+    // const response = await createDevice(formData);
+    // if (response.success) {
+    //   sendNotification('Dispositivo creado con éxito', 'success');
+    //   await fetchItems(currentPage.value); // Refresh the list
+    //   closeModal();
+    // } else {
+    //   sendNotification('Error al crear el dispositivo', 'error');
+    // }
     closeModal();
   }
 
-  async function confirmDelete() {
-    if (!itemToDelete.value) return;
-    isLoading.value = true;
-    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
-    
-    const index = items.value.findIndex(i => i.id === itemToDelete.value.id);
-    if (index !== -1) {
-      items.value.splice(index, 1);
-    }
-
-    isLoading.value = false;
-    closeDeleteConfirmation();
-  }
+  // Watch for page changes and fetch data
+  watch(currentPage, (newPage) => {
+    fetchItems(newPage);
+  });
 
   return {
     items,
-    editingItem,
     isModalVisible,
-    isConfirmationVisible,
     isLoading,
     error,
     errors,
@@ -110,13 +87,14 @@ export function useDispositivoPage() {
     createButtonText,
     modalTitle,
     saveButtonText,
+    // Pagination
+    currentPage,
+    totalPages,
+    totalItems,
     fetchItems,
+    // Methods
     openCreateModal,
-    openEditModal,
     closeModal,
-    openDeleteConfirmation,
-    closeDeleteConfirmation,
     saveItem,
-    confirmDelete,
   };
 }

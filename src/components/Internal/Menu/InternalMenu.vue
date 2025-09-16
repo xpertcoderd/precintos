@@ -1,5 +1,6 @@
 <script setup>
 import { ref, defineProps, defineEmits, defineExpose } from 'vue';
+import auroraLogo from '@/assets/logo/auroraLogob.png';
 import LayoutDashboard from './icons/LayoutDashboard.vue';
 import FileText from './icons/FileText.vue';
 import ServerIcon from './icons/ServerIcon.vue';
@@ -70,8 +71,8 @@ defineExpose({ updateView });
 <template>
     <aside class="w-64 h-screen bg-white border-r border-slate-200 flex flex-col p-4 flex-shrink-0">
         <!-- Logo -->
-        <div class="py-4 mb-4 text-center">
-            <h1 class="text-2xl font-bold text-slate-800 tracking-widest">AURORA</h1>
+        <div class="py-4 mb-4">
+            <img :src="auroraLogo" alt="Aurora Logo" class="h-12 mx-auto" />
         </div>
 
         <!-- User Profile Section -->

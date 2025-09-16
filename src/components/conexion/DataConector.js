@@ -110,7 +110,7 @@ export const linkTransferUnits = (formData) => safeRequest(() => axios.post(`/ap
 }));
 export const auth = (params) => safeRequest(() => axios.post(`/api/v1/auth/login`, params, axiosConfig));
 export const logOut = () => safeRequest(() => axios.get(`/api/v1/auth/logout`, axiosConfig));
-export const devicesAll = () => safeRequest(() => axios.get(`/api/v1/devices/filtered`, axiosConfig));
+export const devicesAll = (params) => safeRequest(() => axios.get(`/api/v1/devices/filtered`, {...axiosConfig, params}));
 export const placesList_All = (id) => safeRequest(() => axios.get(`/api/v1/places/list/${id}`, axiosConfig));
 export const startPlace_Points = (id) => safeRequest(() => axios.get(`/api/v1/places/getStartPoints/${id}`, axiosConfig));
 export const endPlace_Points = (id) => safeRequest(() => axios.get(`/api/v1/places/getEndPoints/${id}`, axiosConfig));

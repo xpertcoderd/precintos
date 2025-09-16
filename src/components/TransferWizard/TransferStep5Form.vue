@@ -1,11 +1,11 @@
 <template>
-  <div class="p-2">
+  <div>
     <div class="text-center mb-6">
       <h3 class="text-2xl font-bold text-slate-800">Resumen del Traslado</h3>
       <p class="text-slate-500">Por favor, revise todos los detalles antes de finalizar.</p>
     </div>
 
-    <div class="bg-slate-50 rounded-xl p-6 border border-slate-200 space-y-6">
+    <div class="bg-slate-50 rounded-xl p-4 sm:p-6 border border-slate-200 space-y-6">
       <!-- Section 1: Key Details -->
       <div>
         <h4 class="text-lg font-semibold text-slate-700 mb-4 pb-2 border-b border-slate-200">Detalles Principales</h4>
@@ -65,7 +65,7 @@
     </div>
 
     <!-- Actions -->
-    <div class="mt-8 flex justify-end gap-4">
+    <div class="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-4 border-t border-gray-200 pt-6">
       <button @click="$emit('cerrar')" type="button" class="px-5 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-100 transition-colors">
         Cancelar
       </button>

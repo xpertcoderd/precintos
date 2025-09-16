@@ -2,13 +2,13 @@
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 overflow-auto p-4">
     <div class="flex w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden bg-white flex-col">
       <!-- Header -->
-      <div class="p-6 pb-0 border-b border-gray-200">
-        <div class="flex items-center justify-between">
+      <div class="p-4 sm:p-6 pb-0 border-b border-gray-200">
+        <div class="flex flex-wrap items-start justify-between gap-4 sm:flex-nowrap">
           <div>
             <h2 class="text-xl font-bold text-gray-900">Nuevo Traslado</h2>
             <p class="mt-1 text-sm text-gray-500">Siga los pasos para completar la transferencia.</p>
           </div>
-          <img :src="auroraLogo" alt="Aurora Logo" class="h-12" />
+          <img :src="auroraLogo" alt="Aurora Logo" class="h-10 sm:h-12" />
         </div>
         <div class="mt-4">
           <TransferWizardSteps @setStep="setStep" :count="stepIndicators" :current-step="step" />
@@ -16,7 +16,7 @@
       </div>
 
       <!-- Form Content -->
-      <div class="p-6 flex-1 overflow-y-auto">
+      <div class="p-4 sm:p-6 flex-1 overflow-y-auto">
         <TransferStep1Form v-if="step === 1" :incoming-data="initialData" v-model="wizardData.step1" :errors="errors.step1" @cerrar="close" @next="validateAndNext(1)" />
         <TransferStep2Form v-if="step === 2" v-model="wizardData.step2" :errors="errors.step2" @cerrar="close" @next="validateAndNext(2)" />
         <TransferStep3Form v-if="step === 3" :incoming-data="wizardData.step2" v-model="wizardData.step3" :errors="errors.step3" @cerrar="close" @next="validateAndNext(3)" />

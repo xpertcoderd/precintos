@@ -19,7 +19,7 @@
               {{ index + 1 }}
             </span>
           </span>
-          <span class="mt-2 text-xs sm:text-sm text-center" :class="step.isActive ? 'font-bold text-blue-600' : 'text-gray-500'">
+          <span :class="[step.isActive ? 'font-bold text-blue-600' : 'text-gray-500', 'hidden sm:block mt-2 text-xs sm:text-sm text-center']">
             {{ step.label }}
           </span>
         </button>

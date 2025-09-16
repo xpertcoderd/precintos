@@ -50,7 +50,7 @@ watch(
 </script>
 
 <template>
-  <form @submit.prevent="$emit('next')" class="space-y-4 p-4">
+  <form @submit.prevent="$emit('next')" class="space-y-4">
     <div>
       <h2 class="text-base/7 font-semibold text-slate-900">Datos del Traslado</h2>
       <div class="mt-6 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2">

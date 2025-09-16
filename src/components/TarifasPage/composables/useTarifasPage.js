@@ -1,4 +1,5 @@
 import { ref, computed } from 'vue';
+import { useNotifications } from '@/composables/useNotifications';
 
 // --- Mock Data --- //
 const mockTarifas = [
@@ -42,6 +43,7 @@ const mockPlaces = [
 // --- End Mock Data --- //
 
 export function useTarifasPage() {
+  const { sendNotification } = useNotifications();
   const items = ref([...mockTarifas]);
   const transferTypes = ref([...mockTransferTypes]);
   const tariffTypes = ref([...mockTariffTypes]);
@@ -105,12 +107,14 @@ export function useTarifasPage() {
       const index = items.value.findIndex(i => i.id === editingItem.value.id);
       if (index !== -1) {
         items.value[index] = { ...editingItem.value, ...formData };
+        sendNotification('Tarifa actualizada con éxito', 'success');
       }
     } else {
       const newItem = { id: Date.now(), ...formData };
       items.value.push(newItem);
+      sendNotification('Tarifa creada con éxito', 'success');
     }
-    
+
     isLoading.value = false;
     closeModal();
   }
@@ -119,10 +123,11 @@ export function useTarifasPage() {
     if (!itemToDelete.value) return;
     isLoading.value = true;
     await new Promise(resolve => setTimeout(resolve, 500));
-    
+
     const index = items.value.findIndex(i => i.id === itemToDelete.value.id);
     if (index !== -1) {
       items.value.splice(index, 1);
+      sendNotification('Tarifa eliminada con éxito', 'success');
     }
 
     isLoading.value = false;

@@ -35,7 +35,7 @@ function removeBL(bl_Selected) {
 </script>
 
 <template>
-  <form @submit.prevent="$emit('next')" class="space-y-10 p-4">
+  <form @submit.prevent="$emit('next')" class="space-y-10">
     <div>
       <h2 class="text-base/7 font-semibold text-slate-900">Agregar BLs</h2>
       <div class="mt-6 flex items-start gap-x-3">
@@ -54,12 +54,12 @@ function removeBL(bl_Selected) {
         </div>
         <button @click="addBL" type="button" class="rounded-md bg-sky-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-sky-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 flex items-center gap-2">
           <PlusIcon class="w-5 h-5" />
-          <span>Agregar</span>
+          <span class="hidden sm:inline">Agregar</span>
         </button>
       </div>
     </div>
 
-    <div class="-mx-4">
+    <div class="-mx-4 sm:-mx-6">
       <TablaAddingBL
           v-if="localModel.listBl && localModel.listBl.length > 0"
           :columnName="'BL'"

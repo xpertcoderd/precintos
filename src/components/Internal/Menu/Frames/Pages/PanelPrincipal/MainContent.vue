@@ -76,6 +76,13 @@
 
     <div v-if="activeTab === 'Mapa'">
       <MapComponent :tracking-data="containerTrackingData" />
+      <div class="mt-6">
+        <ContainerComponent
+          v-if="filteredContainersForMap.length > 0"
+          :containers="filteredContainersForMap"
+          @create-link="handleCreateLink"
+        />
+      </div>
     </div>
 
     <div v-if="activeTab !== 'BL' && activeTab !== 'Contenedor' && activeTab !== 'Mapa'" class="text-center py-10">
@@ -100,7 +107,7 @@
 </template>
 
 <script setup>
-  import { ref, defineProps, defineEmits } from 'vue';
+  import { ref, computed, defineProps, defineEmits, watch, onUnmounted } from 'vue';
   import ListIcon from './icons/ListIcon.vue';
   import SearchIcon from './icons/SearchIcon.vue';
   import ShipmentCard from './ShipmentCard.vue';
@@ -120,12 +127,15 @@
   const activeContainers = ref([]);
   const selectedContainerForLink = ref(null);
   const containerTrackingData = ref([]);
+  const trackingTimer = ref(null);
+  const lastTrackedShipment = ref(null);
+  const untrackableContainerIds = ref(new Set());
 
   const containerCache = new Map();
 
   const { linkModalData, fetchCreateLinkData } = useCreateLinkData();
 
-  defineProps({
+  const props = defineProps({
     shipmentData: Array,
     currentPage: Number,
     totalPages: Number,
@@ -135,7 +145,13 @@
 
   const emit = defineEmits(['trackShipment', 'update-page']);
 
-  const selectTab = (tab) => { activeTab.value = tab; };
+  const filteredContainersForMap = computed(() => {
+    return activeContainers.value.filter(container => container.status !== 'Pendiente');
+  });
+
+  const selectTab = (tab) => {
+    activeTab.value = tab;
+  };
 
   const fetchContainerData = async (transferId) => {
     if (containerCache.has(transferId)) {
@@ -149,11 +165,10 @@
     return [];
   };
 
-  const transformContainerData = (container, shipment, lastBlit = null) => {
+  const transformContainerData = (container, shipment, completedProgress = 0) => {
     const { transfer } = shipment;
     const startDate = new Date(transfer.timeRequest).toLocaleDateString();
     const endDate = new Date(transfer.timeTravelEst).toLocaleDateString();
-    const progress = lastBlit ? lastBlit.completed : 0;
 
     return {
       id: `${transfer.bl}-${container.id}`,
@@ -163,7 +178,7 @@
       destination: transfer.endPlace.label,
       status: getContainerStatusText(container.statusId),
       statusColorClass: getContainerStatusColor(container.statusId),
-      progress: progress,
+      progress: completedProgress,
       startDate,
       endDate,
       isOverdue: new Date() > new Date(endDate),
@@ -187,7 +202,7 @@
       const lastBlit = (trackingResponse.success && trackingResponse.data.transferBlits.length > 0)
         ? trackingResponse.data.transferBlits[0]
         : null;
-      return transformContainerData(container, shipment, lastBlit);
+      return transformContainerData(container, shipment, lastBlit ? lastBlit.completed : 0);
     });
 
     activeTab.value = 'Contenedor';
@@ -195,34 +210,99 @@
 
   const handleCreateLink = async (container) => {
     selectedContainerForLink.value = container;
+    await fetchCreateLinkData();
     showCreateLinkModal.value = true;
   };
 
   const handleTrackShipment = async (shipment) => {
-    if (!shipment || !shipment.transfer) return;
+    // If this is a new shipment, clear the blacklist.
+    if (lastTrackedShipment.value?.transfer.id !== shipment.transfer.id) {
+      untrackableContainerIds.value.clear();
+    }
+    lastTrackedShipment.value = shipment;
 
     const containers = await fetchContainerData(shipment.transfer.id);
     if (containers.length === 0) return;
 
-    const trackingDataPromises = containers.map(async (container) => {
-      const response = await transferBlits({ trLnkId: container.id, short: true });
-      if (response.success && response.data.transferBlitsShort.length > 0) {
-        return {
-          id: container.id,
-          name: `Contenedor # ${container.container}`,
-          route: response.data.transferBlitsShort.map(blit => ({ lat: blit.lat, lng: blit.lng }))
-        };
+    const allBlitsPromises = containers.map(async (container) => {
+      // Skip API call if container is in the blacklist
+      if (untrackableContainerIds.value.has(container.id)) {
+        return null;
       }
-      return null;
+
+      const response = await transferBlits({ trLnkId: container.id });
+
+      // If the request fails or returns no data, add to blacklist and return null.
+      if (!response.success || response.data.transferBlits.length === 0) {
+        untrackableContainerIds.value.add(container.id);
+        return null;
+      }
+
+      const blits = response.data.transferBlits;
+      const lastBlit = blits[blits.length - 1];
+      return {
+        id: container.id,
+        name: `Contenedor # ${container.container}`,
+        route: blits.map(blit => ({ lat: blit.lat, lng: blit.lng })),
+        completed: lastBlit ? lastBlit.completed : 0,
+      };
     });
 
-    const trackingResults = await Promise.all(trackingDataPromises);
-    containerTrackingData.value = trackingResults.filter(Boolean);
+    const allBlitsResults = (await Promise.all(allBlitsPromises)).filter(Boolean);
+
+    activeContainers.value = containers.map((container) => {
+      const blitData = allBlitsResults.find(data => data.id === container.id);
+      return transformContainerData(container, shipment, blitData ? blitData.completed : 0);
+    });
+
+    containerTrackingData.value = allBlitsResults.map(data => ({
+        id: data.id,
+        name: data.name,
+        route: data.route
+    }));
 
     if (containerTrackingData.value.length > 0) {
       activeTab.value = 'Mapa';
     }
   };
+
+  const startTrackingTimer = () => {
+    if (trackingTimer.value) clearInterval(trackingTimer.value);
+
+    trackingTimer.value = setInterval(() => {
+      if (lastTrackedShipment.value) {
+        // Find the fresh version of the shipment from the current props
+        const currentShipment = props.shipmentData.find(
+          s => s.transfer.id === lastTrackedShipment.value.transfer.id
+        );
+
+        if (currentShipment) {
+          handleTrackShipment(currentShipment);
+        } else {
+          stopTrackingTimer();
+        }
+      }
+    }, 15000);
+  };
+
+  const stopTrackingTimer = () => {
+    if (trackingTimer.value) {
+      clearInterval(trackingTimer.value);
+      trackingTimer.value = null;
+    }
+  };
+
+  watch(activeTab, (newTab) => {
+    if (newTab === 'Mapa' && lastTrackedShipment.value) {
+      startTrackingTimer();
+    } else {
+      stopTrackingTimer();
+    }
+  });
+
+  onUnmounted(() => {
+    stopTrackingTimer();
+  });
 
   const handlePageChange = (newPage) => {
     emit('update-page', newPage);

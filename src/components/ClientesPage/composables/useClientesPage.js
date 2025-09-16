@@ -1,4 +1,5 @@
 import { ref, computed } from 'vue';
+import { useNotifications } from '@/composables/useNotifications';
 
 // Mock data to simulate the original state
 const mockClientes = [
@@ -7,6 +8,7 @@ const mockClientes = [
 ];
 
 export function useClientesPage() {
+  const { sendNotification } = useNotifications();
   const items = ref([...mockClientes]);
   const editingItem = ref(null);
   const isModalVisible = ref(false);
@@ -65,12 +67,14 @@ export function useClientesPage() {
       const index = items.value.findIndex(i => i.id === editingItem.value.id);
       if (index !== -1) {
         items.value[index] = { ...editingItem.value, ...formData };
+        sendNotification('Cliente actualizado con éxito', 'success');
       }
     } else {
       const newItem = { id: Date.now(), ...formData };
       items.value.push(newItem);
+      sendNotification('Cliente creado con éxito', 'success');
     }
-    
+
     isLoading.value = false;
     closeModal();
   }
@@ -79,10 +83,11 @@ export function useClientesPage() {
     if (!itemToDelete.value) return;
     isLoading.value = true;
     await new Promise(resolve => setTimeout(resolve, 500));
-    
+
     const index = items.value.findIndex(i => i.id === itemToDelete.value.id);
     if (index !== -1) {
       items.value.splice(index, 1);
+      sendNotification('Cliente eliminado con éxito', 'success');
     }
 
     isLoading.value = false;

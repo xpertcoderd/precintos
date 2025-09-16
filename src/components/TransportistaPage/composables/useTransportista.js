@@ -1,10 +1,12 @@
 import { ref, computed, watch } from 'vue';
 import { transportistaService } from '../../../services/transportistaService';
+import { useNotifications } from '@/composables/useNotifications';
 
 /**
  * A composable function to manage the state and logic for the Transportista page.
  */
 export function useTransportistaPage() {
+    const { sendNotification } = useNotifications();
     // --- Reactive State ---
     const tabs = ref(['Transportistas', 'Choferes', 'Vehículos']);
     const activeTab = ref('Transportistas');
@@ -74,6 +76,7 @@ export function useTransportistaPage() {
             carriers.value = await transportistaService.getCarriers({});
         } catch (err) {
             error.value = `Error al cargar ${activeTab.value}: ${err.message}`;
+            sendNotification(error.value, 'error');
             console.error(err);
             items.value = []; // Clear items on error
         } finally {
@@ -102,8 +105,10 @@ export function useTransportistaPage() {
             await activeEntity.value.create(data);
             await fetchItems(); // Refresh list
             closeModal();
+            sendNotification(`${activeEntity.value.singular} creado con éxito`, 'success');
         } catch (err) {
             error.value = `Error al crear ${activeEntity.value.singular}: ${err.message}`;
+            sendNotification(error.value, 'error');
             console.error(err);
         }
     };
@@ -113,8 +118,10 @@ export function useTransportistaPage() {
             await activeEntity.value.update(data.id, data);
             await fetchItems(); // Refresh list
             closeModal();
+            sendNotification(`${activeEntity.value.singular} actualizado con éxito`, 'success');
         } catch (err) {
             error.value = `Error al actualizar ${activeEntity.value.singular}: ${err.message}`;
+            sendNotification(error.value, 'error');
             console.error(err);
         }
     };
@@ -123,8 +130,10 @@ export function useTransportistaPage() {
         try {
             await activeEntity.value.delete(id);
             await fetchItems(); // Refresh list
+            sendNotification(`${activeEntity.value.singular} eliminado con éxito`, 'success');
         } catch (err) {
             error.value = `Error al eliminar ${activeEntity.value.singular}: ${err.message}`;
+            sendNotification(error.value, 'error');
             console.error(err);
         }
     };

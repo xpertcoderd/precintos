@@ -35,8 +35,16 @@
           <BoxIcon class="w-4 h-4 text-indigo-500" />
           <span>{{ shipmentData.countainerCount}} Containers</span>
         </div>
-        <div @click="$emit('trackShipment', shipmentData)" class="flex items-center gap-1 text-xs font-medium text-slate-600 cursor-pointer hover:text-sky-600">
-          <MapPin class="w-4 h-4 text-rose-500" />
+        <div
+          @click="!isPending && $emit('trackShipment', shipmentData)"
+          class="flex items-center gap-1 text-xs font-medium"
+          :class="[
+            isPending
+              ? 'text-slate-400 cursor-not-allowed'
+              : 'text-slate-600 cursor-pointer hover:text-sky-600'
+          ]"
+        >
+          <MapPin class="w-4 h-4" :class="isPending ? 'text-slate-400' : 'text-rose-500'" />
           <span>Tracking</span>
         </div>
       </div>
@@ -55,6 +63,11 @@
   });
 
   defineEmits(['trackShipment', 'groupContainers']);
+
+  const isPending = computed(() => {
+    // statusId 1 corresponds to 'Pendiente'
+    return props.shipmentData.transfer.statusId === 1;
+  });
 
   const formattedEta = computed(() => {
     if (!props.shipmentData.transfer.timeTravelEst) return 'N/A';
