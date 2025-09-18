@@ -1,4 +1,4 @@
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { useNotifications } from '@/composables/useNotifications';
 import { devicesAll } from '@/components/conexion/DataConector.js';
 
@@ -14,12 +14,46 @@ export function useDispositivoPage() {
   const currentPage = ref(1);
   const totalPages = ref(1);
   const totalItems = ref(0);
-  const pageSize = ref(20); // Default page size
+  const pageSize = ref(10);
+
+  // Client-side filtering state
+  const searchQuery = ref('');
+  const selectedGroup = ref('All');
 
   const pageTitle = 'Gestionar Dispositivos';
   const createButtonText = 'Crear Dispositivo';
   const modalTitle = 'Crear Nuevo Dispositivo';
   const saveButtonText = 'Crear';
+
+  // Compute unique groups for the filter dropdown
+  const uniqueGroups = computed(() => {
+    const groups = new Set(items.value.map(item => item.group.title));
+    return ['All', ...Array.from(groups)];
+  });
+
+  // Computed property to filter items based on search and group selection
+  const filteredItems = computed(() => {
+    let filtered = items.value;
+
+    // Filter by selected group
+    if (selectedGroup.value && selectedGroup.value !== 'All') {
+      filtered = filtered.filter(item => item.group.title === selectedGroup.value);
+    }
+
+    // Filter by search query
+    if (searchQuery.value) {
+      const lowerCaseQuery = searchQuery.value.toLowerCase();
+      filtered = filtered.filter(item => {
+        return (
+          item.device.label.toLowerCase().includes(lowerCaseQuery) ||
+          item.device.deviceid.toLowerCase().includes(lowerCaseQuery) ||
+          item.group.title.toLowerCase().includes(lowerCaseQuery)
+        );
+      });
+    }
+
+    return filtered;
+  });
 
   async function fetchItems(page = 1) {
     isLoading.value = true;
@@ -58,27 +92,21 @@ export function useDispositivoPage() {
   }
 
   async function saveItem() {
-    // TODO: Implement the actual API call for creating a device
     sendNotification('Funcionalidad de creación no implementada con API real.', 'warning');
-    // Example of what it might look like:
-    // const response = await createDevice(formData);
-    // if (response.success) {
-    //   sendNotification('Dispositivo creado con éxito', 'success');
-    //   await fetchItems(currentPage.value); // Refresh the list
-    //   closeModal();
-    // } else {
-    //   sendNotification('Error al crear el dispositivo', 'error');
-    // }
     closeModal();
   }
 
-  // Watch for page changes and fetch data
   watch(currentPage, (newPage) => {
     fetchItems(newPage);
   });
 
+  watch(pageSize, () => {
+    fetchItems(1);
+  });
+
   return {
     items,
+    filteredItems, // Expose filtered items
     isModalVisible,
     isLoading,
     error,
@@ -91,6 +119,11 @@ export function useDispositivoPage() {
     currentPage,
     totalPages,
     totalItems,
+    pageSize,
+    // Filtering
+    searchQuery,
+    selectedGroup,
+    uniqueGroups,
     fetchItems,
     // Methods
     openCreateModal,
