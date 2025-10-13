@@ -8,7 +8,7 @@
           <h2 class="text-xl font-bold text-slate-800">{{ pageTitle }}</h2>
         </div>
         <div class="flex items-center gap-4 mt-4 md:mt-0">
-          <button @click="openSeals" :disabled="selectedDevices.length === 0" class="px-5 py-2.5 text-sm font-medium text-white bg-green-500 rounded-lg hover:bg-green-600 focus:ring-4 focus:ring-green-300 disabled:bg-gray-300 disabled:cursor-not-allowed">
+          <button @click="openSeals" :disabled="selectedDevices.length !== 1" class="px-5 py-2.5 text-sm font-medium text-white bg-green-500 rounded-lg hover:bg-green-600 focus:ring-4 focus:ring-green-300 disabled:bg-gray-300 disabled:cursor-not-allowed">
             Abrir Candado
           </button>
           <button @click="viewOnMap" :disabled="selectedDevices.length === 0" class="px-5 py-2.5 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 focus:ring-4 focus:ring-blue-300 disabled:bg-gray-300 disabled:cursor-not-allowed">
@@ -21,16 +21,8 @@
       </div>
 
       <!-- Filters and Search -->
-      <div class="flex flex-col md:flex-row justify-end items-center gap-4 mb-6">
-        <div class="relative w-full md:w-64">
-            <select v-model="selectedGroup" class="w-full pl-3 pr-10 py-2 text-sm border border-slate-300 rounded-lg focus:ring-sky-500 focus:border-sky-500">
-              <option v-for="group in uniqueGroups" :key="group" :value="group">{{ group }}</option>
-            </select>
-        </div>
-        <div class="relative w-full md:w-64">
-          <input type="text" v-model="searchQuery" placeholder="Search..." class="w-full pl-10 pr-4 py-2 text-sm border border-slate-300 rounded-lg focus:ring-sky-500 focus:border-sky-500">
-          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-        </div>
+      <div class="mb-6">
+        <MultiFilterInput v-model="activeFilters" :filter-options="filterOptions" />
       </div>
 
       <!-- Loading and Error States -->
@@ -45,11 +37,11 @@
         </transition>
 
         <DispositivoTable
-            :data="filteredItems"
+            :data="items"
             @selection-change="handleSelectionChange"
         />
 
-        <div v-if="!isLoading && filteredItems.length === 0" class="text-center text-slate-500 py-12">
+        <div v-if="!isLoading && items.length === 0" class="text-center text-slate-500 py-12">
             No hay dispositivos para mostrar con los filtros actuales.
         </div>
 
@@ -83,20 +75,31 @@
       <DispositivoForm ref="dispositivoFormRef" :initial-data="editingItem" :errors="errors" />
     </EntityModal>
 
+    <!-- PIN Modal for Opening Seals -->
+    <PinModal :visible="showPinModal" @close="showPinModal = false" @confirm="handlePinConfirm" />
+
+    <!-- Map Modal for Viewing Devices -->
+    <MapModal :visible="showMapModal" :locations="mapLocations" @close="showMapModal = false" />
+
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useDispositivoPage } from '@/components/DispositivoPage/composables/useDispositivoPage';
+import { openSeal } from '@/components/conexion/DataConector.js';
+import { useNotifications } from '@/composables/useNotifications';
 import DispositivoTable from '@/components/DispositivoPage/components/DispositivoTable.vue';
 import EntityModal from '@/components/DispositivoPage/components/EntityModal.vue';
 import DispositivoForm from '@/components/DispositivoPage/components/DispositivoForm.vue';
 import Pagination from '@/components/Internal/Menu/Frames/Pages/PanelPrincipal/Pagination.vue';
 import ServerIcon from '@/components/Internal/Menu/icons/ServerIcon.vue';
+import PinModal from '@/components/common/PinModal.vue';
+import MapModal from '@/components/common/MapModal.vue';
+import MultiFilterInput from '@/components/common/MultiFilterInput.vue';
 
 const {
-  filteredItems,
+  items,
   editingItem,
   isModalVisible,
   isLoading,
@@ -110,17 +113,20 @@ const {
   totalPages,
   totalItems,
   pageSize,
-  searchQuery,
-  selectedGroup,
-  uniqueGroups,
+  activeFilters,
+  filterOptions,
   fetchItems,
   openCreateModal,
   closeModal,
   saveItem,
 } = useDispositivoPage();
 
+const { sendNotification } = useNotifications();
 const dispositivoFormRef = ref(null);
 const selectedDevices = ref([]);
+const showPinModal = ref(false);
+const showMapModal = ref(false);
+const mapLocations = ref([]);
 
 onMounted(() => {
   fetchItems(1);
@@ -135,13 +141,38 @@ function handleSelectionChange(selection) {
 }
 
 function openSeals() {
-  console.log('Abrir candado para los dispositivos:', selectedDevices.value);
-  // Placeholder for future implementation
+  showPinModal.value = true;
+}
+
+async function handlePinConfirm(pin) {
+  showPinModal.value = false;
+  const deviceId = selectedDevices.value[0];
+  if (!deviceId) return;
+
+  const response = await openSeal({ deviceId }, pin);
+  if (response.success) {
+    sendNotification(`Sello del dispositivo ${deviceId} abierto con éxito.`, 'success');
+  } else {
+    sendNotification(`Error al abrir el sello del dispositivo ${deviceId}.`, 'error');
+  }
 }
 
 function viewOnMap() {
-  console.log('Ver en mapa los dispositivos:', selectedDevices.value);
-  // Placeholder for future implementation
+  mapLocations.value = selectedDevices.value.map(deviceId => {
+    const device = items.value.find(item => item.device.id === deviceId);
+    if (device && device.deviceState) {
+      return {
+        lat: device.deviceState.lat,
+        lng: device.deviceState.lng,
+        label: device.device.label,
+      };
+    }
+    return null;
+  }).filter(Boolean);
+
+  if (mapLocations.value.length > 0) {
+    showMapModal.value = true;
+  }
 }
 
 async function handleSave() {
@@ -156,7 +187,6 @@ async function handleSave() {
 .fade-leave-active {
   transition: opacity 0.3s ease;
 }
-
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;

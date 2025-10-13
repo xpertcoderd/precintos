@@ -1,6 +1,17 @@
-import { ref, watch, computed } from 'vue';
+import { ref, watch } from 'vue';
 import { useNotifications } from '@/composables/useNotifications';
 import { devicesAll } from '@/components/conexion/DataConector.js';
+
+// Maps backend parameter names to user-friendly labels
+const filterOptions = [
+  { label: 'Device ID', value: 'deviceid' },
+  { label: 'ID', value: 'ids' },
+  { label: 'Source ID', value: 'sourceId' },
+  { label: 'Group ID', value: 'groupId' },
+  { label: 'Model', value: 'model' },
+  { label: 'Phone', value: 'phone' },
+  { label: 'Tail Number', value: 'tailDeviceid' }, // Corrected from tailNumber
+];
 
 export function useDispositivoPage() {
   const { sendNotification } = useNotifications();
@@ -10,66 +21,46 @@ export function useDispositivoPage() {
   const error = ref(null);
   const errors = ref({});
 
-  // Pagination state
+  // --- State for Pagination, Filtering, and Search ---
   const currentPage = ref(1);
   const totalPages = ref(1);
   const totalItems = ref(0);
   const pageSize = ref(10);
-
-  // Client-side filtering state
-  const searchQuery = ref('');
-  const selectedGroup = ref('All');
+  const activeFilters = ref([]); // This will hold our array of filter tags
+  const debounceTimer = ref(null);
 
   const pageTitle = 'Gestionar Dispositivos';
   const createButtonText = 'Crear Dispositivo';
   const modalTitle = 'Crear Nuevo Dispositivo';
   const saveButtonText = 'Crear';
 
-  // Compute unique groups for the filter dropdown
-  const uniqueGroups = computed(() => {
-    const groups = new Set(items.value.map(item => item.group.title));
-    return ['All', ...Array.from(groups)];
-  });
-
-  // Computed property to filter items based on search and group selection
-  const filteredItems = computed(() => {
-    let filtered = items.value;
-
-    // Filter by selected group
-    if (selectedGroup.value && selectedGroup.value !== 'All') {
-      filtered = filtered.filter(item => item.group.title === selectedGroup.value);
-    }
-
-    // Filter by search query
-    if (searchQuery.value) {
-      const lowerCaseQuery = searchQuery.value.toLowerCase();
-      filtered = filtered.filter(item => {
-        return (
-          item.device.label.toLowerCase().includes(lowerCaseQuery) ||
-          item.device.deviceid.toLowerCase().includes(lowerCaseQuery) ||
-          item.group.title.toLowerCase().includes(lowerCaseQuery)
-        );
-      });
-    }
-
-    return filtered;
-  });
-
   async function fetchItems(page = 1) {
     isLoading.value = true;
     error.value = null;
+
+    // Build params from the activeFilters array
+    const searchParams = activeFilters.value.reduce((params, filter) => {
+      params[filter.key] = filter.value;
+      return params;
+    }, {});
+
+    const params = {
+      page: page,
+      pageSize: pageSize.value,
+      ...searchParams,
+    };
+
     try {
-      const response = await devicesAll({ page: page, pageSize: pageSize.value });
+      const response = await devicesAll(params);
       if (response && response.success) {
         items.value = response.data.devices;
         totalItems.value = response.data.total;
         totalPages.value = Math.ceil(response.data.total / response.data.pageSize);
         currentPage.value = response.data.page;
       } else {
-        const errorMessage = 'Error al cargar los dispositivos.';
-        error.value = errorMessage;
-        sendNotification(errorMessage, 'error');
         items.value = [];
+        totalItems.value = 0;
+        totalPages.value = 1;
       }
     } catch (err) {
       const errorMessage = `Error al cargar los dispositivos: ${err.message}`;
@@ -96,17 +87,21 @@ export function useDispositivoPage() {
     closeModal();
   }
 
-  watch(currentPage, (newPage) => {
-    fetchItems(newPage);
+  // --- Watchers for reactivity ---
+  watch([currentPage, pageSize], ([newPage], [oldPage]) => {
+    if (newPage !== oldPage) fetchItems(newPage);
+    else fetchItems(1);
   });
 
-  watch(pageSize, () => {
-    fetchItems(1);
-  });
+  watch(activeFilters, () => {
+    clearTimeout(debounceTimer.value);
+    debounceTimer.value = setTimeout(() => {
+      fetchItems(1);
+    }, 500);
+  }, { deep: true }); // Use deep watch for the array of objects
 
   return {
     items,
-    filteredItems, // Expose filtered items
     isModalVisible,
     isLoading,
     error,
@@ -121,9 +116,8 @@ export function useDispositivoPage() {
     totalItems,
     pageSize,
     // Filtering
-    searchQuery,
-    selectedGroup,
-    uniqueGroups,
+    activeFilters,
+    filterOptions,
     fetchItems,
     // Methods
     openCreateModal,

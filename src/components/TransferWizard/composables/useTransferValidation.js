@@ -59,6 +59,7 @@ export function useTransferValidation(wizardData, errors, allData) {
                         container: container.text2,
                     });
                 });
+                allData.value.totalAmount = 0;
 
                 wizardData.step2.listBl.forEach((bl) => {
                     const filteredContainerList = unfilteredContainerList.filter(

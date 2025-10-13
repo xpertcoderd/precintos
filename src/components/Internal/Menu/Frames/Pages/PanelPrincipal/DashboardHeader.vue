@@ -3,14 +3,24 @@
     <h1 class="text-3xl font-bold text-slate-800 mb-4 md:mb-0">Dashboard</h1>
     <div class="flex flex-wrap items-center gap-2">
       <div class="flex items-center gap-2">
-        <button class="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50">Hoy</button>
-        <button class="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50">Semanal</button>
-        <button class="px-4 py-2 text-sm font-medium text-white bg-sky-500 border border-sky-500 rounded-lg">Mensual</button>
+        <button
+          v-for="period in periods"
+          :key="period.hours"
+          @click="setTimeWindow(period.hours)"
+          :class="[
+            'px-4 py-2 text-sm font-medium border rounded-lg',
+            timeWindowHours === period.hours
+              ? 'bg-sky-500 text-white border-sky-500'
+              : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50',
+          ]"
+        >
+          {{ period.label }}
+        </button>
       </div>
       <div class="flex items-center gap-2 p-2 text-sm text-slate-700 bg-white border border-slate-200 rounded-lg">
         <CalendarIcon class="w-5 h-5 text-slate-500" />
-        <span>07/04/2025, 00:00 - 07/11/2025, 12:10</span>
-        <button class="ml-2 text-slate-400 hover:text-slate-600">
+        <span>{{ formattedDateRange }}</span>
+        <button @click="clearCustomDate" class="ml-2 text-slate-400 hover:text-slate-600">
           <XIcon class="w-4 h-4" />
         </button>
       </div>
@@ -19,6 +29,47 @@
 </template>
 
 <script setup>
-  import CalendarIcon from './icons/CalendarIcon.vue';
-  import XIcon from './icons/XIcon.vue';
+import { ref, computed, defineEmits } from 'vue';
+import CalendarIcon from './icons/CalendarIcon.vue';
+import XIcon from './icons/XIcon.vue';
+
+const emit = defineEmits(['update:timeWindow']);
+
+const timeWindowHours = ref(720); // Default to "Mensual"
+
+const periods = [
+  { label: 'Hoy', hours: 24 },
+  { label: 'Ayer', hours: 48 },
+  { label: 'Semana', hours: 168 },
+  { label: 'Mes', hours: 720 },
+];
+
+const setTimeWindow = (hours) => {
+  timeWindowHours.value = hours;
+  emit('update:timeWindow', hours);
+  // TODO: Add logic to handle custom date range selection
+};
+
+const formattedDateRange = computed(() => {
+  if (!timeWindowHours.value) return 'Select a date';
+
+  const now = new Date();
+  const start = new Date(now.getTime() - timeWindowHours.value * 60 * 60 * 1000);
+
+  const formatDate = (date) => {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${day}/${month}/${year}, ${hours}:${minutes}`;
+  };
+
+  return `${formatDate(start)} - ${formatDate(now)}`;
+});
+
+const clearCustomDate = () => {
+  setTimeWindow(720); // Reset to default
+};
+
 </script>

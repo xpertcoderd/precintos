@@ -1,7 +1,7 @@
 <template>
   <div>
     <div id="map" class="w-full h-96 bg-slate-200 rounded-lg"></div>
-    <div v-if="trackingData.length > 0" class="mt-4">
+    <div v-if="trackingData.length > 0 && trackingData[0].route.length > 1" class="mt-4">
       <h3 class="text-lg font-semibold text-slate-800 mb-2">Detalles del Rastreo</h3>
       <div class="space-y-2">
         <div v-for="container in trackingData" :key="container.id" class="bg-white p-3 rounded-lg border border-slate-200">
@@ -52,19 +52,28 @@ const updateMap = (data) => {
 
   layerGroup.value.clearLayers();
 
-  if (data.length === 0 || data[0].route.length === 0) return;
+  if (data.length === 0) return;
 
   const bounds = L.latLngBounds();
 
-  data.forEach(container => {
-    const routePoints = container.route.map(p => L.latLng(p.lat, p.lng));
+  data.forEach(item => {
+    if (!item.route || item.route.length === 0) return;
 
-    if (routePoints.length > 0) {
+    const routePoints = item.route.map(p => L.latLng(p.lat, p.lng));
+
+    // Case 1: Display a single marker
+    if (routePoints.length === 1) {
+      const point = routePoints[0];
+      L.marker(point).addTo(layerGroup.value).bindPopup(item.name);
+      bounds.extend(point);
+    }
+    // Case 2: Display a full route
+    else {
       const startPoint = routePoints[0];
       const currentPos = routePoints[routePoints.length - 1];
 
-      L.marker(startPoint).addTo(layerGroup.value).bindPopup(`${container.name} - Origen`);
-      L.marker(currentPos, { icon: truckIcon }).addTo(layerGroup.value).bindPopup(`${container.name} - Posición Actual`);
+      L.marker(startPoint).addTo(layerGroup.value).bindPopup(`${item.name} - Origen`);
+      L.marker(currentPos, { icon: truckIcon }).addTo(layerGroup.value).bindPopup(`${item.name} - Posición Actual`);
       L.polyline(routePoints, { color: 'blue' }).addTo(layerGroup.value);
 
       routePoints.forEach(point => bounds.extend(point));
@@ -72,12 +81,16 @@ const updateMap = (data) => {
   });
 
   if (bounds.isValid()) {
-    map.value.flyToBounds(bounds, { padding: [50, 50] });
+    if (data.length === 1 && data[0].route.length === 1) {
+      map.value.setView(bounds.getCenter(), 15); // Zoom in on single markers
+    } else {
+      map.value.flyToBounds(bounds, { padding: [50, 50] });
+    }
   }
 };
 
 const renderMapIfReady = () => {
-  if (isMapReady.value && props.trackingData.length > 0) {
+  if (isMapReady.value && props.trackingData) {
     nextTick(() => {
       updateMap(props.trackingData);
     });
@@ -95,7 +108,7 @@ const initializeMap = () => {
 
   layerGroup.value = L.layerGroup().addTo(map.value);
   isMapReady.value = true;
-  renderMapIfReady(); // Attempt to render in case data is already available
+  renderMapIfReady();
 };
 
 onMounted(() => {
@@ -103,7 +116,7 @@ onMounted(() => {
 });
 
 watch(() => props.trackingData, () => {
-  renderMapIfReady(); // Attempt to render in case the map is already available
+  renderMapIfReady();
 }, { deep: true });
 
 </script>

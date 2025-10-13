@@ -1,6 +1,6 @@
 // composables/transferWizard/useTransferLogic.js
 import { ref } from 'vue';
-import { assgin_Containers, transfers_Create } from "@/components/conexion/DataConector";
+import { assign_Containers, transfers_Create } from "@/components/conexion/DataConector";
 import Swal from "sweetalert2";
 import { getTokenPublicInfo } from "@/components/TransferWizard/helpers/fetchBrokerData";
 
@@ -83,7 +83,7 @@ export function useTransferLogic(wizardData) {
 
     async function assignContainers(payload) {
         try {
-            const response = await assgin_Containers(payload);
+            const response = await assign_Containers(payload);
             return response.success;
         } catch (error) {
             console.error("❌ Error en assginContainers:", error);

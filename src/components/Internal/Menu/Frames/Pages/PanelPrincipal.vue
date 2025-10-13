@@ -1,6 +1,6 @@
 <template>
   <div class="p-4 md:p-8">
-    <DashboardHeader />
+<!--    <DashboardHeader />-->
 
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
       <SummaryCard v-for="card in summaryCards" :key="card.title" :title="card.title" :value="card.value" :chart-color="card.chartColor" />
@@ -20,7 +20,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import DashboardHeader from './PanelPrincipal/DashboardHeader.vue';
+// import DashboardHeader from './PanelPrincipal/DashboardHeader.vue';
 import SummaryCard from './PanelPrincipal/SummaryCard.vue';
 import MainContent from './PanelPrincipal/MainContent.vue';
 import { transfers_list} from '@/components/conexion/DataConector.js';
