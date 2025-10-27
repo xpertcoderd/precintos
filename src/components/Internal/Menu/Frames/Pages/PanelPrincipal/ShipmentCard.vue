@@ -2,7 +2,7 @@
   <div class="w-full mb-2 bg-slate-50 rounded-lg transition-all duration-300 p-3 border border-slate-200">
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
       <!-- Left Side: Main Info -->
-      <div class="flex-1 grid grid-cols-1 md:grid-cols-3 gap-x-4 gap-y-2">
+      <div class="flex-1 grid grid-cols-1 md:grid-cols-4 gap-x-4 gap-y-2">
         <div class="flex items-center gap-2">
           <div class="bg-sky-100 text-sky-600 p-2 rounded-lg">
             <ShipIcon class="w-5 h-5" />
@@ -13,8 +13,12 @@
           </div>
         </div>
         <div>
-          <p class="text-xs font-medium text-slate-500">Precio por Unidad</p>
-          <p class="text-base font-semibold text-slate-700">{{ formatCurrency(shipmentData.transfer.unitPrice) }}</p>
+          <p class="text-xs font-medium text-slate-500">Compañia</p>
+          <p class="text-base font-semibold text-slate-700">{{ shipmentData.transfer.serverClient.name }}</p>
+        </div>
+        <div>
+          <p class="text-xs font-medium text-slate-500">Cliente Final</p>
+          <p class="text-base font-semibold text-slate-700">{{ shipmentData.transfer.finalClient.name }}</p>
         </div>
         <div>
           <p class="text-xs font-medium text-slate-500">Total</p>
