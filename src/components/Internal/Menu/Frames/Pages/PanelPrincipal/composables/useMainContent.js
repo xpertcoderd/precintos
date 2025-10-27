@@ -5,7 +5,6 @@ import { getContainerStatusText, getContainerStatusColor } from '../utils/status
 export function useMainContent(timeWindowHours) {
   // --- STATE ---
   const activeTab = ref('BL');
-  const showWizard = ref(false);
 
   // BL Tab & Core Data State
   const shipmentData = ref([]);
@@ -244,7 +243,7 @@ export function useMainContent(timeWindowHours) {
 
   return {
     tabs: ['BL', 'Contenedor', 'ETA', 'Mapa'],
-    activeTab, showWizard, shipmentData, loading, currentPage, totalPages, totalShipments,
+    activeTab, shipmentData, loading, currentPage, totalPages, totalShipments,
     activeContainers, isGlobalContainerView, containerTrackingData, lastTrackedShipment, filteredContainersForMap,
     allContainers, isLoadingContainers, containerCurrentPage, containerTotalPages, containerTotalItems, containerPageSize, containerActiveFilters, filterOptions,
     etaContainers, isLoadingEta,

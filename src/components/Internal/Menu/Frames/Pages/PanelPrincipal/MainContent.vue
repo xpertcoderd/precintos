@@ -7,9 +7,6 @@
         <ListIcon class="w-6 h-6 text-sky-600" />
         <h2 class="text-xl font-bold text-slate-800">Traslados</h2>
       </div>
-      <div class="flex items-center gap-4 mt-4 md:mt-0 w-full md:w-auto">
-        <button @click="showWizard = true" class="w-full md:w-auto px-5 py-2.5 text-sm font-medium text-white bg-sky-500 rounded-lg hover:bg-sky-600 focus:ring-4 focus:ring-sky-300">Crear Traslado</button>
-      </div>
     </div>
 
     <!-- Tabs Section -->
@@ -43,6 +40,7 @@
             :shipment-data="shipment"
             @track-shipment="handleTrackShipment"
             @group-containers="handleGroupContainers"
+            @create-link="handleCreateLink"
         />
         <div v-if="!shipmentData || shipmentData.length === 0 && !loading" class="text-center py-10">
           <p class="text-slate-500">No hay traslados para mostrar.</p>
@@ -138,11 +136,10 @@
     </div>
 
     <!-- Modals -->
-    <TransferWizardCard v-if="showWizard" @close="showWizard = false" />
     <CreateLinkComponent
       v-if="showCreateLinkModal"
       :show="showCreateLinkModal"
-      @close="showCreateLinkModal = false"
+      @close="handleCloseCreateLink"
       :selected-container="selectedContainerForLink"
       :clients="linkModalData.clients"
       :carriers="linkModalData.carriers"
@@ -158,7 +155,6 @@
   import { useMainContent } from './composables/useMainContent';
   import ListIcon from './icons/ListIcon.vue';
   import ShipmentCard from './ShipmentCard.vue';
-  import TransferWizardCard from '@/components/TransferWizard/TransferWizardCard.vue';
   import ContainerComponent from './ContainerView/ContainerComponent.vue';
   import ContainerTable from './ContainerView/ContainerTable.vue';
   import ETACard from './ContainerView/ETACard.vue';
@@ -174,7 +170,6 @@
   const {
     tabs,
     activeTab,
-    showWizard,
     shipmentData,
     loading,
     currentPage,
@@ -198,6 +193,9 @@
     handleGroupContainers,
     handleTrackShipment,
     handlePageChange,
+    fetchShipments,
+    fetchAllContainers,
+    fetchEtaData,
   } = useMainContent(timeWindowHours);
 
   const { linkModalData, fetchCreateLinkData } = useCreateLinkData();
@@ -208,6 +206,13 @@
     selectedContainerForLink.value = container;
     await fetchCreateLinkData();
     showCreateLinkModal.value = true;
+  };
+
+  const handleCloseCreateLink = () => {
+    showCreateLinkModal.value = false;
+    fetchShipments();
+    fetchAllContainers();
+    fetchEtaData();
   };
 
 </script>

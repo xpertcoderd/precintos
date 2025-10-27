@@ -10,38 +10,34 @@
       </thead>
       <tbody class="bg-white divide-y divide-slate-200">
         <tr v-if="containers.length === 0">
-          <td :colspan="headers.length" class="px-6 py-12 text-center text-slate-500">
+          <td :colspan="headers.length + 1" class="px-6 py-12 text-center text-slate-500">
             No hay contenedores para mostrar.
           </td>
         </tr>
         <tr v-for="item in containers" :key="item.id" class="hover:bg-slate-50 transition-colors">
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-900 font-bold">{{ item.container }}</td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm" :class="item.deviceId ? 'text-slate-900 font-bold' : 'text-slate-500'">
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ item.container }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
             {{ item.deviceId || 'sin asignar' }}
           </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm">
-            <span :class="['px-2 inline-flex text-xs leading-5 font-semibold rounded-full', getStatusColorClass(item.statusId)]">
-              {{ getStatusText(item.statusId) }}
-            </span>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
+            {{ getStatusText(item.statusId) }}
           </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold">
-            <span :class="{ 'text-green-500': item.currentLinked, 'text-red-500': !item.currentLinked }">
-              {{ item.currentLinked ? 'Sí' : 'No' }}
-            </span>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
+            {{ item.currentLinked ? 'Sí' : 'No' }}
           </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm" :class="item.linkedTime ? 'text-slate-900 font-bold' : 'text-slate-500'">
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
             {{ item.linkedTime ? formatDate(item.linkedTime) : 'sin asignar' }}
           </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm" :class="item.unlinkedTime ? 'text-slate-900 font-bold' : 'text-slate-500'">
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
             {{ item.unlinkedTime ? formatDate(item.unlinkedTime) : 'sin asignar' }}
           </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm" :class="item.departureTime ? 'text-slate-900 font-bold' : 'text-slate-500'">
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
             {{ item.departureTime ? formatDate(item.departureTime) : 'sin asignar' }}
           </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm" :class="getArrivalTimeInfo(item).class">
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
             {{ getArrivalTimeInfo(item).text }}
           </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm" :class="item.lastBlitTime ? 'text-slate-900 font-bold' : 'text-slate-500'">
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
             {{ item.lastBlitTime ? formatDate(item.lastBlitTime) : 'sin asignar' }}
           </td>
         </tr>
@@ -51,7 +47,7 @@
 </template>
 
 <script setup>
-import { getContainerStatusText, getContainerStatusColor } from '../utils/statusUtils';
+import { getContainerStatusText } from '../utils/statusUtils';
 
 defineProps({
   containers: {
@@ -73,7 +69,7 @@ const headers = [
 ];
 
 const formatDate = (dateString) => {
-  if (!dateString) return 'N/A'; // This is a fallback, should be handled by the template
+  if (!dateString) return 'N/A';
   const date = new Date(dateString);
   return date.toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' });
 };
@@ -83,17 +79,13 @@ const getArrivalTimeInfo = (item) => {
     return { text: 'sin asignar', class: 'text-slate-500' };
   }
   if (!item.arrivalTime) {
-    return { text: 'Sin Confirmar', class: 'text-orange-500 font-semibold' };
+    return { text: 'Sin Confirmar', class: 'text-slate-500' };
   }
-  return { text: formatDate(item.arrivalTime), class: 'text-slate-900 font-bold' };
+  return { text: formatDate(item.arrivalTime), class: 'text-slate-500' };
 };
 
 const getStatusText = (statusId) => {
   return getContainerStatusText(statusId);
-};
-
-const getStatusColorClass = (statusId) => {
-    return getContainerStatusColor(statusId);
 };
 
 </script>

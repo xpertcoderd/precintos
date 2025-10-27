@@ -46,20 +46,6 @@
               <span>{{ getFieldData(item, field) }}%</span>
             </template>
 
-            <!-- Lock Status with Badge -->
-            <template v-else-if="field === 'deviceState.lockState'">
-              <span :class="getLockStatusClass(getFieldData(item, field))" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full">
-                {{ getFieldData(item, field) }}
-              </span>
-            </template>
-
-            <!-- Connection Status with Badge -->
-            <template v-else-if="field === 'deviceState.connectionStatus'">
-              <span :class="getConnectionStatusClass(getFieldData(item, field))" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full">
-                {{ getFieldData(item, field) }}
-              </span>
-            </template>
-
             <!-- Default Text -->
             <template v-else>
               {{ getFieldData(item, field) }}
@@ -120,21 +106,4 @@ function truncateText(text, maxLength = 20) {
   return text.substring(0, maxLength) + '...';
 }
 
-function getLockStatusClass(status) {
-  const statusClasses = {
-    sealed: 'bg-green-100 text-green-800',
-    unsealed_cant_close: 'bg-red-100 text-red-800',
-    default: 'bg-gray-100 text-gray-800',
-  };
-  return statusClasses[status] || statusClasses.default;
-}
-
-function getConnectionStatusClass(status) {
-  const statusClasses = {
-    active: 'bg-green-100 text-green-800',
-    offline: 'bg-gray-100 text-gray-800',
-    default: 'bg-gray-100 text-gray-800',
-  };
-  return statusClasses[status] || statusClasses.default;
-}
 </script>

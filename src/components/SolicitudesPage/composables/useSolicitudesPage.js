@@ -1,29 +1,10 @@
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useNotifications } from '@/composables/useNotifications';
-
-// Mock data to simulate the original state
-const mockSolicitudes = [
-  {
-    id: 1,
-    cliente: 'Cliente Corp',
-    origen: 'Almacén Principal',
-    destino: 'Sucursal Centro',
-    fecha: '2023-10-27',
-    estado: 'Pendiente',
-  },
-  {
-    id: 2,
-    cliente: 'Negocios S.A.',
-    origen: 'Puerto Seco',
-    destino: 'Zona Franca',
-    fecha: '2023-10-26',
-    estado: 'Completada',
-  },
-];
+import { transfers_filteredFull } from '@/components/conexion/DataConector';
 
 export function useSolicitudesPage() {
   const { sendNotification } = useNotifications();
-  const items = ref([...mockSolicitudes]);
+  const items = ref([]);
   const editingItem = ref(null);
   const isModalVisible = ref(false);
   const isConfirmationVisible = ref(false);
@@ -41,9 +22,20 @@ export function useSolicitudesPage() {
 
   async function fetchItems() {
     isLoading.value = true;
-    await new Promise(resolve => setTimeout(resolve, 200));
-    items.value = [...mockSolicitudes];
-    isLoading.value = false;
+    error.value = null;
+    try {
+      const response = await transfers_filteredFull({ page: 1, pageSize: 100 }); // Fetching a large number for now
+      if (response.success) {
+        items.value = response.data.transfers;
+      } else {
+        throw new Error('Failed to fetch solicitations');
+      }
+    } catch (e) {
+      error.value = 'No se pudieron cargar las solicitudes. Por favor, intente de nuevo.';
+      console.error(e);
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   function openCreateModal() {
@@ -74,17 +66,19 @@ export function useSolicitudesPage() {
   }
 
   async function saveItem(formData) {
+    // This part will need to be updated to use the real API for saving
     isLoading.value = true;
     await new Promise(resolve => setTimeout(resolve, 500));
 
     if (editingItem.value) {
-      const index = items.value.findIndex(i => i.id === editingItem.value.id);
+      const index = items.value.findIndex(i => i.transfer.id === editingItem.value.transfer.id);
       if (index !== -1) {
-        items.value[index] = { ...editingItem.value, ...formData };
+        // This is a temporary update, the API should handle the final state
+        items.value[index] = { ...items.value[index], ...formData };
         sendNotification('Solicitud actualizada con éxito', 'success');
       }
     } else {
-      const newItem = { id: Date.now(), ...formData, estado: 'Pendiente' };
+      const newItem = { transfer: { id: Date.now(), ...formData }, containerCount: 0 };
       items.value.push(newItem);
       sendNotification('Solicitud creada con éxito', 'success');
     }
@@ -94,11 +88,12 @@ export function useSolicitudesPage() {
   }
 
   async function confirmDelete() {
+    // This part will need to be updated to use the real API for deleting
     if (!itemToDelete.value) return;
     isLoading.value = true;
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    const index = items.value.findIndex(i => i.id === itemToDelete.value.id);
+    const index = items.value.findIndex(i => i.transfer.id === itemToDelete.value.transfer.id);
     if (index !== -1) {
       items.value.splice(index, 1);
       sendNotification('Solicitud eliminada con éxito', 'success');
@@ -107,6 +102,8 @@ export function useSolicitudesPage() {
     isLoading.value = false;
     closeDeleteConfirmation();
   }
+
+  onMounted(fetchItems);
 
   return {
     items,

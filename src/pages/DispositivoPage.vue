@@ -14,15 +14,22 @@
           <button @click="viewOnMap" :disabled="selectedDevices.length === 0" class="px-5 py-2.5 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 focus:ring-4 focus:ring-blue-300 disabled:bg-gray-300 disabled:cursor-not-allowed">
             Ver en mapa
           </button>
-          <button @click="openCreateModal" class="px-5 py-2.5 text-sm font-medium text-white bg-sky-500 rounded-lg hover:bg-sky-600 focus:ring-4 focus:ring-sky-300">
-            {{ createButtonText }}
-          </button>
         </div>
       </div>
 
       <!-- Filters and Search -->
-      <div class="mb-6">
-        <MultiFilterInput v-model="activeFilters" :filter-options="filterOptions" />
+      <div class="mb-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div v-for="filter in filterOptions" :key="filter.value">
+          <label :for="filter.value" class="block text-sm/6 font-medium text-slate-700">{{ filter.label }}</label>
+          <div class="mt-2">
+            <input
+              :id="filter.value"
+              type="text"
+              v-model="filters[filter.value]"
+              class="block w-full rounded-md bg-transparent px-3 py-1.5 text-slate-900 outline outline-1 -outline-offset-1 outline-slate-300 placeholder:text-slate-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sky-500 sm:text-sm/6"
+            />
+          </div>
+        </div>
       </div>
 
       <!-- Loading and Error States -->
@@ -70,11 +77,6 @@
       </div>
     </main>
 
-    <!-- Modal for Create -->
-    <EntityModal :visible="isModalVisible" :title="modalTitle" :save-text="saveButtonText" @close="closeModal" @save="handleSave">
-      <DispositivoForm ref="dispositivoFormRef" :initial-data="editingItem" :errors="errors" />
-    </EntityModal>
-
     <!-- PIN Modal for Opening Seals -->
     <PinModal :visible="showPinModal" @close="showPinModal = false" @confirm="handlePinConfirm" />
 
@@ -90,51 +92,35 @@ import { useDispositivoPage } from '@/components/DispositivoPage/composables/use
 import { openSeal } from '@/components/conexion/DataConector.js';
 import { useNotifications } from '@/composables/useNotifications';
 import DispositivoTable from '@/components/DispositivoPage/components/DispositivoTable.vue';
-import EntityModal from '@/components/DispositivoPage/components/EntityModal.vue';
-import DispositivoForm from '@/components/DispositivoPage/components/DispositivoForm.vue';
 import Pagination from '@/components/Internal/Menu/Frames/Pages/PanelPrincipal/Pagination.vue';
 import ServerIcon from '@/components/Internal/Menu/icons/ServerIcon.vue';
 import PinModal from '@/components/common/PinModal.vue';
 import MapModal from '@/components/common/MapModal.vue';
-import MultiFilterInput from '@/components/common/MultiFilterInput.vue';
 
 const {
   items,
-  editingItem,
-  isModalVisible,
   isLoading,
   error,
-  errors,
   pageTitle,
-  createButtonText,
-  modalTitle,
-  saveButtonText,
   currentPage,
   totalPages,
   totalItems,
   pageSize,
-  activeFilters,
+  filters,
   filterOptions,
   fetchItems,
-  openCreateModal,
-  closeModal,
-  saveItem,
+  handlePageChange,
 } = useDispositivoPage();
 
 const { sendNotification } = useNotifications();
-const dispositivoFormRef = ref(null);
 const selectedDevices = ref([]);
 const showPinModal = ref(false);
 const showMapModal = ref(false);
 const mapLocations = ref([]);
 
 onMounted(() => {
-  fetchItems(1);
+  fetchItems();
 });
-
-function handlePageChange(newPage) {
-  currentPage.value = newPage;
-}
 
 function handleSelectionChange(selection) {
   selectedDevices.value = selection;
@@ -172,12 +158,6 @@ function viewOnMap() {
 
   if (mapLocations.value.length > 0) {
     showMapModal.value = true;
-  }
-}
-
-async function handleSave() {
-  if (dispositivoFormRef.value) {
-    await saveItem(dispositivoFormRef.value.formData);
   }
 }
 </script>
