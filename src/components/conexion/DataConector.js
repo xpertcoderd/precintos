@@ -61,12 +61,22 @@ export const check_Session = () => safeRequest(() => axios.get(`/api/v1/auth/che
 // =================================================================
 // == Transfer Endpoints
 // =================================================================
-
+export const transfers_filtered_summary = (params) => safeRequest(() => axios.get(`/api/v1/transfers/filteredSummary`, { ...axiosConfig, params }));
 export const transfers_filteredFull = (params) => safeRequest(() => axios.get(`/api/v1/transfers/filteredFullTransfer`, { ...axiosConfig, params }));
-export const transfers_list = (params) => safeRequest(() => axios.get(`/api/v1/transfers/filteredSummary`, { ...axiosConfig, params }));
 export const transfers_Create = (params) => safeRequest(() => axios.post(`/api/v1/transfers/create`, params, axiosConfig));
 export const transfersCheckBL = (name) => safeRequest(() => axios.get(`/api/v1/transfers/check/${name}`, axiosConfig));
 export const transfer_Types = () => safeRequest(() => axios.get(`/api/v1/transferTypes/filtered`, axiosConfig));
+export const transfers_uploadVoucher = (transferId, file) => {
+    const formData = new FormData();
+    formData.append('photo', file);
+    formData.append('json', JSON.stringify({ transferId: transferId, voucherPhotoName: file.name }));
+
+    return safeRequest(() => axios.post(`/api/v1/transfers/uploadVoucher`, formData, {
+        ...axiosConfig,
+        headers: { 'Content-Type': 'multipart/form-data' },
+    }));
+};
+export const transfers_update_state = (transferId, state) => safeRequest(() => axios.patch(`/api/v1/transfers/updateState/${transferId}`, { newStateId: state }, axiosConfig));
 
 
 // =================================================================

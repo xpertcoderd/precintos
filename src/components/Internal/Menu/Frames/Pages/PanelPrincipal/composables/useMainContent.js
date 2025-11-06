@@ -64,10 +64,11 @@ export function useMainContent(timeWindowHours) {
     };
     const response = await transfers_filteredFull(params);
     if (response.success) {
-      shipmentData.value = response.data.transfers;
-      totalShipments.value = response.data.total;
-      totalPages.value = Math.ceil(response.data.total / response.data.pageSize);
-      currentPage.value = response.data.page;
+      const linkedTransfers = response.data.transfers.filter(t => t.transferUnits.some(u => u.currentLinked));
+      shipmentData.value = linkedTransfers;
+      totalShipments.value = linkedTransfers.length;
+      totalPages.value = Math.ceil(linkedTransfers.length / 10);
+      currentPage.value = page;
     }
     loading.value = false;
   };

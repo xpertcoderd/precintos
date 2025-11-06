@@ -25,20 +25,61 @@
       <div v-else-if="error" class="text-center text-red-500 py-4">{{ error }}</div>
 
       <!-- The integrated table component -->
-      <SolicitudesTable
-          v-else
-          :data="items"
-          @edit-item="openEditModal"
-          @delete-item="openDeleteConfirmation"
-      />
+      <div v-else>
+        <SolicitudesTable
+            :data="items"
+            @upload-payment="handleUploadPayment"
+            @approve="handleApprove"
+            @cancel="handleCancel"
+            @link-shipment="handleLinkShipment"
+            @view-voucher="handleViewVoucher"
+        />
+        <div class="mt-6 flex items-center justify-between">
+            <div class="flex items-center gap-2 text-sm text-slate-500">
+                <span>Mostrar</span>
+                <select v-model="pageSize" class="rounded-md border-slate-300 text-sm focus:ring-sky-500 focus:border-sky-500">
+                    <option :value="10">10</option>
+                    <option :value="20">20</option>
+                    <option :value="50">50</option>
+                </select>
+                <span>resultados</span>
+            </div>
+            <Pagination
+                v-if="totalPages > 1"
+                :current-page="currentPage"
+                :total-pages="totalPages"
+                :total="totalItems"
+                :page-size="pageSize"
+                @page-change="handlePageChange"
+            />
+        </div>
+      </div>
     </main>
 
     <!-- Modals -->
-    <EntityModal :visible="isModalVisible" :title="modalTitle" :save-text="saveButtonText" @close="closeModal" @save="handleSave">
-      <SolicitudForm ref="solicitudFormRef" :initial-data="editingItem" :errors="errors" />
-    </EntityModal>
+    <VoucherUploadModal :visible="isVoucherModalVisible" @close="closeVoucherModal" @submit="handleVoucherSubmit" />
 
-    <ConfirmationModal :visible="isConfirmationVisible" @cancel="closeDeleteConfirmation" @confirm="confirmDelete" />
+    <VoucherPreviewModal :visible="isPreviewModalVisible" :image-url="voucherImageUrl" @close="closePreviewModal" />
+
+    <ConfirmationModal
+      :visible="isApproveModalVisible"
+      title="Confirmar Aprobación"
+      message="¿Estás seguro que deseas aprobar este traslado?"
+      @confirm="confirmApprove"
+      @cancel="closeApproveModal"
+    />
+
+    <CreateLinkComponent
+      v-if="showCreateLinkModal"
+      :show="showCreateLinkModal"
+      @close="showCreateLinkModal = false"
+      :selected-container="selectedContainerForLink"
+      :clients="linkModalData.clients"
+      :carriers="linkModalData.carriers"
+      :drivers="linkModalData.drivers"
+      :vehicles="linkModalData.vehicles"
+      :devices="linkModalData.devices"
+    />
 
     <TransferWizardCard v-if="showTransferWizard" @close="showTransferWizard = false" />
 
@@ -46,39 +87,120 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useSolicitudesPage } from '@/components/SolicitudesPage/composables/useSolicitudesPage'
-import SolicitudesTable from '@/components/SolicitudesPage/components/SolicitudesTable.vue'
-import EntityModal from '@/components/SolicitudesPage/components/EntityModal.vue'
-import ConfirmationModal from '@/components/SolicitudesPage/components/ConfirmationModal.vue'
-import SolicitudForm from '@/components/SolicitudesPage/components/SolicitudForm.vue'
+import { ref } from 'vue';
+import { useSolicitudesPage } from '@/components/SolicitudesPage/composables/useSolicitudesPage';
+import { transfers_uploadVoucher, transfers_update_state } from '@/components/conexion/DataConector.js';
+import { useNotifications } from '@/composables/useNotifications';
+import { useCreateLinkData } from '@/components/TransferWizard/composables/useCreateLinkData.js';
+import SolicitudesTable from '@/components/SolicitudesPage/components/SolicitudesTable.vue';
+import VoucherUploadModal from '@/components/SolicitudesPage/components/VoucherUploadModal.vue';
+import VoucherPreviewModal from '@/components/SolicitudesPage/components/VoucherPreviewModal.vue';
+import ConfirmationModal from '@/components/common/ConfirmationModal.vue';
+import CreateLinkComponent from '@/components/CreateLink/CreateLinkComponent.vue';
 import TransferWizardCard from '@/components/TransferWizard/TransferWizardCard.vue';
+import Pagination from '@/components/Internal/Menu/Frames/Pages/PanelPrincipal/Pagination.vue';
+
+const timeWindowHours = ref(720);
 
 const {
   items,
-  editingItem,
-  isModalVisible,
-  isConfirmationVisible,
   isLoading,
   error,
-  errors,
   pageTitle,
-  modalTitle,
-  saveButtonText,
-  openEditModal,
-  closeModal,
-  openDeleteConfirmation,
-  closeDeleteConfirmation,
-  saveItem,
-  confirmDelete,
-} = useSolicitudesPage()
+  currentPage,
+  totalPages,
+  totalItems,
+  pageSize,
+  handlePageChange,
+  fetchItems,
+} = useSolicitudesPage(timeWindowHours);
 
-const solicitudFormRef = ref(null)
+const { sendNotification } = useNotifications();
+const { linkModalData, fetchCreateLinkData } = useCreateLinkData();
+
 const showTransferWizard = ref(false);
+const isVoucherModalVisible = ref(false);
+const isApproveModalVisible = ref(false);
+const showCreateLinkModal = ref(false);
+const isPreviewModalVisible = ref(false);
+const voucherImageUrl = ref('');
+const selectedTransferId = ref(null);
+const selectedContainerForLink = ref(null);
 
-async function handleSave() {
-  if (solicitudFormRef.value) {
-    await saveItem(solicitudFormRef.value.formData)
+function handleUploadPayment(item) {
+  selectedTransferId.value = item.transfer.id;
+  isVoucherModalVisible.value = true;
+}
+
+function closeVoucherModal() {
+  isVoucherModalVisible.value = false;
+  selectedTransferId.value = null;
+}
+
+async function handleVoucherSubmit(file) {
+  if (!selectedTransferId.value) return;
+
+  const response = await transfers_uploadVoucher(selectedTransferId.value, file);
+
+  if (response.success) {
+    sendNotification('Comprobante subido con éxito', 'success');
+    fetchItems(); // Refresh data
+  } else {
+    sendNotification('Error al subir el comprobante', 'error');
+  }
+
+  closeVoucherModal();
+}
+
+function handleApprove(item) {
+  selectedTransferId.value = item.transfer.id;
+  isApproveModalVisible.value = true;
+}
+
+function closeApproveModal() {
+  isApproveModalVisible.value = false;
+  selectedTransferId.value = null;
+}
+
+async function confirmApprove() {
+  if (!selectedTransferId.value) return;
+
+  const response = await transfers_update_state(selectedTransferId.value, 2); // 2 = Approved
+
+  if (response.success) {
+    sendNotification('Traslado aprobado con éxito', 'success');
+    fetchItems(); // Refresh data
+  } else {
+    sendNotification('Error al aprobar el traslado', 'error');
+  }
+
+  closeApproveModal();
+}
+
+async function handleLinkShipment(item) {
+  // Since we are linking the whole shipment, we can select the first container as a reference
+  if (item.transferUnits && item.transferUnits.length > 0) {
+    selectedContainerForLink.value = item.transferUnits[0];
+    await fetchCreateLinkData();
+    showCreateLinkModal.value = true;
+  } else {
+    sendNotification('No hay contenedores en este traslado para enlazar.', 'warning');
   }
 }
+
+function handleViewVoucher(item) {
+  voucherImageUrl.value = item.transfer.voucherPhotoUrl;
+  isPreviewModalVisible.value = true;
+}
+
+function closePreviewModal() {
+  isPreviewModalVisible.value = false;
+  voucherImageUrl.value = '';
+}
+
+function handleCancel(item) {
+  // Placeholder for cancel logic
+  sendNotification(`Solicitud #${item.transfer.id} cancelada (simulado).`, 'warning');
+}
+
 </script>

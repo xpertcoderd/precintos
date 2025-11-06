@@ -1,5 +1,5 @@
 <template>
-  <div class="overflow-x-auto">
+  <div>
     <table class="min-w-full divide-y divide-slate-200">
       <thead class="bg-slate-50">
         <tr>
@@ -23,22 +23,34 @@
           <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ item.transfer.startPlace.label }}</td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ item.transfer.endPlace.label }}</td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ formatDate(item.transfer.timeRequest) }}</td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ item.containerCount }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ item.countainerCount }}</td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ formatCurrency(item.transfer.unitPrice) }}</td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ formatCurrency(item.transfer.unitPrice * item.containerCount) }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ formatCurrency(item.transfer.unitPrice * item.countainerCount) }}</td>
           <td class="px-6 py-4 whitespace-nowrap text-sm">
             <span :class="['px-2 inline-flex text-xs leading-5 font-semibold rounded-full', getContainerStatusColor(item.transfer.transferStateId)]">
               {{ getTransferStatusText(item.transfer.transferStateId) }}
             </span>
           </td>
-          <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-            <div class="flex items-center justify-center gap-4">
-              <button @click="$emit('edit-item', item)" class="text-slate-400 hover:text-sky-600 p-1 rounded-full transition-colors" title="Editar">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.536L16.732 3.732z"></path></svg>
-              </button>
-              <button @click="$emit('delete-item', item)" class="text-slate-400 hover:text-red-600 p-1 rounded-full transition-colors" title="Eliminar">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-              </button>
+          <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium relative">
+            <button @click.stop="toggleMenu(item.transfer.id)" class="p-1 rounded-full text-slate-400 hover:text-sky-600 transition-colors">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zm0 6a2 2 0 110-4 2 2 0 010 4zm0 6a2 2 0 110-4 2 2 0 010 4z"/></svg>
+            </button>
+            <div v-if="openMenuId === item.transfer.id" class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+              <div class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
+                <a v-if="item.transfer.voucherPhotoUrl" href="#" @click.prevent="$emit('view-voucher', item)" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100" role="menuitem">Ver Comprobante</a>
+                <a href="#" @click.prevent="$emit('upload-payment', item)" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100" role="menuitem">Subir Pago</a>
+                <a href="#" @click.prevent="$emit('approve', item)" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100" role="menuitem">Aprobar</a>
+                <a
+                  href="#"
+                  :class="[
+                    'block px-4 py-2 text-sm',
+                    item.transfer.transferStateId !== 1 ? 'text-slate-700 hover:bg-slate-100' : 'text-slate-400 cursor-not-allowed'
+                  ]"
+                  @click.prevent="item.transfer.transferStateId !== 1 ? $emit('link-shipment', item) : null"
+                  role="menuitem"
+                >Enlazar</a>
+                <a href="#" @click.prevent="$emit('cancel', item)" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50" role="menuitem">Cancelar</a>
+              </div>
             </div>
           </td>
         </tr>
@@ -48,7 +60,8 @@
 </template>
 
 <script setup>
-import {getContainerStatusColor} from "@/components/Internal/Menu/Frames/Pages/PanelPrincipal/utils/statusUtils";
+import { ref } from 'vue';
+import { getContainerStatusColor } from '@/components/Internal/Menu/Frames/Pages/PanelPrincipal/utils/statusUtils';
 
 defineProps({
   data: {
@@ -57,7 +70,9 @@ defineProps({
   },
 });
 
-defineEmits(['edit-item', 'delete-item']);
+defineEmits(['upload-payment', 'approve', 'cancel', 'link-shipment', 'view-voucher']);
+
+const openMenuId = ref(null);
 
 const headers = [
   'No. Solicitud', 'Compañia', 'Cliente Final', 'Traslado', 'Origen', 'Destino', 'Fecha salida', 'Contenedores', 'Tarifa', 'Total', 'Estado'
@@ -83,6 +98,23 @@ const getTransferStatusText = (statusId) => {
     5: 'Cancelado',
   };
   return statusMap[statusId] || 'Desconocido';
+};
+
+const toggleMenu = (id) => {
+  const isAlreadyOpen = openMenuId.value === id;
+  if (openMenuId.value !== null) {
+    openMenuId.value = null;
+  }
+  if (!isAlreadyOpen) {
+    openMenuId.value = id;
+    setTimeout(() => {
+      document.addEventListener('click', closeMenu, { once: true });
+    }, 0);
+  }
+};
+
+const closeMenu = () => {
+  openMenuId.value = null;
 };
 
 </script>

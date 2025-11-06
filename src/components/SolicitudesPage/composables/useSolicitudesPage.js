@@ -1,8 +1,8 @@
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useNotifications } from '@/composables/useNotifications';
-import { transfers_filteredFull } from '@/components/conexion/DataConector';
+import {transfers_filtered_summary} from '@/components/conexion/DataConector';
 
-export function useSolicitudesPage() {
+export function useSolicitudesPage(timeWindowHours) {
   const { sendNotification } = useNotifications();
   const items = ref([]);
   const editingItem = ref(null);
@@ -13,6 +13,12 @@ export function useSolicitudesPage() {
   const error = ref(null);
   const errors = ref({});
 
+  // Pagination State
+  const currentPage = ref(1);
+  const totalPages = ref(1);
+  const totalItems = ref(0);
+  const pageSize = ref(10);
+
   const pageTitle = 'Gestionar Solicitudes';
   const createButtonText = 'Crear Solicitud';
   const modalTitle = computed(() =>
@@ -20,13 +26,21 @@ export function useSolicitudesPage() {
   );
   const saveButtonText = computed(() => (editingItem.value ? 'Guardar Cambios' : 'Crear'));
 
-  async function fetchItems() {
+  async function fetchItems(page = 1) {
     isLoading.value = true;
     error.value = null;
     try {
-      const response = await transfers_filteredFull({ page: 1, pageSize: 100 }); // Fetching a large number for now
+      const params = {
+        page,
+        pageSize: pageSize.value,
+        timeWindowHours: timeWindowHours.value,
+      };
+      const response = await transfers_filtered_summary(params);
       if (response.success) {
         items.value = response.data.transfers;
+        totalItems.value = response.data.total;
+        totalPages.value = Math.ceil(response.data.total / response.data.pageSize);
+        currentPage.value = response.data.page;
       } else {
         throw new Error('Failed to fetch solicitations');
       }
@@ -36,6 +50,10 @@ export function useSolicitudesPage() {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  function handlePageChange(newPage) {
+    currentPage.value = newPage;
   }
 
   function openCreateModal() {
@@ -66,14 +84,12 @@ export function useSolicitudesPage() {
   }
 
   async function saveItem(formData) {
-    // This part will need to be updated to use the real API for saving
     isLoading.value = true;
     await new Promise(resolve => setTimeout(resolve, 500));
 
     if (editingItem.value) {
       const index = items.value.findIndex(i => i.transfer.id === editingItem.value.transfer.id);
       if (index !== -1) {
-        // This is a temporary update, the API should handle the final state
         items.value[index] = { ...items.value[index], ...formData };
         sendNotification('Solicitud actualizada con éxito', 'success');
       }
@@ -88,7 +104,6 @@ export function useSolicitudesPage() {
   }
 
   async function confirmDelete() {
-    // This part will need to be updated to use the real API for deleting
     if (!itemToDelete.value) return;
     isLoading.value = true;
     await new Promise(resolve => setTimeout(resolve, 500));
@@ -103,7 +118,11 @@ export function useSolicitudesPage() {
     closeDeleteConfirmation();
   }
 
-  onMounted(fetchItems);
+  watch([currentPage, pageSize, timeWindowHours], () => {
+    fetchItems(currentPage.value);
+  });
+
+  onMounted(() => fetchItems(1));
 
   return {
     items,
@@ -117,7 +136,12 @@ export function useSolicitudesPage() {
     createButtonText,
     modalTitle,
     saveButtonText,
+    currentPage,
+    totalPages,
+    totalItems,
+    pageSize,
     fetchItems,
+    handlePageChange,
     openCreateModal,
     openEditModal,
     closeModal,
