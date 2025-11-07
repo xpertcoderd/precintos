@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="overflow-auto min-h-80">
     <table class="min-w-full divide-y divide-slate-200">
       <thead class="bg-slate-50">
         <tr>
@@ -20,8 +20,8 @@
           <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ item.transfer.serverClient.name }}</td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ item.transfer.finalClient.name }}</td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ item.transfer.bl }}</td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ item.transfer.startPlace.label }}</td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ item.transfer.endPlace.label }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ abbreviateLocation(item.transfer.startPlace.label) }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ abbreviateLocation(item.transfer.endPlace.label) }}</td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ formatDate(item.transfer.timeRequest) }}</td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ item.countainerCount }}</td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ formatCurrency(item.transfer.unitPrice) }}</td>
@@ -49,6 +49,7 @@
                   @click.prevent="item.transfer.transferStateId !== 1 ? $emit('link-shipment', item) : null"
                   role="menuitem"
                 >Enlazar</a>
+                <a href="#" @click.prevent="$emit('add-container', item)" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100" role="menuitem">Agregar Contenedor</a>
                 <a href="#" @click.prevent="$emit('cancel', item)" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50" role="menuitem">Cancelar</a>
               </div>
             </div>
@@ -70,7 +71,7 @@ defineProps({
   },
 });
 
-defineEmits(['upload-payment', 'approve', 'cancel', 'link-shipment', 'view-voucher']);
+defineEmits(['upload-payment', 'approve', 'cancel', 'link-shipment', 'view-voucher', 'add-container']);
 
 const openMenuId = ref(null);
 
@@ -98,6 +99,11 @@ const getTransferStatusText = (statusId) => {
     5: 'Cancelado',
   };
   return statusMap[statusId] || 'Desconocido';
+};
+
+const abbreviateLocation = (location) => {
+  if (!location) return 'N/A';
+  return location.replace(/Zona Franca/gi, 'ZF');
 };
 
 const toggleMenu = (id) => {
