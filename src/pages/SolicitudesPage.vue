@@ -79,7 +79,7 @@
       :drivers="linkModalData.drivers"
       :vehicles="linkModalData.vehicles"
       :devices="linkModalData.devices"
-      :containers ="linkModalData.containers"
+      :containers ="containers"
     />
 
     <TransferWizardCard v-if="showTransferWizard" @close="showTransferWizard = false" @closeFetch="closeAndFetch" @updateTransfersList="fetchItems" />
@@ -90,7 +90,11 @@
 <script setup>
 import { ref } from 'vue';
 import { useSolicitudesPage } from '@/components/SolicitudesPage/composables/useSolicitudesPage';
-import { transfers_uploadVoucher, transfers_update_state } from '@/components/conexion/DataConector.js';
+import {
+  transfers_uploadVoucher,
+  transfers_update_state,
+  transferUnits_filtered
+} from '@/components/conexion/DataConector.js';
 import { useNotifications } from '@/composables/useNotifications';
 import { useCreateLinkData } from '@/components/TransferWizard/composables/useCreateLinkData.js';
 import SolicitudesTable from '@/components/SolicitudesPage/components/SolicitudesTable.vue';
@@ -119,6 +123,7 @@ const {
 const { sendNotification } = useNotifications();
 const { linkModalData, fetchCreateLinkData } = useCreateLinkData();
 
+const containers = ref([]);
 const showTransferWizard = ref(false);
 const isVoucherModalVisible = ref(false);
 const isApproveModalVisible = ref(false);
@@ -128,6 +133,10 @@ const voucherImageUrl = ref('');
 const selectedTransferId = ref(null);
 const selectedContainerForLink = ref(null);
 
+async function fetchNotLinkedContainersPerTransfer (transferId) {
+  const response = await transferUnits_filtered({transferId , statusIds: '1'})
+  containers.value = response.data.transferUnits
+}
 function closeAndFetch() {
   showTransferWizard.value = false;
   fetchItems();
@@ -184,7 +193,9 @@ async function confirmApprove() {
 
 async function handleLinkShipment(item) {
   // Since we are linking the whole shipment, we can select the first container as a reference
+
   if (item.countainerCount > 0) {
+    await fetchNotLinkedContainersPerTransfer(item.transfer.id)
     await fetchCreateLinkData(item.transfer.id);
     showCreateLinkModal.value = true;
   } else {
