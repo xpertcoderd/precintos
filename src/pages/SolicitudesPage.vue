@@ -79,6 +79,7 @@
       :drivers="linkModalData.drivers"
       :vehicles="linkModalData.vehicles"
       :devices="linkModalData.devices"
+      :containers ="linkModalData.containers"
     />
 
     <TransferWizardCard v-if="showTransferWizard" @close="showTransferWizard = false" @closeFetch="closeAndFetch" @updateTransfersList="fetchItems" />
@@ -183,9 +184,8 @@ async function confirmApprove() {
 
 async function handleLinkShipment(item) {
   // Since we are linking the whole shipment, we can select the first container as a reference
-  if (item.transferUnits && item.transferUnits.length > 0) {
-    selectedContainerForLink.value = item.transferUnits[0];
-    await fetchCreateLinkData();
+  if (item.countainerCount > 0) {
+    await fetchCreateLinkData(item.transfer.id);
     showCreateLinkModal.value = true;
   } else {
     sendNotification('No hay contenedores en este traslado para enlazar.', 'warning');

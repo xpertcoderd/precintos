@@ -6,7 +6,7 @@ import {linkTransferUnits} from "@/components/conexion/DataConector";
 // --- Component Props and Emits ---
 const props = defineProps({
   show: Boolean,
-  selectedContainer: { type: Object, default: () => null },
+  containers: { type: Array, default: () => [] },
   devices: { type: Array, default: () => [] },
   clients: { type: Array, default: () => [] },
   carriers: { type: Array, default: () => [] },
@@ -25,7 +25,7 @@ const isDeviceDropdownOpen = ref(false);
 const initializeLinkData = (container) => {
   if (!container) return;
   linkData.value = {
-    transferUnitId: container.transferUnitId,
+    transferUnitId: null,
     deviceId: null, // Fixed value as requested
     carrierId: null,
     driverId: null,
@@ -114,7 +114,10 @@ const UploadCloud = { template: `<svg xmlns="http://www.w3.org/2000/svg" width="
                         </div>
                         <div>
                             <label for="container" class="block mb-2 text-sm font-medium text-slate-700">Contenedor</label>
-                            <input type="text" id="container" :value="selectedContainer?.container || ''" class="border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-sky-500 focus:border-sky-500 block w-full p-2.5 bg-slate-100" disabled>
+                          <select  v-model="linkData.transferUnitId" id="container"  class="border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-sky-500 focus:border-sky-500 block w-full p-2.5">
+                            <option :value="null" disabled>Seleccionar...</option>
+                            <option v-for="container in containers" :key="container.id" :value="container.id">{{ container.container }}</option>
+                          </select>
                         </div>
                     </div>
                     <div class="relative">
