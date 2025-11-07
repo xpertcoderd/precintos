@@ -1,7 +1,7 @@
 <template>
   <div class="p-4 md:p-8 bg-slate-50 min-h-full">
     <!-- Main Content Area -->
-    <main class="bg-white rounded-2xl shadow-lg p-6">
+    <main class="bg-white rounded-2xl shadow-lg p-6 min-w-fit">
       <div class="flex flex-col md:flex-row justify-between items-center mb-6">
         <div class="flex items-center gap-3">
           <!-- Inlined DocumentTextIcon -->
@@ -81,7 +81,7 @@
       :devices="linkModalData.devices"
     />
 
-    <TransferWizardCard v-if="showTransferWizard" @close="showTransferWizard = false" />
+    <TransferWizardCard v-if="showTransferWizard" @close="showTransferWizard = false" @closeFetch="closeAndFetch" @updateTransfersList="fetchItems" />
 
   </div>
 </template>
@@ -127,6 +127,10 @@ const voucherImageUrl = ref('');
 const selectedTransferId = ref(null);
 const selectedContainerForLink = ref(null);
 
+function closeAndFetch() {
+  showTransferWizard.value = false;
+  fetchItems();
+}
 function handleUploadPayment(item) {
   selectedTransferId.value = item.transfer.id;
   isVoucherModalVisible.value = true;

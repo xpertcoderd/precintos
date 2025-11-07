@@ -57,7 +57,7 @@ watch(
         <div>
           <label for="finalClient" class="block text-sm/6 font-medium text-slate-700">Cliente Final</label>
           <div class="mt-2 grid grid-cols-1">
-            <select id="finalClient" v-model="localModel.finalClient" required class="col-start-1 row-start-1 w-full appearance-none rounded-md bg-transparent px-3 py-1.5 text-slate-900 outline outline-1 -outline-offset-1 outline-slate-300 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sky-500 sm:text-sm/6" :class="{ 'outline-red-500': errors.finalClient }">
+            <select id="finalClient" v-model="localModel.finalClient"  class="col-start-1 row-start-1 w-full appearance-none rounded-md bg-transparent px-3 py-1.5 text-slate-900 outline outline-1 -outline-offset-1 outline-slate-300 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sky-500 sm:text-sm/6" :class="{ 'outline-red-500': errors.finalClient }">
               <option value="" selected disabled>Seleccione un cliente</option>
               <option v-for="(client, index) in incomingData.finalClients" :key="index" :value="client.client">{{ client.client.name }}</option>
             </select>
@@ -101,14 +101,14 @@ watch(
         <div class="sm:col-span-2">
           <label for="address" class="block text-sm/6 font-medium text-slate-700">Dirección del Destino</label>
           <div class="mt-2">
-            <input id="address" v-model="localModel.address" type="text" required placeholder="Calle, Número, Sector" class="block w-full rounded-md bg-transparent px-3 py-1.5 text-slate-900 outline outline-1 -outline-offset-1 outline-slate-300 placeholder:text-slate-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sky-500 sm:text-sm/6" :class="{ 'outline-red-500': errors.address }">
+            <input id="address" v-model="localModel.address" type="text"  placeholder="Calle, Número, Sector" class="block w-full rounded-md bg-transparent px-3 py-1.5 text-slate-900 outline outline-1 -outline-offset-1 outline-slate-300 placeholder:text-slate-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sky-500 sm:text-sm/6" :class="{ 'outline-red-500': errors.address }">
           </div>
           <p v-if="errors.address" class="text-xs text-red-500 mt-1">{{ errors.address }}</p>
         </div>
         <div class="sm:col-span-2">
           <label for="city" class="block text-sm/6 font-medium text-slate-700">Ciudad</label>
           <div class="mt-2">
-            <input id="city" v-model="localModel.city" type="text" required placeholder="Ciudad de destino" class="block w-full rounded-md bg-transparent px-3 py-1.5 text-slate-900 outline outline-1 -outline-offset-1 outline-slate-300 placeholder:text-slate-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sky-500 sm:text-sm/6" :class="{ 'outline-red-500': errors.city }">
+            <input id="city" v-model="localModel.city" type="text"  placeholder="Ciudad de destino" class="block w-full rounded-md bg-transparent px-3 py-1.5 text-slate-900 outline outline-1 -outline-offset-1 outline-slate-300 placeholder:text-slate-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sky-500 sm:text-sm/6" :class="{ 'outline-red-500': errors.city }">
           </div>
           <p v-if="errors.city" class="text-xs text-red-500 mt-1">{{ errors.city }}</p>
         </div>

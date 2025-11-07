@@ -31,12 +31,10 @@
 <script setup>
 import {ref, watch, defineEmits,defineProps, onMounted} from 'vue';
 import TablaAddingConfirmation from '@/components/Internal/tablas/TablaAddingConfirmation.vue';
-import { useNotifications } from '@/composables/useNotifications';
 
 const props = defineProps(['orderData', 'errors']);
 const emit = defineEmits(['update:modelValue', 'cerrar', 'next', 'update-table-data']);
 
-const { sendNotification } = useNotifications();
 
 const localModel = ref(
     {
@@ -72,7 +70,6 @@ watch(localModel, (newVal) => {
 }, { deep: true });
 
 function submit() {
-  sendNotification('Orden generada con éxito!', 'success');
   emit('next');
 }
 </script>

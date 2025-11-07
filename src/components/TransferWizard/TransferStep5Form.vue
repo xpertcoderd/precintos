@@ -66,11 +66,8 @@
 
     <!-- Actions -->
     <div class="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-4 border-t border-gray-200 pt-6">
-      <button @click="$emit('cerrar')" type="button" class="px-5 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-100 transition-colors">
-        Cancelar
-      </button>
       <button @click="$emit('next')" type="button" class="px-5 py-2.5 text-sm font-medium text-white bg-sky-500 rounded-lg hover:bg-sky-600 focus:ring-4 focus:ring-sky-300">
-        Finalizar Traslado
+        Cerrar resumen
       </button>
     </div>
   </div>

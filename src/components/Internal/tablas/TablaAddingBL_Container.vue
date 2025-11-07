@@ -31,7 +31,7 @@ const handleRemove = (dato) => {
           <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ dato[1].text2 }}</td>
           <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
             <div class="flex items-center justify-center">
-              <button @click="handleRemove(dato)" class="text-slate-400 hover:text-red-600 p-1 rounded-full transition-colors" title="Eliminar">
+              <button @click="handleRemove(dato)" type="button" class="text-slate-400 hover:text-red-600 p-1 rounded-full transition-colors" title="Eliminar">
                 <TrashIcon class="w-5 h-5" />
               </button>
             </div>

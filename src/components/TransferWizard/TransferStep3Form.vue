@@ -15,7 +15,7 @@ const localModel = computed({
   get: () => props.modelValue,
   set: (val) => emit('update:modelValue', val),
 });
-
+const existingKeyError = {active: false, text: 'Este contenedor ya existe en la lista.'}
 function addBL_Container() {
   const bl = localModel.value.bl;
   const container = localModel.value.container?.trim().toUpperCase();
@@ -25,7 +25,9 @@ function addBL_Container() {
       localModel.value.listBl_container = new Map();
     }
     const key = `${bl}-${container}`;
-    if (!localModel.value.listBl_container.has(key)) {
+    const hasKey = localModel.value.listBl_container.has(key)
+    existingKeyError.active = hasKey;
+    if (!hasKey) {
       localModel.value.listBl_container.set(key, { text1: bl, text2: container, id: Date.now() });
     }
     localModel.value.container = '';
@@ -34,7 +36,7 @@ function addBL_Container() {
 
 function removeBL(bl_Selected) {
   if (localModel.value.listBl_container) {
-    localModel.value.listBl_container.delete(bl_Selected);
+    return localModel.value.listBl_container.delete(bl_Selected);
   }
 }
 </script>
@@ -68,6 +70,7 @@ function removeBL(bl_Selected) {
                   :class="{ 'outline-red-500': errors.container }"
               />
               <p v-if="errors.container" class="text-xs text-red-500 mt-1">{{ errors.container }}</p>
+              <p v-if="existingKeyError.active" class="text-xs text-red-500 mt-1">{{ existingKeyError.text }}</p>
             </div>
             <button @click="addBL_Container" type="button" class="rounded-md bg-sky-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-sky-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 flex items-center gap-2">
               <PlusIcon class="w-5 h-5" />

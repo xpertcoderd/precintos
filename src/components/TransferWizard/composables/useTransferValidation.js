@@ -32,7 +32,7 @@ export function useTransferValidation(wizardData, errors, allData) {
         if (currentStep === 2) {
             const data = wizardData.step2;
             const stepErrors = {};
-            if (!data.listBl || data.listBl.size === 0) {
+            if (!data.listBl || data.listBl.length === 0) {
                 stepErrors.bl = 'Debe agregar al menos un BL.';
             }
             errors.step2 = stepErrors;

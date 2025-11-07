@@ -21,7 +21,7 @@
         <TransferStep2Form v-if="step === 2" v-model="wizardData.step2" :errors="errors.step2" @cerrar="close" @next="validateAndNext(2)" />
         <TransferStep3Form v-if="step === 3" :incoming-data="wizardData.step2" v-model="wizardData.step3" :errors="errors.step3" @cerrar="close" @next="validateAndNext(3)" />
         <TransferStep4Form v-if="step === 4" :order-data="allData" v-model="wizardData.step4" :errors="errors.step4" @cerrar="close" @next="validateAndNext(4)" @update-table-data="handleUpdateStep4Data" />
-        <TransferStep5Form v-if="step === 5" :all-data="allData" :step4-data="step4TableData" @cerrar="close" @next="close" />
+        <TransferStep5Form v-if="step === 5" :all-data="allData" :step4-data="step4TableData" @cerrar="close" @next="closeAndFetch" />
       </div>
     </div>
   </div>
@@ -41,7 +41,7 @@ import { useTransferWizardState } from "@/components/TransferWizard/composables/
 import { useTransferLogic } from "@/components/TransferWizard/composables/useTransferLogic";
 import { useTransferValidation } from "@/components/TransferWizard/composables/useTransferValidation";
 
-const outGoingData = defineEmits(['close'])
+const outGoingData = defineEmits(['close', 'closeFetch', 'updateTransfersList'])
 
 // 🔧 Wizard state
 const {
@@ -101,6 +101,12 @@ onMounted(async () => {
 function close() {
   resetWizard()
   outGoingData('close')
+}
+
+// 🔧 Navigation
+function closeAndFetch() {
+  resetWizard()
+  outGoingData('closeFetch')
 }
 
 function handleUpdateStep4Data(data) {
