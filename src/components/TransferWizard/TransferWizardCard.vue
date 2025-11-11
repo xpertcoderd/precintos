@@ -63,7 +63,8 @@ const allData = ref({
     startPlace: "startPlace",
     endPlace: "endPlace",
     typeName: "typeName",
-    unitPrice: 0
+    unitPrice: 0,
+    booking: null
   },
   bl_ContainerList: [],
   totalAmount: 0,

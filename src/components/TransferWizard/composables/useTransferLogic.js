@@ -58,7 +58,7 @@ export function useTransferLogic(wizardData) {
             note,
             timeTravelEst: '2025-01-17 16:00:00Z',
             cargoDescription: 'carga variada',
-            booking:null
+            booking: wizardData.step2.booking,
         };
     }
 

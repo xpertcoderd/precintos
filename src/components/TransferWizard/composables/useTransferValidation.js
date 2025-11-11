@@ -43,7 +43,7 @@ export function useTransferValidation(wizardData, errors, allData) {
             if (!data.listBl || data.listBl.length === 0) {
                 stepErrors.bl = 'Debe agregar al menos un BL.';
             }
-            if (wizardData.step1.type?.name?.toLowerCase() === 'import' && (!data.booking || data.booking.trim() === '')) {
+            if (wizardData.step1.type?.name?.toLowerCase() === 'export' && (!data.booking || data.booking.trim() === '')) {
                 stepErrors.booking = 'El campo Booking es requerido para traslados de importación.';
             }
             errors.step2 = stepErrors;
