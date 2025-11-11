@@ -25,7 +25,7 @@ const isBookingEnabled = computed(() => {
 });
 
 const isBookingRequired = computed(() => {
-  return props.transferType?.name?.toLowerCase() === 'import';
+  return props.transferType?.name?.toLowerCase() === 'export';
 });
 
 async function addBL() {
