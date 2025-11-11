@@ -1,11 +1,13 @@
 <script setup>
-import { computed, defineProps, defineEmits } from 'vue';
+import { computed, defineProps, defineEmits, ref } from 'vue';
 import TablaAddingBL from '@/components/Internal/tablas/TablaAddingBL.vue';
 import PlusIcon from "@/components/icons/PlusIcon.vue";
+import { useTransferValidation } from "@/components/TransferWizard/composables/useTransferValidation";
 
 const props = defineProps({
   modelValue: { type: Object, required: true },
   errors: { type: Object, default: () => ({}) },
+  transferType: { type: Object, default: () => ({}) }
 });
 const emit = defineEmits(['update:modelValue', 'cerrar', 'next']);
 
@@ -14,9 +16,29 @@ const localModel = computed({
   set: (val) => emit('update:modelValue', val),
 });
 
-function addBL() {
+const blError = ref('');
+const { validateBLExistence } = useTransferValidation();
+
+const isBookingEnabled = computed(() => {
+  const typeName = props.transferType?.name?.toLowerCase();
+  return typeName === 'import' || typeName === 'export';
+});
+
+const isBookingRequired = computed(() => {
+  return props.transferType?.name?.toLowerCase() === 'import';
+});
+
+async function addBL() {
+  blError.value = '';
   if (localModel.value.bl && localModel.value.bl.trim() !== '') {
     const actualBl = localModel.value.bl.toString().toUpperCase();
+
+    const exists = await validateBLExistence(actualBl);
+    if (exists) {
+      blError.value = `El BL '${actualBl}' ya existe.`;
+      return;
+    }
+
     if (!localModel.value.listBl) {
       localModel.value.listBl = [];
     }
@@ -36,26 +58,61 @@ function removeBL(bl_Selected) {
 
 <template>
   <form @submit.prevent="$emit('next')" class="space-y-10">
-    <div>
-      <h2 class="text-base/7 font-semibold text-slate-900">Agregar BLs</h2>
-      <div class="mt-6 flex items-start gap-x-3">
-        <div class="flex-grow">
-          <label for="bl-input" class="sr-only">Añadir BL</label>
-          <input
-              id="bl-input"
-              v-model="localModel.bl"
-              @keydown.enter.prevent="addBL"
+    <div class="space-y-8">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-8">
+        <div>
+          <label for="booking-input" class="block text-sm/6 font-medium text-slate-700">
+            Booking <span v-if="isBookingRequired" class="text-red-500">*</span>
+          </label>
+          <div class="mt-2">
+            <input
+              id="booking-input"
+              v-model="localModel.booking"
               type="text"
-              placeholder="Ingrese el número de BL"
-              class="block w-full rounded-md bg-transparent px-3 py-1.5 text-slate-900 outline outline-1 -outline-offset-1 outline-slate-300 placeholder:text-slate-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sky-500 sm:text-sm/6"
-              :class="{ 'outline-red-500': errors.bl }"
-          />
-          <p v-if="errors.bl" class="text-xs text-red-500 mt-1">{{ errors.bl }}</p>
+              placeholder="Ingrese el número de booking"
+              :disabled="!isBookingEnabled"
+              class="block w-full rounded-md bg-transparent px-3 py-1.5 text-slate-900 outline outline-1 -outline-offset-1 outline-slate-300 placeholder:text-slate-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sky-500 sm:text-sm/6 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
+              :class="{ 'outline-red-500': errors.booking }"
+            />
+            <p v-if="errors.booking" class="text-xs text-red-500 mt-1">{{ errors.booking }}</p>
+          </div>
         </div>
-        <button @click="addBL" type="button" class="rounded-md bg-sky-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-sky-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 flex items-center gap-2">
-          <PlusIcon class="w-5 h-5" />
-          <span class="hidden sm:inline">Agregar</span>
-        </button>
+
+        <div>
+          <label for="bl-input" class="block text-sm/6 font-medium text-slate-700">Agregar BLs</label>
+          <div class="mt-2 flex items-start gap-x-3">
+            <div class="flex-grow">
+              <input
+                  id="bl-input"
+                  v-model="localModel.bl"
+                  @keydown.enter.prevent="addBL"
+                  type="text"
+                  placeholder="Ingrese el número de BL"
+                  class="block w-full rounded-md bg-transparent px-3 py-1.5 text-slate-900 outline outline-1 -outline-offset-1 outline-slate-300 placeholder:text-slate-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sky-500 sm:text-sm/6"
+                  :class="{ 'outline-red-500': errors.bl || blError }"
+              />
+              <p v-if="errors.bl" class="text-xs text-red-500 mt-1">{{ errors.bl }}</p>
+              <p v-if="blError" class="text-xs text-red-500 mt-1">{{ blError }}</p>
+            </div>
+            <button @click="addBL" type="button" class="rounded-md bg-sky-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-sky-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 flex items-center gap-2 h-full">
+              <PlusIcon class="w-5 h-5" />
+              <span class="hidden sm:inline">Agregar</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-span-full">
+        <label for="description-input" class="block text-sm/6 font-medium text-slate-700">Descripción (Opcional)</label>
+        <div class="mt-2">
+          <textarea
+            id="description-input"
+            v-model="localModel.description"
+            rows="3"
+            placeholder="Descripción de la carga"
+            class="block w-full rounded-md bg-transparent px-3 py-1.5 text-slate-900 outline outline-1 -outline-offset-1 outline-slate-300 placeholder:text-slate-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sky-500 sm:text-sm/6"
+          ></textarea>
+        </div>
       </div>
     </div>
 

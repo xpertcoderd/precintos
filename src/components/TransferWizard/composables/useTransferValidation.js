@@ -1,5 +1,13 @@
 // composables/transferWizard/useTransferValidation.js
+import { transfersCheckBL } from "@/components/conexion/DataConector";
+
 export function useTransferValidation(wizardData, errors, allData) {
+
+    async function validateBLExistence(bl) {
+        const response = await transfersCheckBL(bl);
+        return response.success;
+    }
+
     function validateStep(currentStep) {
         if (currentStep === 1) {
             const data = wizardData.step1;
@@ -34,6 +42,9 @@ export function useTransferValidation(wizardData, errors, allData) {
             const stepErrors = {};
             if (!data.listBl || data.listBl.length === 0) {
                 stepErrors.bl = 'Debe agregar al menos un BL.';
+            }
+            if (wizardData.step1.type?.name?.toLowerCase() === 'import' && (!data.booking || data.booking.trim() === '')) {
+                stepErrors.booking = 'El campo Booking es requerido para traslados de importación.';
             }
             errors.step2 = stepErrors;
             return Object.keys(stepErrors).length === 0;
@@ -107,5 +118,6 @@ export function useTransferValidation(wizardData, errors, allData) {
 
     return {
         validateStep,
+        validateBLExistence,
     };
 }
