@@ -3,7 +3,7 @@
     <table class="min-w-full divide-y divide-slate-200">
       <thead class="bg-slate-50">
         <tr>
-          <th v-for="header in tableConfig.headers" :key="header" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+          <th v-for="header in headers" :key="header" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
             {{ header }}
           </th>
           <th class="px-6 py-3 text-center text-xs font-medium text-slate-500 uppercase tracking-wider">Acciones</th>
@@ -11,14 +11,17 @@
       </thead>
       <tbody class="bg-white divide-y divide-slate-200">
         <tr v-if="data.length === 0">
-          <td :colspan="tableConfig.headers.length + 1" class="px-6 py-12 text-center text-slate-500">
+          <td :colspan="headers.length + 1" class="px-6 py-12 text-center text-slate-500">
             No hay datos para mostrar.
           </td>
         </tr>
-        <tr v-for="item in data" :key="item.id" class="hover:bg-slate-50 transition-colors">
-          <td v-for="field in tableConfig.fields" :key="field" class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-            {{ getFieldData(item, field) }}
-          </td>
+        <tr v-for="item in data" :key="item.client.id" class="hover:bg-slate-50 transition-colors">
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ item.client.name }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ item.client.rnc }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ item.client.contact }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ item.client.email }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ item.client.phone }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-slate-500">{{ item.usersByClient }}</td>
           <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
             <div class="flex items-center justify-center gap-4">
               <button @click="$emit('edit-item', item)" class="text-slate-400 hover:text-sky-600 p-1 rounded-full transition-colors" title="Editar">
@@ -36,23 +39,14 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
-
 defineProps({
   data: {
     type: Array,
     required: true,
   },
-})
+});
 
-defineEmits(['edit-item', 'delete-item'])
+defineEmits(['edit-item', 'delete-item']);
 
-const tableConfig = computed(() => ({
-  headers: ['ID', 'Nombre', 'RNC', 'Dirección', 'Teléfono'],
-  fields: ['id', 'name', 'rnc', 'address', 'phone'],
-}))
-
-function getFieldData(item, field) {
-  return field.split('.').reduce((o, i) => (o ? o[i] : null), item)
-}
+const headers = ['Nombre', 'RNC', 'Contacto', 'Email', 'Teléfono', 'Usuarios'];
 </script>

@@ -41,6 +41,7 @@
             @track-shipment="handleTrackShipment"
             @group-containers="handleGroupContainers"
             @create-link="handleCreateLink"
+            @open-seal="handleOpenSeal"
         />
         <div v-if="!shipmentData || shipmentData.length === 0 && !loading" class="text-center py-10">
           <p class="text-slate-500">No hay traslados para mostrar.</p>
@@ -97,6 +98,7 @@
           v-if="activeContainers.length > 0"
           :containers="activeContainers"
           @create-link="handleCreateLink"
+          @open-seal="handleOpenSeal"
         />
         <div v-else class="text-center py-10">
           <p class="text-slate-500">No hay contenedores para mostrar para este traslado.</p>
@@ -130,7 +132,6 @@
         <ContainerComponent
           v-if="filteredContainersForMap.length > 0"
           :containers="filteredContainersForMap"
-          @create-link="handleCreateLink"
         />
       </div>
     </div>
@@ -139,7 +140,7 @@
     <CreateLinkComponent
       v-if="showCreateLinkModal"
       :show="showCreateLinkModal"
-      @close="handleCloseCreateLink"
+      @close="showCreateLinkModal = false"
       :selected-container="selectedContainerForLink"
       :clients="linkModalData.clients"
       :carriers="linkModalData.carriers"
@@ -147,18 +148,28 @@
       :vehicles="linkModalData.vehicles"
       :devices="linkModalData.devices"
     />
+    <OpenSealModal
+      v-if="showOpenSealModal"
+      :show="showOpenSealModal"
+      :container="selectedContainerForSeal"
+      @close="showOpenSealModal = false"
+      @confirm="confirmOpenSeal"
+    />
   </main>
 </template>
 
 <script setup>
   import { ref } from 'vue';
   import { useMainContent } from './composables/useMainContent';
+  import { transferUnits_openSeal } from '@/components/conexion/DataConector.js';
+  import { useNotifications } from '@/composables/useNotifications';
   import ListIcon from './icons/ListIcon.vue';
   import ShipmentCard from './ShipmentCard.vue';
   import ContainerComponent from './ContainerView/ContainerComponent.vue';
   import ContainerTable from './ContainerView/ContainerTable.vue';
   import ETACard from './ContainerView/ETACard.vue';
   import CreateLinkComponent from '@/components/CreateLink/CreateLinkComponent.vue';
+  import OpenSealModal from '@/components/common/OpenSealModal.vue';
   import Pagination from './Pagination.vue';
   import MapComponent from './MapComponent.vue';
   import MultiFilterInput from '@/components/common/MultiFilterInput.vue';
@@ -199,8 +210,12 @@
   } = useMainContent(timeWindowHours);
 
   const { linkModalData, fetchCreateLinkData } = useCreateLinkData();
+  const { sendNotification } = useNotifications();
+
   const showCreateLinkModal = ref(false);
   const selectedContainerForLink = ref(null);
+  const showOpenSealModal = ref(false);
+  const selectedContainerForSeal = ref(null);
 
   const handleCreateLink = async (container) => {
     selectedContainerForLink.value = container;
@@ -208,11 +223,22 @@
     showCreateLinkModal.value = true;
   };
 
-  const handleCloseCreateLink = () => {
-    showCreateLinkModal.value = false;
-    fetchShipments();
-    fetchAllContainers();
-    fetchEtaData();
+  const handleOpenSeal = (container) => {
+    selectedContainerForSeal.value = container;
+    showOpenSealModal.value = true;
+  };
+
+  const confirmOpenSeal = async ({ containerId, pin }) => {
+    const response = await transferUnits_openSeal(containerId, pin);
+    if (response.success) {
+      sendNotification('Sello abierto con éxito', 'success');
+      fetchShipments();
+      fetchAllContainers();
+      fetchEtaData();
+    } else {
+      sendNotification('Error al abrir el sello', 'error');
+    }
+    showOpenSealModal.value = false;
   };
 
 </script>

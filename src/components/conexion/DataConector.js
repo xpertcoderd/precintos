@@ -89,6 +89,7 @@ export const linkTransferUnits = (formData) => safeRequest(() => axios.post(`/ap
     ...axiosConfig,
     headers: { 'Content-Type': 'multipart/form-data' }
 }));
+export const transferUnits_openSeal = (id, pin) => safeRequest(() => axios.post(`/api/v1/transferUnits/openSeal`, { id, pin }, axiosConfig));
 
 
 // =================================================================
@@ -113,10 +114,11 @@ export const openSeal = (params, pin) => safeRequest(() => axios.post(`/api/v1/d
 // == Client Endpoints
 // =================================================================
 
+export const clients_filtered = (params) => safeRequest(() => axios.get(`/api/v1/clients/filtered`, { ...axiosConfig, params }));
+export const clients_create = (form) => safeRequest(() => axios.post(`/api/v1/clients/create`, form, axiosConfig));
+export const clients_update = (id, form) => safeRequest(() => axios.put(`/api/v1/clients/update/${id}`, form, axiosConfig));
 export const clientsList = () => safeRequest(() => axios.get(`/api/v1/clients/all`, axiosConfig));
 export const finalClientsList = (id) => safeRequest(() => axios.get(`/api/v1/clients/list/${id}`, axiosConfig));
-export const create_Client = (form) => safeRequest(() => axios.post(`/api/v1/clients/create`, form, axiosConfig));
-export const update_Client = (form, id) => safeRequest(() => axios.put(`/api/v1/clients/update/${id}`, form, axiosConfig));
 
 
 // =================================================================

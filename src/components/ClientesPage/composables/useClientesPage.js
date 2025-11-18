@@ -1,15 +1,10 @@
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useNotifications } from '@/composables/useNotifications';
-
-// Mock data to simulate the original state
-const mockClientes = [
-  { id: 1, name: 'Industrias Acme', rnc: '101-12345-6', address: 'Av. Principal 123', phone: '809-555-1234' },
-  { id: 2, name: 'Comercial Global', rnc: '101-65432-1', address: 'Calle Secundaria 456', phone: '809-555-5678' },
-];
+import { clients_filtered, clients_create, clients_update } from '@/components/conexion/DataConector';
 
 export function useClientesPage() {
   const { sendNotification } = useNotifications();
-  const items = ref([...mockClientes]);
+  const items = ref([]);
   const editingItem = ref(null);
   const isModalVisible = ref(false);
   const isConfirmationVisible = ref(false);
@@ -18,6 +13,12 @@ export function useClientesPage() {
   const error = ref(null);
   const errors = ref({});
 
+  // Pagination State
+  const currentPage = ref(1);
+  const totalPages = ref(1);
+  const totalItems = ref(0);
+  const pageSize = ref(10);
+
   const pageTitle = 'Gestionar Clientes';
   const createButtonText = 'Crear Cliente';
   const modalTitle = computed(() =>
@@ -25,11 +26,29 @@ export function useClientesPage() {
   );
   const saveButtonText = computed(() => (editingItem.value ? 'Guardar Cambios' : 'Crear'));
 
-  async function fetchItems() {
+  async function fetchItems(page = 1) {
     isLoading.value = true;
-    await new Promise(resolve => setTimeout(resolve, 200));
-    items.value = [...mockClientes];
-    isLoading.value = false;
+    error.value = null;
+    try {
+      const response = await clients_filtered({ page, pageSize: pageSize.value });
+      if (response.success) {
+        items.value = response.data.clients;
+        totalItems.value = response.data.total;
+        totalPages.value = Math.ceil(response.data.total / response.data.pageSize);
+        currentPage.value = response.data.page;
+      } else {
+        throw new Error('Failed to fetch clients');
+      }
+    } catch (e) {
+      error.value = 'No se pudieron cargar los clientes. Por favor, intente de nuevo.';
+      console.error(e);
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  function handlePageChange(newPage) {
+    currentPage.value = newPage;
   }
 
   function openCreateModal() {
@@ -39,7 +58,7 @@ export function useClientesPage() {
   }
 
   function openEditModal(item) {
-    editingItem.value = { ...item };
+    editingItem.value = { ...item.client };
     errors.value = {};
     isModalVisible.value = true;
   }
@@ -50,7 +69,7 @@ export function useClientesPage() {
   }
 
   function openDeleteConfirmation(item) {
-    itemToDelete.value = item;
+    itemToDelete.value = item.client;
     isConfirmationVisible.value = true;
   }
 
@@ -61,38 +80,44 @@ export function useClientesPage() {
 
   async function saveItem(formData) {
     isLoading.value = true;
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    if (editingItem.value) {
-      const index = items.value.findIndex(i => i.id === editingItem.value.id);
-      if (index !== -1) {
-        items.value[index] = { ...editingItem.value, ...formData };
-        sendNotification('Cliente actualizado con éxito', 'success');
+    try {
+      let response;
+      if (editingItem.value) {
+        response = await clients_update(editingItem.value.id, formData);
+      } else {
+        response = await clients_create(formData);
       }
-    } else {
-      const newItem = { id: Date.now(), ...formData };
-      items.value.push(newItem);
-      sendNotification('Cliente creado con éxito', 'success');
-    }
 
-    isLoading.value = false;
-    closeModal();
+      if (response.success) {
+        sendNotification(`Cliente ${editingItem.value ? 'actualizado' : 'creado'} con éxito`, 'success');
+        fetchItems(currentPage.value);
+      } else {
+        throw new Error(response.message || 'Error al guardar el cliente');
+      }
+    } catch (e) {
+      sendNotification(e.message, 'error');
+      console.error(e);
+    } finally {
+      isLoading.value = false;
+      closeModal();
+    }
   }
 
   async function confirmDelete() {
     if (!itemToDelete.value) return;
     isLoading.value = true;
+    // Replace with actual delete endpoint when available
     await new Promise(resolve => setTimeout(resolve, 500));
-
-    const index = items.value.findIndex(i => i.id === itemToDelete.value.id);
-    if (index !== -1) {
-      items.value.splice(index, 1);
-      sendNotification('Cliente eliminado con éxito', 'success');
-    }
-
+    sendNotification('Funcionalidad de eliminar no implementada.', 'warning');
     isLoading.value = false;
     closeDeleteConfirmation();
   }
+
+  watch([currentPage, pageSize], () => {
+    fetchItems(currentPage.value);
+  });
+
+  onMounted(() => fetchItems(1));
 
   return {
     items,
@@ -106,7 +131,12 @@ export function useClientesPage() {
     createButtonText,
     modalTitle,
     saveButtonText,
+    currentPage,
+    totalPages,
+    totalItems,
+    pageSize,
     fetchItems,
+    handlePageChange,
     openCreateModal,
     openEditModal,
     closeModal,

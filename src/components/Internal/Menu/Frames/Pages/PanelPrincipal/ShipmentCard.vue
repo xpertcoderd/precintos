@@ -69,7 +69,11 @@
 
     <!-- Expandable Container Section -->
     <div v-if="showContainers" class="mt-4 pt-4 border-t border-dashed border-slate-300">
-      <ContainerComponent :containers="transformedContainers" @create-link="(container) => $emit('create-link', container)"/>
+      <ContainerComponent
+        :containers="transformedContainers"
+        @create-link="(container) => $emit('create-link', container)"
+        @open-seal="(container) => $emit('open-seal', container)"
+      />
     </div>
   </div>
 </template>
@@ -89,7 +93,7 @@ const props = defineProps({
   }
 });
 
-defineEmits(['trackShipment', 'create-link']);
+defineEmits(['trackShipment', 'create-link', 'open-seal']);
 
 const showContainers = ref(false);
 
@@ -139,7 +143,7 @@ const formattedEta = computed(() => {
         destination: props.shipmentData.transfer.endPlace.label,
         status: getContainerStatusText(container.statusId),
         statusColorClass: getContainerStatusColor(container.statusId),
-        progress: 0, // This can be enhanced if progress data is available
+        progress: 0,
         startDate: new Date(props.shipmentData.transfer.timeRequest).toLocaleDateString(),
         endDate: new Date(props.shipmentData.transfer.timeTravelEst).toLocaleDateString(),
         isOverdue: new Date() > new Date(props.shipmentData.transfer.timeTravelEst),

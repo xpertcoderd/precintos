@@ -21,6 +21,14 @@
               class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100"
               @click.prevent="$emit('create-link', container)"
             >Enlace</a>
+            <a
+              href="#"
+              :class="[
+                'block px-4 py-2 text-sm',
+                container.status === 'Entregado' ? 'text-slate-700 hover:bg-slate-100' : 'text-slate-400 cursor-not-allowed'
+              ]"
+              @click.prevent="container.status === 'Entregado' ? $emit('open-seal', container) : null"
+            >Abrir candado</a>
             <a href="#" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">Alertar Contacto</a>
             <a href="#" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50">Cancelar</a>
           </div>
@@ -75,7 +83,7 @@ defineProps({
   containers: { type: Array, required: true },
 });
 
-defineEmits(['create-link']);
+defineEmits(['create-link', 'open-seal']);
 
 const openMenuId = ref(null);
 
