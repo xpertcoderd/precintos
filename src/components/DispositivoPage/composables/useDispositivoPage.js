@@ -1,6 +1,6 @@
 import { ref, watch, reactive } from 'vue';
 import { useNotifications } from '@/composables/useNotifications';
-import { devicesAll } from '@/components/conexion/DataConector.js';
+import { getDevicesFiltered } from '@/services/deviceService';
 
 const filterOptions = [
   { label: 'Device ID', value: 'ids' },
@@ -47,7 +47,8 @@ export function useDispositivoPage() {
     }
 
     try {
-      const response = await devicesAll(params);
+      const response = await getDevicesFiltered(params);
+      // response is already the data object from axios interceptor
       if (response && response.success && response.data) {
         items.value = response.data.devices || [];
         totalItems.value = response.data.total || 0;

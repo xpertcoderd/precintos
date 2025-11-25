@@ -2,7 +2,7 @@
   <TransitionRoot as="template" :show="visible">
     <Dialog as="div" class="relative z-50" @close="$emit('cancel')">
       <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0" enter-to="opacity-100" leave="ease-in duration-200" leave-from="opacity-100" leave-to="opacity-0">
-        <div class="fixed inset-0 bg-black bg-opacity-60 transition-opacity" />
+        <div v-if="visible" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" @click="$emit('cancel')"></div>
       </TransitionChild>
 
       <div class="fixed inset-0 z-50 overflow-y-auto">

@@ -31,7 +31,7 @@
           <div class="targetaOpen">
 
 
-            <Step1Client v-if="step == 1" @cerrar="close" @next="preSaveClient" @update="updateClient"
+            <Step1Client v-if="step == 1" @cerrar="close" @next="preSaveClient" @update="updateClientAction"
               ref="clientRef" />
 
             <Step2User :roles_List="roles_List" v-if="step == 2" :last="preforms.client.type == 'server'"
@@ -58,7 +58,7 @@
 
 <script setup>
 
-import { ref, defineEmits, defineExpose, onMounted } from 'vue'; //defineProps
+import { ref, defineEmits, defineExpose, onMounted, watch } from 'vue'; //defineProps
 
 import Step1Client from '@/components/Internal/Menu/Frames/Forms/steps/client_Steps/Step1Client.vue'
 import Step2User from '@/components/Internal/Menu/Frames/Forms/steps/client_Steps/Step2User.vue'
@@ -67,11 +67,21 @@ import Step3Bind from '@/components/Internal/Menu/Frames/Forms/steps/client_Step
 import SecuenciaPage2 from '@/components/Internal/Menu//Frames/SecuenciaPage2.vue'
 import TitleParrafHeader from '@/components/Internal/Menu//Frames/TitleParrafHeader.vue'
 
-import { create_Client, create_User, update_Client, rolesList } from '@/components/conexion/DataConector.js'
+import { useClients } from '@/composables/useClients'
+import { useUsers } from '@/composables/useUsers'
+import { useRoles } from '@/composables/useRoles'
 
 import Swal from 'sweetalert2'
 
+const { useCreateClient, useUpdateClient } = useClients();
+const { mutateAsync: createClientMutation } = useCreateClient();
+const { mutateAsync: updateClientMutation } = useUpdateClient();
 
+const { useCreateUser } = useUsers();
+const { mutateAsync: createUserMutation } = useCreateUser();
+
+const { useRolesAll } = useRoles();
+const { data: rolesData } = useRolesAll();
 
 const outGoingData = defineEmits(
   ['cerrar', 'form', 'updateClientList']
@@ -92,21 +102,13 @@ const preforms = ref({
   user: null
 })
 
-const roles_List = ref([
-  {
-    id: 1,
-    name: "rol defecto 1",
-    scope: "*",
-    permissions: "*"
-  },
-  {
-    id: 2,
-    name: "rol defecto 2",
-    scope: "*",
-    permissions: "Clients.read, "
-  }
+const roles_List = ref([])
 
-])
+watch(rolesData, (newData) => {
+  if (newData && newData.success) {
+    roles_List.value = newData.roles;
+  }
+}, { immediate: true });
 
 
 function restore() {
@@ -183,71 +185,50 @@ function next_No_User() {
 
 }
 
-function crearTodos(bind) {
+async function crearTodos(bind) {
 
 
   console.log("Clients >>>>", preforms.value.client)
 
-  create_Client(preforms.value.client).then(response => {
-
+  try {
+    const response = await createClientMutation(preforms.value.client);
     if (response.message) {
       //alert()
       sms(response.message)
-
-
     } else {
       //console.log(response.data)
       sms("cliente Agregado Correctamente")
       //alert("cliente Agregado Correctamente")
       //close()
     }
-
-
-  }).catch(error => {
+  } catch (error) {
     console.log(error)
-
-  })
-    .finally(() => {
-
-      if (preforms.value.user) {
-
-        console.log("Users >>>>", preforms.value.user)
-
-        create_User(preforms.value.user).then(response => {
-
-          if (response.message) {
-            //alert(response.message)
-            sms(response.message)
-
-
-          } else {
-            //console.log(response.data)
-            // alert("cliente Agregado Correctamente")
-            sms("Usuario Agregado Correctamente")
-            close()
-          }
-
-
-        }).catch(error => {
-          console.log(error)
-
-        })
-          .finally(() => {
-
-            console.log("Actualiza ClientList")
-            outGoingData('updateClientList')
-
-
-          })
-      } else {
-        console.log("No existe el formulario usuario")
-
+  } finally {
+    if (preforms.value.user) {
+      console.log("Users >>>>", preforms.value.user)
+      try {
+        const response = await createUserMutation(preforms.value.user);
+        if (response.message) {
+          //alert(response.message)
+          sms(response.message)
+        } else {
+          //console.log(response.data)
+          // alert("cliente Agregado Correctamente")
+          sms("Usuario Agregado Correctamente")
+          close()
+        }
+      } catch (error) {
+        console.log(error)
+      } finally {
         console.log("Actualiza ClientList")
         outGoingData('updateClientList')
-
       }
-
-    })
+    } else {
+      console.log("No existe el formulario usuario")
+      console.log("Actualiza ClientList")
+      outGoingData('updateClientList')
+    }
+  }
 
 
   console.log("se bind todo", bind)
@@ -263,10 +244,7 @@ function crearTodos(bind) {
 
 
 onMounted(() => {
-
-  consultarRoles()
-
-
+  // consultarRoles() // Handled by Vue Query
 })
 
 
@@ -283,71 +261,27 @@ function rellenarFormulario(formulario) {
 }
 
 
-function consultarRoles() {
-
-
-  rolesList().then(rol => {
-
-    if (rol.success) {
-
-      roles_List.value = rol.roles
-
-
-
-    } else {
-      console.log(rol)
-
-    }
-
-
-  }).catch(error => {
-    console.log(error)
-
-  })
-    .finally(() => {
-
-      console.log("Se consultaron los roles")
-
-
-    })
-
-
-}
-
-
-
-
-
-function updateClient(formulario) {
+async function updateClientAction(formulario) {
 
   console.log("se actualizara este cliente")
 
-  update_Client(formulario, formulario.id).then(response => {
-
+  try {
+    const response = await updateClientMutation({ id: formulario.id, data: formulario });
     if (response.message) {
       //alert()
       sms(response.message)
-
-
     } else {
       //console.log(response.data)
       sms("cliente Actualizado Correctamente")
       //alert("cliente Agregado Correctamente")
       close()
     }
-
-
-  }).catch(error => {
+  } catch (error) {
     console.log(error)
-
-  })
-    .finally(() => {
-
-      console.log("Actualiza ClientList")
-      outGoingData('updateClientList')
-
-    })
-
+  } finally {
+    console.log("Actualiza ClientList")
+    outGoingData('updateClientList')
+  }
 
 }
 

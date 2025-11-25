@@ -22,7 +22,7 @@ const routes = [
     beforeEnter: (to, from, next) => {
       if (isAuthenticated()) {
         // If logged in, redirect to the main dashboard.
-        next({ name: 'Dashboard' });
+        next({ name: 'DashboardHome' });
       } else {
         next();
       }
@@ -43,17 +43,40 @@ const routes = [
     meta: { requiresAuth: true }, // Mark this route and its children as requiring authentication.
     children: [
       {
-        path: '', // Default child for /dashboard
-        name: 'Dashboard',
-        // This is the main content for the dashboard homepage.
-        component: () => import(/* webpackChunkName: "panel-principal" */ '@/components/Internal/Menu/Frames/Pages/PanelPrincipal.vue'),
+        path: '',
+        name: 'DashboardHome',
+        component: () => import(/* webpackChunkName: "dashboard-home" */ '../views/DashboardHome.vue'),
       },
-      // Add other dashboard pages here, e.g.:
-      // {
-      //   path: 'settings', // accessible at /dashboard/settings
-      //   name: 'Settings',
-      //   component: () => import('../views/SettingsPage.vue'),
-      // },
+      {
+        path: 'solicitudes',
+        name: 'Solicitudes',
+        component: () => import(/* webpackChunkName: "solicitudes" */ '../views/SolicitudesPage.vue'),
+      },
+      {
+        path: 'dispositivos',
+        name: 'Dispositivos',
+        component: () => import(/* webpackChunkName: "dispositivos" */ '../views/DispositivoPage.vue'),
+      },
+      {
+        path: 'tarifas',
+        name: 'Tarifas',
+        component: () => import(/* webpackChunkName: "tarifas" */ '../views/TarifasPage.vue'),
+      },
+      {
+        path: 'clientes',
+        name: 'Clientes',
+        component: () => import(/* webpackChunkName: "clientes" */ '../views/ClientesPage.vue'),
+      },
+      {
+        path: 'usuarios',
+        name: 'Usuarios',
+        component: () => import(/* webpackChunkName: "usuarios" */ '../views/UsuariosPage.vue'),
+      },
+      {
+        path: 'transportistas',
+        name: 'Transportistas',
+        component: () => import(/* webpackChunkName: "transportistas" */ '../views/TransportistaPage.vue'),
+      },
     ],
   },
 ];

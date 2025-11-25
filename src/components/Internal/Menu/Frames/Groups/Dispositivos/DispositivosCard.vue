@@ -28,18 +28,21 @@
 
 <script setup>
 
-import { ref, onMounted, } from 'vue' //defineProps
+import { ref, onMounted, watch } from 'vue' //defineProps
 
 import TablaHeader from '@/components/TablaHeader.vue'
 import TablaCandado from '@/components/Internal/TablaCandado.vue'
 import CandadosMapa from '@/components/Internal/CandadosMapa.vue'
 import ConfirmationPin from '@/components/Internal/Menu/ConfirmationPin.vue'
-import { devicesAll, openSeal } from '@/components/conexion/DataConector.js'// openSeal
+import { useDevices } from '@/composables/useDevices'
 import Swal from 'sweetalert2'
 import { generateAndDownloadCSV } from '@/components/utils.js'
 
 //const incomingData = defineProps(['locksList']);
 
+const { useDevicesAll, useOpenDeviceSeal } = useDevices();
+const { data: devicesData } = useDevicesAll({ pageSize: 20000 });
+const { mutateAsync: openSeal } = useOpenDeviceSeal();
 
 let btnEnable = ref(false);
 
@@ -70,70 +73,28 @@ const deviceSelected = ref({
 }
 )
 
-let deviceList = ref([
-	{
-		check: false,
-		row: {
-			device: {
-				id: 644657, sourceId: 417317, deviceid: "7591116296", model: "jointech_jt701",
-				label: "7591116296-SEKU5765721 / HAYCO", groupId: 129346, created: "20200:00:00"
-			},
-			group: {
-				id: 129346, title: "ENLACES ACTIVOS", color: "009688"
-			},
-			deviceState: {
-				deviceId: 644657, sourceId: 417317, gpsUpdated: "2024-11-13 13:42:17", gpsSignalLevel: 75,
-				lat: 18.463476666666665, lng: -69.71110666666667, connectionStatus: "active", movementStatus: "parked",
-				lastUpdate: "2024-11-13 13:42:18", gsmUpdated: "2024-11-13 13:42:17", gsmSignalLevel: 90, batteryLevel: 99,
-				batteryUpdate: "2024-11-13 13:42:17", lockStatus: "ready_for_command", lockStatusUpdated: "2024-11-13 ",
-				lockState: "sealed", lockStateUpdated: "2024-11-13 13:42:17", lockCommandResultlockCommandResultUpdated: "2024-11-13 10:07:46",
-				hardwareKey: "0006471762", hardwareKeyUpdated: "2024-11-12 15:06:44", actualTrackUpdate: "2024-11-13 13:42:17"
-			}
-		}
-	}
-])
+let deviceList = ref([])
 
+// Watch for data changes to update local list
+watch(devicesData, (newData) => {
+    if (newData && newData.success) {
+        deviceList.value = newData.devicesGroupsDevicesStates.map(row => ({ check: false, row }));
+    }
+}, { immediate: true });
 
 
 function downLoadList() {
-
-	devicesAll().then(listCandados => {
-
-		if (listCandados.success) {
-
-
-			const listadevices = listCandados.devicesGroupsDevicesStates.map(row => (
-
-				{
-					id: row.device.id,
-					estado_device: row.deviceState.connectionStatus,
-					nombre: row.device.label,
-					bateria: row.deviceState.batteryLevel,
-					estado_candado: row.group.title,
-					ultimo_reporte: row.deviceState.actualTrackUpdate
-				}
-
-
-			))
-
-
-			generateAndDownloadCSV(listadevices)
-
-
-
-		} else {
-			console.log(listCandados)
-		}
-
-	}).catch(error => {
-		console.log(error)
-		console.log("Error al Hacer La peticion")
-	})
-		.finally(() => {
-
-			console.log("consulta realizada")
-
-		})
+    if (devicesData.value && devicesData.value.success) {
+        const listadevices = devicesData.value.devicesGroupsDevicesStates.map(row => ({
+            id: row.device.id,
+            estado_device: row.deviceState.connectionStatus,
+            nombre: row.device.label,
+            bateria: row.deviceState.batteryLevel,
+            estado_candado: row.group.title,
+            ultimo_reporte: row.deviceState.actualTrackUpdate
+        }));
+        generateAndDownloadCSV(listadevices);
+    }
 }
 
 
@@ -211,7 +172,7 @@ function sms(texto) {
 
 function setPin(pin) {
 
-	openSeal(deviceSelected.value, pin).then(resOpening => {
+	openSeal({ params: deviceSelected.value, pin }).then(resOpening => {
 
 		console.log(resOpening)
 		//sms(resOpening)
@@ -260,47 +221,15 @@ function listChecked(listSelected) {
 
 function marcarTodos() {
 	disableBtn()
-
-	devicesAll().then(listCandados => {
-
-		if (listCandados.success) {
-			/*console.log(listCandados.devicesGroupsDevicesStates)*/
-			//deviceList.value = listCandados.devicesGroupsDevicesStates;
-			deviceList.value = listCandados.devicesGroupsDevicesStates.map(row => ({ check: true, row }))
-
-
-
-		} else {
-			console.log(listCandados)
-		}
-
-	}).catch(error => {
-		console.log(error)
-		console.log("Error al Hacer La peticion")
-	})
-
+    if (deviceList.value.length > 0) {
+        deviceList.value.forEach(item => item.check = true);
+    }
 }
 
 function desmarcarTodos() {
-
-	devicesAll().then(listCandados => {
-
-		if (listCandados.success) {
-			/*console.log(listCandados.devicesGroupsDevicesStates)*/
-			//deviceList.value = listCandados.devicesGroupsDevicesStates;
-			deviceList.value = listCandados.devicesGroupsDevicesStates.map(row => ({ check: false, row }))
-
-
-
-		} else {
-			console.log(listCandados)
-		}
-
-	}).catch(error => {
-		console.log(error)
-		console.log("Error al Hacer La peticion")
-	})
-
+    if (deviceList.value.length > 0) {
+        deviceList.value.forEach(item => item.check = false);
+    }
 }
 
 
@@ -333,84 +262,30 @@ function changeSearchMode(id) {
 }
 
 function consultarCandadoListFilterBY(texto) {
+    if (devicesData.value && devicesData.value.success) {
+        const listDeviceTemp = devicesData.value.devicesGroupsDevicesStates.map(row => ({ check: false, row }));
 
-	devicesAll().then(listCandados => {
-
-		const listDeviceTemp = listCandados.devicesGroupsDevicesStates.map(row => ({ check: false, row }))
-
-		if (listCandados.success) {
-
-			if (searchMode.value == 'device.label') {
-				deviceList.value = listDeviceTemp.filter(item => item.row.device.label.toString().toUpperCase().includes(texto.toUpperCase()))
-
-
-			} else if (searchMode.value == 'group.title') {
-				deviceList.value = listDeviceTemp.filter(item => item.row.group.title.toString().toUpperCase().includes(texto.toUpperCase()))
-
-			} else if (searchMode.value == 'deviceState.batteryLevel') {
-				deviceList.value = listDeviceTemp.filter(item => item.row.deviceState.batteryLevel <= parseInt(texto, 10))
-			} else {
-				console.log("no exite el SearchMode")
-			}
-
-		} else {
-			console.log(listCandados)
-		}
-
-	}).catch(error => {
-		console.log(error)
-		console.log("Error al Hacer La peticion")
-	})
-
+        if (searchMode.value == 'device.label') {
+            deviceList.value = listDeviceTemp.filter(item => item.row.device.label.toString().toUpperCase().includes(texto.toUpperCase()))
+        } else if (searchMode.value == 'group.title') {
+            deviceList.value = listDeviceTemp.filter(item => item.row.group.title.toString().toUpperCase().includes(texto.toUpperCase()))
+        } else if (searchMode.value == 'deviceState.batteryLevel') {
+            deviceList.value = listDeviceTemp.filter(item => item.row.deviceState.batteryLevel <= parseInt(texto, 10))
+        } else {
+            console.log("no exite el SearchMode")
+        }
+    }
 }
 
 function consultarCandadoList() {
-
-	devicesAll().then(listCandados => {
-
-		if (listCandados.success) {
-			/*console.log(listCandados.devicesGroupsDevicesStates)*/
-			//deviceList.value = listCandados.devicesGroupsDevicesStates;
-			deviceList.value = listCandados.devicesGroupsDevicesStates.map(row => ({ check: false, row }))
-
-
-
-		} else {
-			console.log(listCandados)
-		}
-
-	}).catch(error => {
-		console.log(error)
-		console.log("Error al Hacer La peticion")
-	})
-		.finally(() => {
-
-			console.log("consulta realizada")
-
-		})
-
+    if (devicesData.value && devicesData.value.success) {
+        deviceList.value = devicesData.value.devicesGroupsDevicesStates.map(row => ({ check: false, row }));
+    }
 }
 
 
 onMounted(() => {
-
-
-	consultarCandadoList()
-	/*	if (window.$cookies.isKey('PLAY_SESSION')) {
-	
-			console.log("Welcome Back")
-	
-		
-	
-		} else {
-	
-			console.log("logueate por favor")
-			window.location.replace("./");
-		}
-	*/
-
-
-
+	// consultarCandadoList() // Data is fetched automatically by Vue Query
 });
 
 </script>

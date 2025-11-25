@@ -9,7 +9,7 @@
           @click="setTimeWindow(period.hours)"
           :class="[
             'px-4 py-2 text-sm font-medium border rounded-lg',
-            timeWindowHours === period.hours
+            timeWindow === period.hours
               ? 'bg-sky-500 text-white border-sky-500'
               : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50',
           ]"
@@ -29,13 +29,18 @@
 </template>
 
 <script setup>
-import { ref, computed, defineEmits } from 'vue';
+import { computed, defineProps, defineEmits } from 'vue';
 import CalendarIcon from './icons/CalendarIcon.vue';
 import XIcon from './icons/XIcon.vue';
 
-const emit = defineEmits(['update:timeWindow']);
+const props = defineProps({
+  timeWindow: {
+    type: Number,
+    default: 720
+  }
+});
 
-const timeWindowHours = ref(720); // Default to "Mensual"
+const emit = defineEmits(['update:timeWindow']);
 
 const periods = [
   { label: 'Hoy', hours: 24 },
@@ -45,16 +50,15 @@ const periods = [
 ];
 
 const setTimeWindow = (hours) => {
-  timeWindowHours.value = hours;
   emit('update:timeWindow', hours);
   // TODO: Add logic to handle custom date range selection
 };
 
 const formattedDateRange = computed(() => {
-  if (!timeWindowHours.value) return 'Select a date';
+  if (!props.timeWindow) return 'Select a date';
 
   const now = new Date();
-  const start = new Date(now.getTime() - timeWindowHours.value * 60 * 60 * 1000);
+  const start = new Date(now.getTime() - props.timeWindow * 60 * 60 * 1000);
 
   const formatDate = (date) => {
     const day = String(date.getDate()).padStart(2, '0');
@@ -71,5 +75,4 @@ const formattedDateRange = computed(() => {
 const clearCustomDate = () => {
   setTimeWindow(720); // Reset to default
 };
-
 </script>

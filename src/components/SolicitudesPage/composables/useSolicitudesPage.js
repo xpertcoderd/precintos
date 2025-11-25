@@ -1,23 +1,48 @@
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useNotifications } from '@/composables/useNotifications';
-import {transfers_filtered_summary} from '@/components/conexion/DataConector';
+import { useTransfers } from '@/composables/useTransfers';
 
 export function useSolicitudesPage(timeWindowHours) {
   const { sendNotification } = useNotifications();
+
+  // Pagination State
+  const currentPage = ref(1);
+  const pageSize = ref(10);
+
+  // Query Params
+  const params = computed(() => ({
+    page: currentPage.value,
+    pageSize: pageSize.value,
+    timeWindowHours: timeWindowHours.value,
+  }));
+
+  // Use Vue Query
+  const { data: queryData, isLoading: isQueryLoading, isError, error: queryError } = useTransfers(params);
+
+  // Local state for UI manipulation (mock support)
   const items = ref([]);
+  const totalItems = ref(0);
+  const totalPages = ref(1);
+
+  // Sync Query Data to Local State
+  // Sync Query Data to Local State
+  watch(queryData, (newData) => {
+    if (newData && newData.success && newData.data) {
+      items.value = [...newData.data.transfers]; // Create a copy for local mutation
+      totalItems.value = newData.data.total;
+      totalPages.value = Math.ceil(newData.data.total / newData.data.pageSize);
+    }
+  }, { immediate: true });
+
   const editingItem = ref(null);
   const isModalVisible = ref(false);
   const isConfirmationVisible = ref(false);
   const itemToDelete = ref(null);
-  const isLoading = ref(false);
-  const error = ref(null);
+  const isActionLoading = ref(false); // For save/delete actions
   const errors = ref({});
 
-  // Pagination State
-  const currentPage = ref(1);
-  const totalPages = ref(1);
-  const totalItems = ref(0);
-  const pageSize = ref(10);
+  const isLoading = computed(() => isQueryLoading.value || isActionLoading.value);
+  const error = computed(() => isError.value ? (queryError.value?.message || 'No se pudieron cargar las solicitudes.') : null);
 
   const pageTitle = 'Gestionar Solicitudes';
   const createButtonText = 'Crear Solicitud';
@@ -25,32 +50,6 @@ export function useSolicitudesPage(timeWindowHours) {
     editingItem.value ? 'Editar Solicitud' : 'Crear Nueva Solicitud'
   );
   const saveButtonText = computed(() => (editingItem.value ? 'Guardar Cambios' : 'Crear'));
-
-  async function fetchItems(page = 1) {
-    isLoading.value = true;
-    error.value = null;
-    try {
-      const params = {
-        page,
-        pageSize: pageSize.value,
-        timeWindowHours: timeWindowHours.value,
-      };
-      const response = await transfers_filtered_summary(params);
-      if (response.success) {
-        items.value = response.data.transfers;
-        totalItems.value = response.data.total;
-        totalPages.value = Math.ceil(response.data.total / response.data.pageSize);
-        currentPage.value = response.data.page;
-      } else {
-        throw new Error('Failed to fetch solicitations');
-      }
-    } catch (e) {
-      error.value = 'No se pudieron cargar las solicitudes. Por favor, intente de nuevo.';
-      console.error(e);
-    } finally {
-      isLoading.value = false;
-    }
-  }
 
   function handlePageChange(newPage) {
     currentPage.value = newPage;
@@ -84,7 +83,7 @@ export function useSolicitudesPage(timeWindowHours) {
   }
 
   async function saveItem(formData) {
-    isLoading.value = true;
+    isActionLoading.value = true;
     await new Promise(resolve => setTimeout(resolve, 500));
 
     if (editingItem.value) {
@@ -99,13 +98,13 @@ export function useSolicitudesPage(timeWindowHours) {
       sendNotification('Solicitud creada con éxito', 'success');
     }
 
-    isLoading.value = false;
+    isActionLoading.value = false;
     closeModal();
   }
 
   async function confirmDelete() {
     if (!itemToDelete.value) return;
-    isLoading.value = true;
+    isActionLoading.value = true;
     await new Promise(resolve => setTimeout(resolve, 500));
 
     const index = items.value.findIndex(i => i.transfer.id === itemToDelete.value.transfer.id);
@@ -114,15 +113,9 @@ export function useSolicitudesPage(timeWindowHours) {
       sendNotification('Solicitud eliminada con éxito', 'success');
     }
 
-    isLoading.value = false;
+    isActionLoading.value = false;
     closeDeleteConfirmation();
   }
-
-  watch([currentPage, pageSize, timeWindowHours], () => {
-    fetchItems(currentPage.value);
-  });
-
-  onMounted(() => fetchItems(1));
 
   return {
     items,
@@ -140,7 +133,6 @@ export function useSolicitudesPage(timeWindowHours) {
     totalPages,
     totalItems,
     pageSize,
-    fetchItems,
     handlePageChange,
     openCreateModal,
     openEditModal,

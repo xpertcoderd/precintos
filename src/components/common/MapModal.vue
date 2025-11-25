@@ -1,6 +1,6 @@
 <template>
   <transition name="fade">
-    <div v-if="visible" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-4">
+    <div v-if="visible" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div class="relative w-full max-w-4xl h-[80vh] bg-white rounded-2xl shadow-xl flex flex-col">
         <div class="flex justify-between items-center p-4 border-b border-slate-200">
           <h3 class="text-lg font-bold text-slate-800">Ubicación de Dispositivos</h3>

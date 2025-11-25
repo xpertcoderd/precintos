@@ -1,16 +1,21 @@
 import {
-    carriers_create,
-    carriers_filtered,
-    carriers_update,
-    carriers_delete,
-    drivers_create,
-    drivers_filtered,
-    drivers_delete,
-    vehicles_create,
-    vehicles_filtered,
-    vehicles_update,
-    vehicles_delete, drivers_update
-} from '../components/conexion/DataConector.js';
+    createCarrier,
+    getCarriersFiltered,
+    updateCarrier,
+    deleteCarrier
+} from './carrierService';
+import {
+    createDriver,
+    getDriversFiltered,
+    deleteDriver,
+    updateDriver
+} from './driverService';
+import {
+    createVehicle,
+    getVehiclesFiltered,
+    updateVehicle,
+    deleteVehicle
+} from './vehicleService';
 
 const handleResponse = (response) => {
     if (response && response.success) {
@@ -51,58 +56,58 @@ export const prepareFormData = (data) => {
 export const transportistaService = {
     // === Carrier Methods ===
     getCarriers: async (filters) => {
-        const response = await carriers_filtered(filters);
+        const response = await getCarriersFiltered(filters);
         return response.data.carriers
     },
     createCarrier: async (data) => {
-        const response = await carriers_create(data);
+        const response = await createCarrier(data);
         return handleResponse(response);
     },
     updateCarrier: async (id, data) => {
         // Carrier updates don't involve files, so we send raw JSON data.
-        const response = await carriers_update(id, data);
+        const response = await updateCarrier(id, data);
         return handleResponse(response);
     },
     deleteCarrier: async (id) => {
-        const response = await carriers_delete(id);
+        const response = await deleteCarrier(id);
         return handleResponse(response);
     },
 
     // === Driver Methods ===
     getDrivers: async (filters) => {
-        const response = await drivers_filtered(filters);
+        const response = await getDriversFiltered(filters);
         return response.data.drivers
     },
     createDriver: async (data) => {
         const formData = prepareFormData(data);
-        const response = await drivers_create(formData);
+        const response = await createDriver(formData);
         return handleResponse(response);
     },
     updateDriver: async (id, data) => {
-        const response = await drivers_update(id, data);
+        const response = await updateDriver(id, data);
         return handleResponse(response);
     },
     deleteDriver: async (id) => {
-        const response = await drivers_delete(id);
+        const response = await deleteDriver(id);
         return handleResponse(response);
     },
 
     // === Vehicle Methods ===
     getVehicles: async (filters) => {
-        const response = await vehicles_filtered(filters);
+        const response = await getVehiclesFiltered(filters);
         return response.data.vehicles
     },
     createVehicle: async (data) => {
         const formData = prepareFormData(data);
-        const response = await vehicles_create(formData);
+        const response = await createVehicle(formData);
         return handleResponse(response);
     },
     updateVehicle: async (id, data) => {
-        const response = await vehicles_update(id, data);
+        const response = await updateVehicle(id, data);
         return handleResponse(response);
     },
     deleteVehicle: async (id) => {
-        const response = await vehicles_delete(id);
+        const response = await deleteVehicle(id);
         return handleResponse(response);
     }
 };

@@ -58,13 +58,13 @@ import UserList from '@/components/Internal/tablas/UserList.vue'
 import TitleBtnSearch from '@/components/Internal/Menu/Frames/TitleBtnSearch.vue'
 
 
-import { usersList } from '@/components/conexion/DataConector.js'
-
-
-import { ref, onMounted } from 'vue'
+import { useUsers } from '@/composables/useUsers'
+import { ref, onMounted, watch } from 'vue'
 
 const update = ref(form => console.log(form));
 
+const { useUsersAll } = useUsers();
+const { data: usersData } = useUsersAll();
 
 function showCrearUsuarioCard() {
 	addUsuarioShowing.value = true
@@ -85,26 +85,14 @@ function busquedaUsuario(texto) {
 let addUsuarioShowing = ref(false)
 
 
-const list_User = ref([
-	{
-		user: {
-			id: 1,
-			clientId: 1,
-			rolId: 1,
-			firstName: "firstName",
-			lastName: "lastName",
-			idcard: "idcard",
-			email: null,
-			phone: null,
-			address: null,
-			username: "username",
-			passwd: "passwd",
-			pin: "pin"
-		},
-		createdAt: "createdAt",
-		updatedAt: "updatedAt"
-	}
-])
+const list_User = ref([])
+
+// Watch for data changes to update local list
+watch(usersData, (newData) => {
+    if (newData && newData.success) {
+        list_User.value = newData.users;
+    }
+}, { immediate: true });
 
 
 
@@ -134,25 +122,8 @@ function showUpdateUserCard(rowSelected) {
 }
 
 
-function consultarListaUsuarios() {
-
-	usersList().then(usersList => {
-
-		if (usersList.success) {
-			list_User.value = usersList.users
-		}
-
-	}).catch(error => {
-		console.log(error)
-		console.log("Error al Hacer La peticion")
-	})
-		.finally(() => {
-
-			console.log("consutla done")
-
-
-		})
-
+async function consultarListaUsuarios() {
+    // Data is fetched automatically by Vue Query
 }
 
 onMounted(() => {

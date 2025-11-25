@@ -1,51 +1,52 @@
 <script setup>
 import { ref, defineProps, defineEmits, defineExpose } from 'vue';
+import { useRouter } from 'vue-router';
 import auroraLogo from '@/assets/logo/auroraLogob.png';
 import LayoutDashboard from './icons/LayoutDashboard.vue';
 import FileText from './icons/FileText.vue';
 import ServerIcon from './icons/ServerIcon.vue';
-import BarChart2 from './icons/BarChart2.vue';
 import DollarSign from './icons/DollarSign.vue';
 import BuildingIcon from './icons/BuildingIcon.vue';
 import UsersIcon from './icons/UsersIcon.vue';
 import TruckIcon from './icons/TruckIcon.vue';
-import SettingsIcon from './icons/SettingsIcon.vue';
-import InfoIcon from './icons/InfoIcon.vue';
 import LogOut from './icons/LogOut.vue';
 import UserCircle from './icons/UserCircle.vue';
+import { XMarkIcon } from '@heroicons/vue/24/outline';
 
 const props = defineProps(
 	['LegalName', 'logined']
 )
 
 const outGoingData = defineEmits(
-	['vista', 'logout']
+	['logout', 'close-sidebar']
 )
+
+const router = useRouter();
 
 const menuSections = ref([
     {
         title: 'Menu Principal',
         items: [
-            { name: 'Panel Principal', icon: LayoutDashboard, indice: 1 },
-            { name: 'Solicitudes', icon: FileText, indice: 2 },
-            { name: 'Dispositivos', icon: ServerIcon, indice: 3 },
-            { name: 'Analitica', icon: BarChart2, indice: 4 },
-            { name: 'Tarifa', icon: DollarSign, indice: 5 },
+            { name: 'Panel Principal', icon: LayoutDashboard, route: 'DashboardHome' },
+            { name: 'Solicitudes', icon: FileText, route: 'Solicitudes' },
+            { name: 'Dispositivos', icon: ServerIcon, route: 'Dispositivos' },
+            // { name: 'Analitica', icon: BarChart2, route: 'Analitica' }, // Not implemented yet
+            { name: 'Tarifa', icon: DollarSign, route: 'Tarifas' },
         ]
     },
     {
         title: 'Entidades',
         items: [
-            { name: 'Clientes', icon: BuildingIcon, indice: 6 },
-            { name: 'Usuarios', icon: UsersIcon, indice: 7 },
-            { name: 'Transportistas', icon: TruckIcon, indice: 8 },
+            { name: 'Clientes', icon: BuildingIcon, route: 'Clientes' },
+            { name: 'Usuarios', icon: UsersIcon, route: 'Usuarios' },
+            { name: 'Transportistas', icon: TruckIcon, route: 'Transportistas' },
         ]
     },
     {
         title: 'Otras opciones',
         items: [
-            { name: 'Configuracion', icon: SettingsIcon, indice: 9 },
-            { name: 'Informacion', icon: InfoIcon, indice: 10 },
+            // { name: 'Configuracion', icon: SettingsIcon, route: 'Configuracion' }, // Not implemented yet
+            // { name: 'Informacion', icon: InfoIcon, route: 'Informacion' }, // Not implemented yet
         ]
     }
 ]);
@@ -53,12 +54,15 @@ const menuSections = ref([
 const activeItem = ref('Panel Principal');
 
 const setActive = (item) => {
-    activeItem.value = item.name;
-    outGoingData('vista', item.indice);
+    if (item.route) {
+        activeItem.value = item.name;
+        router.push({ name: item.route });
+        outGoingData('close-sidebar');
+    }
 };
 
-const updateView = (indice) => {
-  const item = menuSections.value.flatMap(section => section.items).find(item => item.indice === indice);
+const updateView = (routeName) => {
+  const item = menuSections.value.flatMap(section => section.items).find(item => item.route === routeName);
   if (item) {
     activeItem.value = item.name;
   }
@@ -66,13 +70,26 @@ const updateView = (indice) => {
 
 defineExpose({ updateView });
 
+import { watch } from 'vue';
+import { useRoute } from 'vue-router';
+
+const route = useRoute();
+
+watch(() => route.name, (newRouteName) => {
+    updateView(newRouteName);
+}, { immediate: true });
+
+
 </script>
 
 <template>
-    <aside class="w-64 h-screen bg-white border-r border-slate-200 flex flex-col p-4 flex-shrink-0">
-        <!-- Logo -->
-        <div class="py-4 mb-4">
-            <img :src="auroraLogo" alt="Aurora Logo" class="h-12 mx-auto" />
+    <div class="h-full flex flex-col p-4">
+        <!-- Logo & Close Button -->
+        <div class="flex items-center justify-between py-4 mb-4">
+            <img :src="auroraLogo" alt="Aurora Logo" class="h-12" />
+            <button @click="outGoingData('close-sidebar')" class="lg:hidden text-slate-500 hover:text-slate-700">
+                <XMarkIcon class="w-6 h-6" />
+            </button>
         </div>
 
         <!-- User Profile Section -->
@@ -82,9 +99,9 @@ defineExpose({ updateView });
         </div>
 
         <!-- Menu Navigation -->
-        <nav class="flex flex-col gap-6 overflow-y-auto">
+        <nav class="flex flex-col gap-6 overflow-y-auto flex-1">
             <div v-for="section in menuSections" :key="section.title">
-                <h3 class="px-3 mb-2 text-xs font-semibold tracking-wider text-slate-400 uppercase">
+                <h3 class="px-3 mb-2 text-xs font-semibold tracking-wider text-slate-400 uppercase" v-if="section.items.length > 0">
                     {{ section.title }}
                 </h3>
                 <ul class="flex flex-col gap-1">
@@ -114,7 +131,7 @@ defineExpose({ updateView });
                 <span class="font-medium">Cerrar Sesion</span>
             </a>
         </div>
-    </aside>
+    </div>
 </template>
 
 <style scoped>

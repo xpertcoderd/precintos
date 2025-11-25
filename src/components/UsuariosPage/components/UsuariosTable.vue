@@ -48,8 +48,8 @@ defineProps({
 defineEmits(['edit-item', 'delete-item'])
 
 const tableConfig = computed(() => ({
-  headers: ['Nombre', 'Usuario', 'Email', 'Rol'],
-  fields: ['user.fullName', 'user.username', 'user.email', 'rol.name'],
+  headers: ['Cedula', 'Usuario', 'Email', 'Rol'],
+  fields: ['user.idcard', 'user.username', 'user.email', 'rol.name'],
 }))
 
 function getFieldData(item, field) {

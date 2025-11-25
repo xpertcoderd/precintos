@@ -1,6 +1,6 @@
 <template>
   <main class="bg-white rounded-2xl shadow-lg p-6">
-    <DashboardHeader @update:timeWindow="timeWindowHours = $event" />
+    <DashboardHeader :timeWindow="timeWindowHours" @update:timeWindow="timeWindowHours = $event" />
     <!-- Section Header -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-200 pb-4 mb-6">
       <div class="flex items-center gap-3">
@@ -159,88 +159,80 @@
 </template>
 
 <script setup>
-  import { ref } from 'vue';
-  import { useMainContent } from './composables/useMainContent';
-  import { transferUnits_openSeal } from '@/components/conexion/DataConector.js';
-  import { useNotifications } from '@/composables/useNotifications';
-  import ListIcon from './icons/ListIcon.vue';
-  import ShipmentCard from './ShipmentCard.vue';
-  import ContainerComponent from './ContainerView/ContainerComponent.vue';
-  import ContainerTable from './ContainerView/ContainerTable.vue';
-  import ETACard from './ContainerView/ETACard.vue';
-  import CreateLinkComponent from '@/components/CreateLink/CreateLinkComponent.vue';
-  import OpenSealModal from '@/components/common/OpenSealModal.vue';
-  import Pagination from './Pagination.vue';
-  import MapComponent from './MapComponent.vue';
-  import MultiFilterInput from '@/components/common/MultiFilterInput.vue';
-  import { useCreateLinkData } from '@/components/TransferWizard/composables/useCreateLinkData.js';
-  import DashboardHeader from './DashboardHeader.vue';
+import { ref } from 'vue';
+import { useMainContent } from './composables/useMainContent';
+import { useUnits } from '@/composables/useUnits';
+import DashboardHeader from './DashboardHeader.vue';
+import ShipmentCard from './ShipmentCard.vue';
+import ContainerTable from './ContainerView/ContainerTable.vue';
+import ContainerComponent from './ContainerView/ContainerComponent.vue';
+import ETACard from './ContainerView/ETACard.vue';
+import MapComponent from './MapComponent.vue';
+import CreateLinkComponent from '@/components/CreateLink/CreateLinkComponent.vue';
+import OpenSealModal from '@/components/common/OpenSealModal.vue';
+import Pagination from './Pagination.vue';
+import MultiFilterInput from '@/components/common/MultiFilterInput.vue';
+import ListIcon from './icons/ListIcon.vue';
+import Swal from 'sweetalert2';
 
-  const timeWindowHours = ref(720);
+const timeWindowHours = ref(720);
+const showCreateLinkModal = ref(false);
+const showOpenSealModal = ref(false);
+const selectedContainerForSeal = ref(null);
+const selectedContainerForLink = ref(null);
+const linkModalData = ref({ clients: [], carriers: [], drivers: [], vehicles: [], devices: [] });
 
-  const {
-    tabs,
-    activeTab,
-    shipmentData,
-    loading,
-    currentPage,
-    totalPages,
-    totalShipments,
-    activeContainers,
-    containerTrackingData,
-    filteredContainersForMap,
-    allContainers,
-    isGlobalContainerView,
-    isLoadingContainers,
-    containerCurrentPage,
-    containerTotalPages,
-    containerTotalItems,
-    containerPageSize,
-    containerActiveFilters,
-    filterOptions,
-    etaContainers,
-    isLoadingEta,
-    selectTab,
-    handleGroupContainers,
-    handleTrackShipment,
-    handlePageChange,
-    fetchShipments,
-    fetchAllContainers,
-    fetchEtaData,
-  } = useMainContent(timeWindowHours);
+const {
+  tabs, activeTab, shipmentData, loading, currentPage, totalPages, totalShipments,
+  activeContainers, isGlobalContainerView, containerTrackingData, filteredContainersForMap,
+  allContainers, isLoadingContainers, containerCurrentPage, containerTotalPages, containerTotalItems, containerPageSize, containerActiveFilters, filterOptions,
+  etaContainers, isLoadingEta,
+  selectTab, handleGroupContainers, handleTrackShipment, handlePageChange,
+  fetchAllContainers, fetchEtaData, fetchShipments
+} = useMainContent(timeWindowHours);
 
-  const { linkModalData, fetchCreateLinkData } = useCreateLinkData();
-  const { sendNotification } = useNotifications();
+const { useOpenTransferUnitSeal } = useUnits();
+const { mutateAsync: openSeal } = useOpenTransferUnitSeal();
 
-  const showCreateLinkModal = ref(false);
-  const selectedContainerForLink = ref(null);
-  const showOpenSealModal = ref(false);
-  const selectedContainerForSeal = ref(null);
+const handleCreateLink = (container) => {
+  selectedContainerForLink.value = container;
+  showCreateLinkModal.value = true;
+};
 
-  const handleCreateLink = async (container) => {
-    selectedContainerForLink.value = container;
-    await fetchCreateLinkData();
-    showCreateLinkModal.value = true;
-  };
+const handleOpenSeal = (container) => {
+  selectedContainerForSeal.value = container;
+  showOpenSealModal.value = true;
+};
 
-  const handleOpenSeal = (container) => {
-    selectedContainerForSeal.value = container;
-    showOpenSealModal.value = true;
-  };
+const sendNotification = (message, type = 'success') => {
+  Swal.fire({
+    icon: type,
+    title: message,
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 3000
+  });
+};
 
-  const confirmOpenSeal = async ({ containerId, pin }) => {
-    const response = await transferUnits_openSeal(containerId, pin);
+const confirmOpenSeal = async ({ containerId, pin }) => {
+  try {
+    // Use selectedContainerForSeal.value.transferUnitId if available, or containerId passed from modal
+    const idToUse = selectedContainerForSeal.value?.transferUnitId || containerId;
+    const response = await openSeal({ id: idToUse, pin: pin });
     if (response.success) {
       sendNotification('Sello abierto con éxito', 'success');
       fetchShipments();
       fetchAllContainers();
       fetchEtaData();
     } else {
-      sendNotification('Error al abrir el sello', 'error');
+      sendNotification(response.message || 'Error al abrir el sello', 'error');
     }
-    showOpenSealModal.value = false;
-  };
-
+  } catch (error) {
+    sendNotification('Error al abrir el sello', 'error');
+  }
+  showOpenSealModal.value = false;
+};
 </script>
 
 <style scoped>

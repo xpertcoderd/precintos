@@ -1,7 +1,7 @@
 import { ref } from 'vue';
-import {devicesAll} from "@/components/conexion/DataConector";
+import { getDevicesFiltered } from "@/services/deviceService";
 import { transportistaService } from '@/services/transportistaService';
-import {fetchInitialData} from "@/components/TransferWizard/helpers/fetchBrokerData";
+import { fetchInitialData } from "@/components/TransferWizard/helpers/fetchBrokerData";
 
 const linkModalData = ref({
   devices: [],
@@ -24,7 +24,7 @@ export function useCreateLinkData() {
     try {
       const [initialData, devices, carriers, drivers, vehicles] = await Promise.all([
         fetchInitialData(),
-        devicesAll(),
+        getDevicesFiltered({ pageSize: 20000 }),
         transportistaService.getCarriers({}),
         transportistaService.getDrivers({}),
         transportistaService.getVehicles({}),

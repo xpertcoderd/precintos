@@ -61,10 +61,12 @@ import PopCredit from '@/components/Internal/Menu/Frames/PopPop/Client/PopCredit
 
 import TitleBtnSearch from '@/components/Internal/Menu/Frames/TitleBtnSearch.vue'
 
-import { clientsList } from '@/components/conexion/DataConector.js'
+import { useClients } from '@/composables/useClients'
 
+import { ref, onMounted, watch } from 'vue'
 
-import { ref, onMounted } from 'vue'
+const { useClientsList } = useClients();
+const { data: clientsData, refetch } = useClientsList();
 
 const update = ref(form => console.log(form));
 
@@ -76,7 +78,17 @@ const actualClient = ref({
 	rnc: null
 })
 
+const list_Client = ref([])
 
+watch(clientsData, (newData) => {
+  if (newData && newData.success) {
+    list_Client.value = newData.clients;
+  }
+}, { immediate: true });
+
+function consultarListaClientes() {
+  refetch();
+}
 
 function closeCreditPop() {
 	actualClient.value.name = null
@@ -149,65 +161,8 @@ function busquedaUsuario(texto) {
 let addClientShowing = ref(false)
 
 
-const list_Client = ref([
-	{
-		client: {
-			id: 1,
-			type: "final",
-			name: "Defecto Cliente 1",
-			rnc: "rnc",
-			contact: "contact",
-			email: "email",
-			phone: "phone",
-			address: "address",
-			web: "web"
-		},
-		usersByClient: 3
-	},
-	{
-		client: {
-			id: 1,
-			type: "final",
-			name: "Defecto Cliente 2",
-			rnc: "rnc",
-			contact: "contact",
-			email: "email",
-			phone: "phone",
-			address: "address",
-			web: "web"
-		},
-		usersByClient: 3
-	}
-])
-
-
-function consultarListaClientes() {
-
-	clientsList().then(clientList => {
-
-		console.log(clientList)
-
-		if (clientList.success) {
-			list_Client.value = clientList.clients
-		}
-
-
-	}).catch(error => {
-		console.log(error)
-		console.log("Error al Hacer La peticion")
-	})
-		.finally(() => {
-			console.log("consutla done")
-
-
-		})
-
-}
-
 onMounted(() => {
-
-
-	consultarListaClientes()
+	// consultarListaClientes() // Handled by Vue Query
 	/*	if (window.$cookies.isKey('PLAY_SESSION')) {
 	
 			console.log("Welcome Back")

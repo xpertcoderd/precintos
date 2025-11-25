@@ -1,0 +1,57 @@
+
+> eta_local@0.1.0 build
+> vue-cli-service build
+
+All browser targets in the browserslist configuration have supported ES module.
+Therefore we don't build two separate bundles for differential loading.
+
+
+-  Building for production...
+ ERROR  Failed to compile with 1 error11:24:35 AM
+
+[eslint] 
+/Users/santana/Desktop/AURORA/Precintos/src/components/Internal/Menu/Frames/Pages/PanelPrincipal/composables/useMainContent.js
+    3:37  error  'getTransferBlitsFiltered' is defined but never used  no-unused-vars
+  157:40  error  'useBlits' is not defined                             no-undef
+  266:27  error  'stopEtaTimer' is not defined                         no-undef
+  271:7   error  'startEtaTimer' is not defined                        no-undef
+  286:20  error  'fetchEtaData' is not defined                         no-undef
+  301:5   error  'stopEtaTimer' is not defined                         no-undef
+  312:25  error  'fetchEtaData' is not defined                         no-undef
+
+✖ 7 problems (7 errors, 0 warnings)
+
+
+You may use special comments to disable some warnings.
+Use // eslint-disable-next-line to ignore the next line.
+Use /* eslint-disable */ to ignore all warnings in a file.
+ ERROR  Error: Build failed with errors.
+Error: Build failed with errors.
+    at /Users/santana/Desktop/AURORA/Precintos/node_modules/@vue/cli-service/lib/commands/build/index.js:207:23
+    at /Users/santana/Desktop/AURORA/Precintos/node_modules/webpack/lib/webpack.js:167:8
+    at /Users/santana/Desktop/AURORA/Precintos/node_modules/webpack/lib/HookWebpackError.js:68:2
+    at Hook.eval [as callAsync] (eval at create (/Users/santana/Desktop/AURORA/Precintos/node_modules/tapable/lib/HookCodeFactory.js:33:10), <anonymous>:6:1)
+    at Hook.CALL_ASYNC_DELEGATE [as _callAsync] (/Users/santana/Desktop/AURORA/Precintos/node_modules/tapable/lib/Hook.js:20:14)
+    at Cache.shutdown (/Users/santana/Desktop/AURORA/Precintos/node_modules/webpack/lib/Cache.js:156:23)
+    at /Users/santana/Desktop/AURORA/Precintos/node_modules/webpack/lib/Compiler.js:1406:15
+    at Hook.eval [as callAsync] (eval at create (/Users/santana/Desktop/AURORA/Precintos/node_modules/tapable/lib/HookCodeFactory.js:33:10), <anonymous>:6:1)
+    at Hook.CALL_ASYNC_DELEGATE [as _callAsync] (/Users/santana/Desktop/AURORA/Precintos/node_modules/tapable/lib/Hook.js:20:14)
+    at Compiler.close (/Users/santana/Desktop/AURORA/Precintos/node_modules/webpack/lib/Compiler.js:1399:23)
+    at /Users/santana/Desktop/AURORA/Precintos/node_modules/webpack/lib/webpack.js:166:16
+    at finalCallback (/Users/santana/Desktop/AURORA/Precintos/node_modules/webpack/lib/Compiler.js:521:32)
+    at /Users/santana/Desktop/AURORA/Precintos/node_modules/webpack/lib/Compiler.js:545:13
+    at Hook.eval [as callAsync] (eval at create (/Users/santana/Desktop/AURORA/Precintos/node_modules/tapable/lib/HookCodeFactory.js:33:10), <anonymous>:24:1)
+    at Hook.CALL_ASYNC_DELEGATE [as _callAsync] (/Users/santana/Desktop/AURORA/Precintos/node_modules/tapable/lib/Hook.js:20:14)
+    at onCompiled (/Users/santana/Desktop/AURORA/Precintos/node_modules/webpack/lib/Compiler.js:543:21)
+    at /Users/santana/Desktop/AURORA/Precintos/node_modules/webpack/lib/Compiler.js:1377:17
+    at Hook.eval [as callAsync] (eval at create (/Users/santana/Desktop/AURORA/Precintos/node_modules/tapable/lib/HookCodeFactory.js:33:10), <anonymous>:6:1)
+    at Hook.CALL_ASYNC_DELEGATE [as _callAsync] (/Users/santana/Desktop/AURORA/Precintos/node_modules/tapable/lib/Hook.js:20:14)
+    at /Users/santana/Desktop/AURORA/Precintos/node_modules/webpack/lib/Compiler.js:1373:33
+    at finalCallback (/Users/santana/Desktop/AURORA/Precintos/node_modules/webpack/lib/Compilation.js:3070:11)
+    at /Users/santana/Desktop/AURORA/Precintos/node_modules/webpack/lib/Compilation.js:3413:11
+    at Hook.eval [as callAsync] (eval at create (/Users/santana/Desktop/AURORA/Precintos/node_modules/tapable/lib/HookCodeFactory.js:33:10), <anonymous>:6:1)
+    at Hook.CALL_ASYNC_DELEGATE [as _callAsync] (/Users/santana/Desktop/AURORA/Precintos/node_modules/tapable/lib/Hook.js:20:14)
+    at /Users/santana/Desktop/AURORA/Precintos/node_modules/webpack/lib/Compilation.js:3406:38
+    at eval (eval at create (/Users/santana/Desktop/AURORA/Precintos/node_modules/tapable/lib/HookCodeFactory.js:33:10), <anonymous>:15:1)
+    at eval (eval at create (/Users/santana/Desktop/AURORA/Precintos/node_modules/tapable/lib/HookCodeFactory.js:33:10), <anonymous>:14:1)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)

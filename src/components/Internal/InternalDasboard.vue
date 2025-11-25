@@ -1,32 +1,53 @@
 <template>
+  <div class="flex h-screen bg-slate-50 overflow-hidden">
+    <!-- Mobile Sidebar Overlay -->
+    <div 
+      v-if="sidebarOpen" 
+      class="fixed inset-0 z-20 bg-black/60 backdrop-blur-sm lg:hidden"
+      @click="sidebarOpen = false"
+    ></div>
 
-	<div class="windows_Page">
+    <!-- Sidebar -->
+    <div 
+      class="fixed inset-y-0 left-0 z-30 w-64 bg-white border-r border-slate-200 transform transition-transform duration-300 lg:translate-x-0 lg:static lg:inset-auto lg:flex lg:flex-col"
+      :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+    >
+      <InternalMenu 
+        :logined="logined" 
+        :LegalName="transferList.client.name" 
+        :isLoguer="true"
+        @logout="logout" 
+        @close-sidebar="sidebarOpen = false"
+        ref="menuRef" 
+      />
+    </div>
 
-		<div class="DashBoardPage">
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <!-- Mobile Header -->
+      <header class="lg:hidden flex items-center justify-between p-4 bg-white border-b border-slate-200">
+        <button @click="sidebarOpen = true" class="text-slate-500 focus:outline-none">
+          <Bars3Icon class="h-6 w-6" />
+        </button>
+        <span class="font-semibold text-slate-700">Aurora Precintos</span>
+        <div class="w-6"></div> <!-- Spacer for centering if needed -->
+      </header>
 
-			<InternalMenu :logined="logined" :LegalName="transferList.client.name" :isLoguer="true" @vista="changeVista"
-				@logout="logout" style=" width:15%;" ref="menuRef" />
-
-
-			<PrecintosPage :menuSelected="vistaSelected" />
-
-
-		</div>
-
-
-	</div>
-
-
+      <!-- Main Scrollable Area -->
+      <main class="flex-1 overflow-y-auto p-4 md:p-8">
+        <router-view />
+      </main>
+    </div>
+  </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-
+import { Bars3Icon } from '@heroicons/vue/24/outline'
 import InternalMenu from '@/components/Internal/Menu/InternalMenu.vue'
-import PrecintosPage from '@/components/Internal/Menu/PrecintosPage.vue'
 
-let vistaSelected = ref(1);
 let logined = ref(true)
+let sidebarOpen = ref(false)
 
 let transferList = ref({
 	client: {
@@ -34,10 +55,6 @@ let transferList = ref({
 	},
 	fullTransfer: []
 });
-
-function changeVista(vista_Selected) {
-	vistaSelected.value = vista_Selected
-}
 
 function logout() {
     const cookies = document.cookie.split(";");
@@ -53,40 +70,3 @@ function logout() {
 }
 
 </script>
-
-<style scoped>
-.DashBoardPage {
-	/*	height: 90%;*/
-	z-index: 2;
-	width: 100%;
-	height: 100%;
-	display: flex;
-
-}
-
-.windows_Page {
-	height: 100vh;
-	position: relative;
-	display: flex;
-	flex-direction: column;
-	justify-content: space-around;
-
-}
-
-.vistaCell {
-	z-index: 1;
-	position: absolute;
-	top: 0px;
-	right: 0px;
-	left: 0px;
-	bottom: 0px;
-}
-
-/*@media (width <590px) {
-
-	.vistaPC {
-		display: none;
-	}
-
-}*/
-</style>

@@ -18,7 +18,7 @@
 
           <div class="targetaOpen">
 
-            <Step2User :roles_List="roles_List" :alone="true" @cerrar="close" @form="crearUser" @update="updateUser"
+            <Step2User :roles_List="roles_List" :alone="true" @cerrar="close" @form="crearUser" @update="updateUserAction"
               ref="userRef" />
 
 
@@ -37,16 +37,22 @@
 
 <script setup>
 
-import { ref, defineEmits, defineExpose, onMounted } from 'vue'; //defineProps
+import { ref, defineEmits, defineExpose, onMounted, watch } from 'vue'; //defineProps
 
 import TitleParrafHeader from '@/components/Internal/Menu//Frames/TitleParrafHeader.vue'
 import Step2User from '@/components/Internal/Menu/Frames/Forms/steps/client_Steps/Step2User.vue'
 
-import { create_User, rolesList, update_Users } from '@/components/conexion/DataConector.js' //
+import { useUsers } from '@/composables/useUsers'
+import { useRoles } from '@/composables/useRoles'
 
 import Swal from 'sweetalert2'
 
+const { useCreateUser, useUpdateUser } = useUsers();
+const { mutateAsync: createUserMutation } = useCreateUser();
+const { mutateAsync: updateUserMutation } = useUpdateUser();
 
+const { useRolesAll } = useRoles();
+const { data: rolesData } = useRolesAll();
 
 const outGoingData = defineEmits(
   ['cerrar', 'form', 'updateClientList']
@@ -58,22 +64,13 @@ const updatingUser = ref(false)
 
 const userRef = ref(null)
 
-const roles_List = ref([
-  {
-    id: 1,
-    name: "rol defecto 1",
-    scope: "*",
-    permissions: "*"
-  },
-  {
-    id: 2,
-    name: "rol defecto 2",
-    scope: "*",
-    permissions: "Clients.read, "
+const roles_List = ref([])
+
+watch(rolesData, (newData) => {
+  if (newData && newData.success) {
+    roles_List.value = newData.roles;
   }
-
-])
-
+}, { immediate: true });
 
 
 /*function restore(){
@@ -97,37 +94,27 @@ function close() {
 
 
 
-function crearUser(preforms) {
+async function crearUser(preforms) {
 
   console.log("se creara el usaurio :", preforms)
 
-  create_User(preforms).then(response => {
-
+  try {
+    const response = await createUserMutation(preforms);
     if (response.message) {
       //alert(response.message)
       sms(response.message)
-
-
     } else {
       //console.log(response.data)
       // alert("cliente Agregado Correctamente")
       sms("Usuario Agregado Correctamente")
       close()
     }
-
-
-  }).catch(error => {
+  } catch (error) {
     console.log(error)
-
-  })
-    .finally(() => {
-
-      console.log("Actualiza ClientList")
-      outGoingData('updateClientList')
-
-
-    })
-
+  } finally {
+    console.log("Actualiza ClientList")
+    outGoingData('updateClientList')
+  }
 
 }
 
@@ -140,67 +127,32 @@ function rellenarFormulario(formulario) {
 }
 
 
-function updateUser(form) {
+async function updateUserAction(form) {
   //update_Users(form, user_id) necestio el id
   console.log("se actualizara este Usuario")
   console.log(form)
 
-  update_Users(form, form.id).then(response => {
-
+  try {
+    const response = await updateUserMutation({ id: form.id, data: form });
     if (response.message) {
       //alert()
       sms(response.message)
-
-
     } else {
       //console.log(response.data)
       sms("Usuario Actualizado Correctamente")
       //alert("cliente Agregado Correctamente")
       close()
     }
-
-
-  }).catch(error => {
+  } catch (error) {
     console.log(error)
-
-  })
-    .finally(() => {
-
-      console.log("Actualiza UserList")
-      //outGoingData('updateClientList')
-
-    })
+  } finally {
+    console.log("Actualiza UserList")
+    //outGoingData('updateClientList')
+  }
 }
 
-function consultarRoles() {
-
-
-  rolesList().then(rol => {
-
-    if (rol.success) {
-
-      roles_List.value = rol.roles
-
-
-
-    } else {
-      console.log(rol)
-
-    }
-
-
-  }).catch(error => {
-    console.log(error)
-
-  })
-    .finally(() => {
-
-      console.log("Se consultaron los roles")
-
-
-    })
-
-
+async function consultarRoles() {
+    // Handled by Vue Query
 }
 
 

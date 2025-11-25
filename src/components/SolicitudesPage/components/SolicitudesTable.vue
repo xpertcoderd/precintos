@@ -16,20 +16,27 @@
           </td>
         </tr>
         <tr v-for="item in data" :key="item.transfer.id" class="hover:bg-slate-50 transition-colors">
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ item.transfer.id }}</td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ item.transfer.serverClient.name }}</td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ item.transfer.finalClient.name }}</td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ item.transfer.bl }}</td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ abbreviateLocation(item.transfer.startPlace.label) }}</td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ abbreviateLocation(item.transfer.endPlace.label) }}</td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ formatDate(item.transfer.timeRequest) }}</td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ item.countainerCount }}</td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ formatCurrency(item.transfer.unitPrice) }}</td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ formatCurrency(item.transfer.unitPrice * item.countainerCount) }}</td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm">
-            <span :class="['px-2 inline-flex text-xs leading-5 font-semibold rounded-full', getContainerStatusColor(item.transfer.transferStateId)]">
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500 relative group cursor-help">
+            <span class="border-b border-dotted border-slate-400">{{ formatCurrency(item.transfer.unitPrice * item.countainerCount) }}</span>
+            <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-slate-800 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+              <div class="font-semibold mb-1">Detalle del Cálculo:</div>
+              <div>{{ item.countainerCount }} Contenedores</div>
+              <div>x {{ formatCurrency(item.transfer.unitPrice) }} (Tarifa)</div>
+            </div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm relative group cursor-help">
+            <span :class="['px-2 inline-flex text-xs leading-5 font-semibold rounded-full', getTransferStatusColor(item.transfer.transferStateId)]">
               {{ getTransferStatusText(item.transfer.transferStateId) }}
             </span>
+            <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-slate-800 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+              {{ getTransferStatusDescription(item.transfer.transferStateId) }}
+            </div>
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium relative">
             <button @click.stop="toggleMenu(item.transfer.id)" class="p-1 rounded-full text-slate-400 hover:text-sky-600 transition-colors">
@@ -62,7 +69,6 @@
 
 <script setup>
 import { ref } from 'vue';
-import { getContainerStatusColor } from '@/components/Internal/Menu/Frames/Pages/PanelPrincipal/utils/statusUtils';
 
 defineProps({
   data: {
@@ -76,7 +82,7 @@ defineEmits(['upload-payment', 'approve', 'cancel', 'link-shipment', 'view-vouch
 const openMenuId = ref(null);
 
 const headers = [
-  'No. Solicitud', 'Compañia', 'Cliente Final', 'Traslado', 'Origen', 'Destino', 'Fecha salida', 'Contenedores', 'Tarifa', 'Total', 'Estado'
+  'Compañia', 'Cliente Final', 'Traslado', 'Origen', 'Destino', 'Fecha salida', 'Total', 'Estado'
 ];
 
 const formatDate = (dateString) => {
@@ -92,13 +98,42 @@ const formatCurrency = (value) => {
 
 const getTransferStatusText = (statusId) => {
   const statusMap = {
-    1: 'Pendiente',
-    2: 'Confirmado',
-    3: 'En Ruta',
-    4: 'Completado',
-    5: 'Cancelado',
+    1: 'Pendiente Finanzas',
+    2: 'Aprobado Finanzas',
+    3: 'Aprobado Crédito',
+    4: 'Cancelado',
+    5: 'Rechazado Finanzas',
+    6: 'Solicitud Expirada',
   };
   return statusMap[statusId] || 'Desconocido';
+};
+
+const getTransferStatusDescription = (statusId) => {
+  const descriptionMap = {
+    1: 'El traslado no ha sido aprobado para despacho aún.',
+    2: 'El traslado ha sido aprobado para despacho.',
+    3: 'El traslado ha sido aprobado para despacho por crédito.',
+    4: 'El traslado ha sido cancelado por el usuario.',
+    5: 'El traslado ha sido cancelado por el departamento de finanzas.',
+    6: 'La solicitud expiró antes de recibir aprobación o rechazo por finanzas.',
+  };
+  return descriptionMap[statusId] || 'Estado desconocido';
+};
+
+const getTransferStatusColor = (statusId) => {
+  // Green for approved (2, 3)
+  if (statusId === 2 || statusId === 3) {
+    return 'bg-green-100 text-green-800';
+  }
+  // Orange for pending (1)
+  if (statusId === 1) {
+    return 'bg-orange-100 text-orange-800';
+  }
+  // Red for canceled, rejected, expired (4, 5, 6)
+  if (statusId === 4 || statusId === 5 || statusId === 6) {
+    return 'bg-red-100 text-red-800';
+  }
+  return 'bg-slate-100 text-slate-800';
 };
 
 const abbreviateLocation = (location) => {

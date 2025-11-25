@@ -1,6 +1,6 @@
 <template>
   <transition name="fade">
-    <div v-if="visible" @click="$emit('close')" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+    <div v-if="visible" @click="$emit('close')" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div @click.stop class="bg-white rounded-xl shadow-2xl w-full max-w-2xl transform transition-all">
         <div class="flex justify-between items-center p-5 border-b border-slate-200">
           <h3 class="text-xl font-semibold text-slate-800">{{ title }}</h3>

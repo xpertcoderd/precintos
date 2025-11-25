@@ -1,30 +1,32 @@
 <template>
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 overflow-auto p-4">
-    <div class="flex w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden bg-white flex-col">
-      <!-- Header -->
-      <div class="p-4 sm:p-6 pb-0 border-b border-gray-200">
-        <div class="flex flex-wrap items-start justify-between gap-4 sm:flex-nowrap">
-          <div>
-            <h2 class="text-xl font-bold text-gray-900">Nuevo Traslado</h2>
-            <p class="mt-1 text-sm text-gray-500">Siga los pasos para completar la transferencia.</p>
+  <transition name="fade">
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm overflow-auto p-4">
+      <div class="flex w-full max-w-full sm:max-w-2xl lg:max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden bg-white flex-col">
+        <!-- Header -->
+        <div class="p-3 sm:p-4 pb-0 border-b border-gray-200 flex-shrink-0">
+          <div class="flex flex-wrap items-start justify-between gap-4 sm:flex-nowrap">
+            <div>
+              <h2 class="text-xl font-bold text-gray-900">Nuevo Traslado</h2>
+              <p class="mt-1 text-sm text-gray-500">Siga los pasos para completar la transferencia.</p>
+            </div>
+            <img :src="auroraLogo" alt="Aurora Logo" class="h-10 sm:h-12" />
           </div>
-          <img :src="auroraLogo" alt="Aurora Logo" class="h-10 sm:h-12" />
+          <div class="mt-3">
+            <TransferWizardSteps @setStep="setStep" :count="stepIndicators" :current-step="step" />
+          </div>
         </div>
-        <div class="mt-4">
-          <TransferWizardSteps @setStep="setStep" :count="stepIndicators" :current-step="step" />
-        </div>
-      </div>
 
-      <!-- Form Content -->
-      <div class="p-4 sm:p-6 flex-1 overflow-y-auto">
-        <TransferStep1Form v-if="step === 1" :incoming-data="initialData" v-model="wizardData.step1" :errors="errors.step1" @cerrar="close" @next="validateAndNext(1)" />
-        <TransferStep2Form v-if="step === 2" v-model="wizardData.step2" :errors="errors.step2" :transfer-type="wizardData.step1.type" @cerrar="close" @next="validateAndNext(2)" />
-        <TransferStep3Form v-if="step === 3" :incoming-data="wizardData.step2" v-model="wizardData.step3" :errors="errors.step3" @cerrar="close" @next="validateAndNext(3)" />
-        <TransferStep4Form v-if="step === 4" :order-data="allData" v-model="wizardData.step4" :errors="errors.step4" @cerrar="close" @next="validateAndNext(4)" @update-table-data="handleUpdateStep4Data" />
-        <TransferStep5Form v-if="step === 5" :all-data="allData" :step4-data="step4TableData" @cerrar="close" @next="closeAndFetch" />
+        <!-- Form Content -->
+        <div class="p-3 sm:p-4 flex-1 overflow-y-auto max-h-[calc(90vh-180px)]">
+          <TransferStep1Form v-if="step === 1" :incoming-data="initialData" v-model="wizardData.step1" :errors="errors.step1" @cerrar="close" @next="validateAndNext(1)" />
+          <TransferStep2Form v-if="step === 2" v-model="wizardData.step2" :errors="errors.step2" :transfer-type="wizardData.step1.type" @cerrar="close" @next="validateAndNext(2)" />
+          <TransferStep3Form v-if="step === 3" :incoming-data="wizardData.step2" v-model="wizardData.step3" :errors="errors.step3" @cerrar="close" @next="validateAndNext(3)" />
+          <TransferStep4Form v-if="step === 4" :order-data="allData" v-model="wizardData.step4" :errors="errors.step4" @cerrar="close" @next="validateAndNext(4)" @update-table-data="handleUpdateStep4Data" />
+          <TransferStep5Form v-if="step === 5" :all-data="allData" :step4-data="step4TableData" @cerrar="close" @next="closeAndFetch" />
+        </div>
       </div>
     </div>
-  </div>
+  </transition>
 </template>
 
 <script setup>
@@ -125,3 +127,14 @@ async function validateAndNext(currentStep) {
   if (valid && step.value < 5) step.value++
 }
 </script>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

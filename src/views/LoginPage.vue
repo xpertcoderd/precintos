@@ -1,166 +1,86 @@
 <template>
-  <div class="login-container">
-    <div class="subTitle">Precintos</div>
-    <form @submit.prevent="consultar" class="formLogin">
-      <div class="mainTitle">Bienvenidos</div>
-      <div style="position: relative;">
-        <input v-model="datosUser.username" class="inputsearchBar" placeholder="Usuario" type="text" required>
-        <i v-if="claveIncorrecta" class="bi bi-exclamation-circle incorrect"></i>
-      </div>
-      <br>
-      <div style="position: relative;">
-        <input @keyup.enter="consultar" class="inputsearchBar" v-model="datosUser.passwd" placeholder="Contrasena"
-               type="password" required>
-        <i v-if="claveIncorrecta" class="bi bi-exclamation-circle incorrect"></i>
-      </div>
-      <button type="submit" class="btn btn-primary btAcceder" href="#" role="button"><b>ENTRAR</b></button>
-      <span v-if="claveIncorrecta" class="popup">
-        usuario o contrasena incorrecto
-      </span>
-      <div class="copyright"> © 2024 Copyright: Todos los derechos reservados Aurora.com.do</div>
-    </form>
-    <img src='@/assets/auroraLogo.png' alt="Responsive image" class="logoLogin">
+  <div class="login-container flex items-center justify-center h-screen bg-cover bg-center relative">
+    <!-- Overlay -->
+    <div class="absolute inset-0 bg-gradient-to-r from-[#272b37] via-[#272b37]/90 to-transparent"></div>
+
+    <div class="relative z-10 w-full max-w-md p-8">
+      <div class="text-white text-2xl font-semibold text-center mb-8">Precintos</div>
+      
+      <form @submit.prevent="consultar" class="space-y-6">
+        <div class="text-white text-4xl font-bold text-center mb-8">Bienvenidos</div>
+        
+        <div class="relative">
+          <input 
+            v-model="datosUser.username" 
+            class="w-full bg-[#545663] text-white rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#43bbd6]" 
+            placeholder="Usuario" 
+            type="text" 
+            required
+          >
+          <ExclamationCircleIcon v-if="claveIncorrecta" class="absolute right-3 top-3 h-6 w-6 text-red-500" />
+        </div>
+
+        <div class="relative">
+          <input 
+            @keyup.enter="consultar" 
+            class="w-full bg-[#545663] text-white rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#43bbd6]" 
+            v-model="datosUser.passwd" 
+            placeholder="Contrasena"
+            type="password" 
+            required
+          >
+          <ExclamationCircleIcon v-if="claveIncorrecta" class="absolute right-3 top-3 h-6 w-6 text-red-500" />
+        </div>
+
+        <button 
+          type="submit" 
+          class="w-full bg-[#43bbd6] hover:bg-[#3aa8c2] text-white font-bold py-3 px-4 rounded transition duration-300"
+        >
+          ENTRAR
+        </button>
+
+        <div v-if="claveIncorrecta" class="text-red-500 text-center mt-2">
+          usuario o contrasena incorrecto
+        </div>
+
+        <div class="text-white text-sm text-center mt-8 hidden md:block">
+           © 2024 Copyright: Todos los derechos reservados Aurora.com.do
+        </div>
+      </form>
+    </div>
+
+    <img src='@/assets/auroraLogo.png' alt="Logo" class="absolute bottom-10 right-5 w-72 hidden md:block">
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue';
-import { auth } from '@/components/conexion/DataConector.js';
+import { login } from '@/services/authService';
 import { useRouter } from 'vue-router';
+import { ExclamationCircleIcon } from '@heroicons/vue/24/solid';
 
-const router = useRouter();
 const datosUser = ref({ username: "", passwd: "" });
 const claveIncorrecta = ref(false);
+const router = useRouter();
 
-// The manual redirection logic has been removed from here.
-// The new navigation guards in `src/router/index.js` now handle this automatically.
-
-function consultar() {
-  auth(datosUser.value).then(resAuth => {
+async function consultar() {
+  try {
+    const resAuth = await login(datosUser.value);
     if (resAuth.success) {
       console.log("Bienvenido");
-      // On successful login, programmatically navigate to the dashboard.
-      // The router will then take the user to the '/dashboard' route.
-      router.push({ name: 'Dashboard' });
+      router.push({ name: 'DashboardHome' });
     } else {
       claveIncorrecta.value = true;
       console.log("Error de Respuesta", resAuth);
     }
-  }).catch(error => {
+  } catch (error) {
     console.log("Error al Hacer La petición", error);
-  });
+  }
 }
 </script>
 
 <style scoped>
-/* Styles remain unchanged */
 .login-container {
-  height: 100vh;
-  position: relative;
-  background-image:
-      linear-gradient(to right, #272b37 20%, rgba(39, 43, 55, 0.9) 30%, transparent 100%),
-      url('@/assets/bg.png');
-  background-size: cover;
-  background-position: center;
-  padding-left: 100px;
-  border: 10px solid #545663;
-}
-.popup {
-  color: red;
-  padding: 10px;
-}
-.logoLogin {
-  width: 300px;
-  position: absolute;
-  bottom: 40px;
-  right: 20px;
-}
-@media (width < 800px) {
-  .formLogin {
-    top: 13%;
-    margin-left: 20px;
-    width: 87vw !important;
-  }
-  .copyright {
-    display: none;
-  }
-  .login-container {
-    padding: 0px;
-    border: none;
-  }
-  .inputsearchBar {
-    width: 100%;
-  }
-  .mainTitle {
-    text-align: center;
-  }
-  .subTitle {
-    text-align: center;
-  }
-  .btAcceder {
-    margin-left: 40px;
-    padding: 10px;
-    width: 80%;
-  }
-}
-.mainTitle {
-  color: white;
-  font-size: calc(2em + 1vw);
-  font-weight: 600;
-  padding-bottom: 20px;
-}
-.subTitle {
-  color: white;
-  padding-top: 40px;
-  font-weight: 600;
-  font-size: calc(1em + 1vw);
-}
-.copyright {
-  padding-top: 18vh;
-  font-size: 14px;
-  color: white;
-}
-.incorrect {
-  position: absolute;
-  right: 5%;
-  margin: 5px;
-  font-size: larger;
-  color: red;
-}
-.inputsearchBar {
-  background-color: #545663 !important;
-  color: white !important;
-  border-radius: 5px;
-  padding: 10px;
-  width: 100%;
-  outline: none !important;
-  border: none;
-}
-input::placeholder {
-  color: white;
-}
-input:-webkit-autofill {
-  background-color: #545663 !important;
-  color: white;
-  transition: background-color 5000s ease-in-out 0s;
-}
-input:-webkit-autofill::first-line {
-  color: white !important;
-}
-.formLogin {
-  position: absolute;
-  bottom: 4%;
-  width: 25%;
-}
-.btAcceder {
-  background-color: #43bbd6;
-  color: white;
-  border: none;
-  margin-top: 15px;
-  padding-right: 20px;
-  padding-left: 20px;
-}
-body {
-  margin: 0;
+  background-image: url('@/assets/bg.jpg');
 }
 </style>

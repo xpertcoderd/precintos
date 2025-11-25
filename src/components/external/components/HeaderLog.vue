@@ -25,7 +25,7 @@
 
 import { ref } from 'vue'
 
-import { decodeBase64Token } from '@/components/conexion/DataConector.js'
+import { decodeBase64Token } from '@/utils/authUtils.js'
 import Cookies from 'js-cookie';
 
 

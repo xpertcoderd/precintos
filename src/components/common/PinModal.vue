@@ -1,6 +1,6 @@
 <template>
   <transition name="fade">
-    <div v-if="visible" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 overflow-auto p-4">
+    <div v-if="visible" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm overflow-auto p-4">
       <div class="relative w-full max-w-md p-6 bg-white rounded-2xl shadow-xl">
         <h3 class="text-lg font-bold text-slate-800 mb-4">Confirmar PIN</h3>
         <p class="text-sm text-slate-500 mb-6">Por favor, ingrese su PIN de seguridad para autorizar la apertura de los sellos seleccionados.</p>

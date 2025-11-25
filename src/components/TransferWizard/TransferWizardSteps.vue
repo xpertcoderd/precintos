@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full py-4 sm:py-6 md:py-8 px-4 sm:px-6">
+  <div class="w-full py-2 sm:py-3 px-4 sm:px-6">
     <div class="flex items-center w-full">
       <template v-for="(step, index) in steps" :key="step.label">
         <!-- Step Item -->
@@ -10,16 +10,16 @@
         >
           <span
               :class="[
-              'flex items-center justify-center w-10 h-10 rounded-full lg:h-12 lg:w-12 shrink-0',
+              'flex items-center justify-center w-8 h-8 rounded-full lg:h-10 lg:w-10 shrink-0',
               step.isCompleted || step.isActive ? 'bg-blue-100' : 'bg-gray-100',
             ]"
           >
-            <CheckIcon v-if="step.isCompleted" class="w-6 h-6 text-blue-600" />
-            <span v-else :class="['text-lg font-bold', step.isActive ? 'text-blue-600' : 'text-gray-500']">
+            <CheckIcon v-if="step.isCompleted" class="w-5 h-5 text-blue-600" />
+            <span v-else :class="['text-base font-bold', step.isActive ? 'text-blue-600' : 'text-gray-500']">
               {{ index + 1 }}
             </span>
           </span>
-          <span :class="[step.isActive ? 'font-bold text-blue-600' : 'text-gray-500', 'hidden sm:block mt-2 text-xs sm:text-sm text-center']">
+          <span :class="[step.isActive ? 'font-bold text-blue-600' : 'text-gray-500', 'hidden sm:block mt-1.5 text-xs text-center']">
             {{ step.label }}
           </span>
         </button>

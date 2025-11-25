@@ -1,6 +1,6 @@
 <script setup>
 import { computed, defineEmits, defineProps, ref, watch } from 'vue';
-import { calculateTariff } from "@/components/TransferWizard/helpers/fetchBrokerData";
+import { calculateTariffValue as calculateTariff } from "@/components/TransferWizard/helpers/fetchBrokerData";
 import ChevronDownIcon from "@/components/icons/ChevronDownIcon.vue";
 
 const props = defineProps({
@@ -12,6 +12,7 @@ const emit = defineEmits(['update:modelValue', 'cerrar', 'next']);
 
 const unitPrice = ref(props.modelValue.unitPrice || null);
 const locationError = ref('');
+const isCalculatingTariff = ref(false);
 
 const localModel = computed({
   get: () => props.modelValue,
@@ -52,9 +53,14 @@ watch(
       } else {
         locationError.value = '';
         if (type && start && end) {
-          const price = await calculateTariff(type, start, end)
-          unitPrice.value = price
-          localModel.value.unitPrice = price
+          isCalculatingTariff.value = true;
+          try {
+            const price = await calculateTariff(type, start, end);
+            unitPrice.value = price;
+            localModel.value.unitPrice = price;
+          } finally {
+            isCalculatingTariff.value = false;
+          }
         }
       }
     }
@@ -65,7 +71,7 @@ watch(
   <form @submit.prevent="$emit('next')" class="space-y-4">
     <div>
       <h2 class="text-base/7 font-semibold text-slate-900">Datos del Traslado</h2>
-      <div class="mt-6 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2">
+      <div class="mt-4 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
         <div>
           <label for="finalClient" class="block text-sm/6 font-medium text-slate-700">Cliente Final</label>
           <div class="mt-2 grid grid-cols-1">
@@ -130,7 +136,7 @@ watch(
         <div>
           <label for="unitPrice" class="block text-sm/6 font-medium text-slate-700">Tarifa</label>
           <div class="mt-2">
-            <input id="unitPrice" v-model="unitPrice" type="number" placeholder="Tarifa" disabled class="block w-full rounded-md bg-slate-50 px-3 py-1.5 text-slate-900 outline outline-1 -outline-offset-1 outline-slate-300 placeholder:text-slate-400 sm:text-sm/6">
+            <input id="unitPrice" :value="isCalculatingTariff ? 'Calculando...' : unitPrice" type="text" placeholder="Tarifa" disabled class="block w-full rounded-md bg-slate-50 px-3 py-1.5 text-slate-900 outline outline-1 -outline-offset-1 outline-slate-300 placeholder:text-slate-400 sm:text-sm/6">
           </div>
         </div>
         <div>
@@ -148,7 +154,7 @@ watch(
       </div>
     </div>
 
-    <div class="mt-6 flex items-center justify-end gap-x-4 border-t border-gray-200 pt-6">
+    <div class="mt-4 flex items-center justify-end gap-x-4 border-t border-gray-200 pt-4">
       <button @click="$emit('cerrar')" type="button" class="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">Cancelar</button>
       <button type="submit" :disabled="isNextDisabled" class="rounded-md bg-sky-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-sky-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 disabled:bg-gray-400 disabled:cursor-not-allowed">Siguiente</button>
     </div>

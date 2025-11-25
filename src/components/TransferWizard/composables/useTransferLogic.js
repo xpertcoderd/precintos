@@ -1,6 +1,7 @@
 // composables/transferWizard/useTransferLogic.js
 import { ref } from 'vue';
-import { assign_Containers, transfers_Create } from "@/components/conexion/DataConector";
+import { assignContainers } from "@/services/unitService";
+import { createTransfer } from "@/services/transferService";
 import Swal from "sweetalert2";
 import { getTokenPublicInfo } from "@/components/TransferWizard/helpers/fetchBrokerData";
 
@@ -41,7 +42,9 @@ export function useTransferLogic(wizardData) {
             city,
             note,
             unitPrice,
+            timeTravelEst,
         } = wizardData.step1;
+        const { description, booking } = wizardData.step2;
         const userSession = getTokenPublicInfo();
 
         return {
@@ -56,40 +59,13 @@ export function useTransferLogic(wizardData) {
             address,
             city,
             note,
-            timeTravelEst: '2025-01-17 16:00:00Z',
-            cargoDescription: 'carga variada',
-            booking: wizardData.step2.booking,
+            timeTravelEst: timeTravelEst ? `${timeTravelEst} 00:00:00Z` : null,
+            cargoDescription: description || 'Sin descripción',
+            booking: booking || null,
         };
     }
 
-    function buildContainerPayload(containers, transferId) {
-        return containers.map(container => ({
-            transferId,
-            container: container.container,
-            currentState: 1,
-        }));
-    }
 
-    async function createTransfersBl(params) {
-        try {
-            const response = await transfers_Create(params);
-            console.log(response)
-            return response.success ? response.data.transfer.id : (alert(response.message), false);
-        } catch (error) {
-            console.error("❌ Error en createTransfersBl:", error);
-            return false;
-        }
-    }
-
-    async function assignContainers(payload) {
-        try {
-            const response = await assign_Containers(payload);
-            return response.success;
-        } catch (error) {
-            console.error("❌ Error en assginContainers:", error);
-            return false;
-        }
-    }
 
     function updateOrderState(createdOrders) {
         orders.value.push(...createdOrders);
@@ -105,32 +81,40 @@ export function useTransferLogic(wizardData) {
 
     async function processSingleBl(bl) {
         const createdOrders = [];
-        const params = buildTransferParams(bl);
+        const transferData = buildTransferParams(bl);
 
-        const transferId = await createTransfersBl(params);
-        if (!transferId) {
+        const transferResponse = await createTransfer(transferData);
+
+        if (transferResponse.success) {
+            const transferId = transferResponse.data.transfer.id;
+
+            sms(`✅ BL ${transferId} creado`);
+
+            // Transform containers to match API expected format: array of {transferId, container}
+            const containerData = bl.containers.map(c => ({
+                transferId: transferId,
+                container: c.container
+            }));
+
+            const assignResponse = await assignContainers(containerData);
+
+            if (assignResponse.success) {
+                sms(`✅ Contenedores asignados para BL ${bl.bl}`);
+                createdOrders.push({
+                    id: transferId,
+                    bl: bl.bl,
+                    startPlace: transferData.startPlace,
+                    endPlace: transferData.endPlace,
+                    unitPrice: transferData.unitPrice,
+                    containers_count: bl.containers.length,
+                    amount: bl.containers.length * transferData.unitPrice,
+                });
+            } else {
+                sms(`⚠️ No se pudieron asignar contenedores para BL ${bl.bl}`);
+            }
+        } else {
             sms(`❌ Error al crear BL ${bl.bl}`);
             return [];
-        }
-
-        sms(`✅ BL ${transferId} creado`);
-
-        const containerPayload = buildContainerPayload(bl.containers, transferId);
-        const assigned = await assignContainers(containerPayload);
-
-        if (assigned) {
-            sms(`✅ Contenedores asignados para BL ${bl.bl}`);
-            createdOrders.push({
-                id: transferId,
-                bl: bl.bl,
-                startPlace: params.startPlace,
-                endPlace: params.endPlace,
-                unitPrice: params.unitPrice,
-                containers_count: bl.containers.length,
-                amount: bl.containers.length * params.unitPrice,
-            });
-        } else {
-            sms(`⚠️ No se pudieron asignar contenedores para BL ${bl.bl}`);
         }
 
         return createdOrders;

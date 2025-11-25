@@ -61,12 +61,21 @@ import TitleBtnSearch from '@/components/Internal/Menu/Frames/TitleBtnSearch.vue
 
 //import { clientsList } from '@/components/conexion/DataConector.js'
 
-import { transfer_Types, placesList_All, decodeBase64Token, tarrifs_create, tariffs_List, tariffsDelete} from '@/components/conexion/DataConector.js'
+import { getTransferTypes } from '@/services/transferService'
+import { getPlacesListAll } from '@/services/placeService'
+import { decodeBase64Token } from '@/utils/authUtils'
+// import { createTariff, getTariffsListAll, deleteTariff } from '@/services/tariffService' // Removed unused imports
+import { useTariffs } from '@/composables/useTariffs'
 
 
-import {ref,  onMounted } from 'vue' //ref
+import {ref,  onMounted, watch } from 'vue' //ref
 
 import Cookies from 'js-cookie';
+
+const { useTariffsListAll, useCreateTariff, useDeleteTariff } = useTariffs();
+const { data: tariffsData } = useTariffsListAll();
+const { mutateAsync: createTariffMutation } = useCreateTariff();
+const { mutateAsync: deleteTariffMutation } = useDeleteTariff();
 
 const session = ref({
   id: 0,
@@ -145,16 +154,13 @@ const places_List = ref([
 ])
 
 
-const tariffsList=ref([
-	{
-		id: 0,
-		name: "N/A",
-		transferTypeId: 0,
-		tariffTypeId: 0,
-		price: 0
-	}
+const tariffsList=ref([])
 
-])
+watch(tariffsData, (newData) => {
+    if (newData && newData.success) {
+        tariffsList.value = newData.tariffs;
+    }
+}, { immediate: true });
 
 
 //importacion
@@ -163,7 +169,7 @@ const tariffsList=ref([
 
 function consultarTransferTypes() {
 
-transfer_Types().then(typeList => {
+getTransferTypes().then(typeList => {
 
   if (typeList.success) {
 	transferTypes.value = typeList.transferTypes
@@ -180,7 +186,7 @@ transfer_Types().then(typeList => {
 }
 
 function consultarplaces_List(serverClientId) {
-	placesList_All(serverClientId).then(listPlaces => {
+	getPlacesListAll(serverClientId).then(listPlaces => {
 
 		console.log(listPlaces)
 
@@ -202,34 +208,16 @@ function consultarplaces_List(serverClientId) {
 }
 
 function consultartariffsList() {
-	tariffs_List().then(listTariffs => {
-
-		//console.log(listTariffs)
-
-    if (listTariffs.success) {
-
-		tariffsList.value = listTariffs.tariffs
-    }
-  })
-    .catch(error => {
-      console.log(error)
-
-    })
-    .finally(() => {
-
-      console.log("Finalizo el request listTariffs")
-    })
-
-
+    // Handled by Vue Query
 }
 
 function eliminar_Tariff(row) {
 
 	//console.log(row.id)
-	tariffsDelete(row.id).then(ResponseDeleted => {
+	deleteTariffMutation(row.id).then(ResponseDeleted => {
 
 		console.log(ResponseDeleted)
-		consultartariffsList();
+		// consultartariffsList(); // Auto invalidated
 
   })
     .catch(error => {
@@ -295,9 +283,9 @@ function crearTarifa(form){
 	
 console.log(parmetros)
 
-tarrifs_create(parmetros).then(respuesta=>{
+createTariffMutation(parmetros).then(respuesta=>{
 	console.log(respuesta)
-	consultartariffsList();
+	// consultartariffsList(); // Auto invalidated
 
 }).catch(error => {
   console.log(error)

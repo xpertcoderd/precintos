@@ -1,5 +1,9 @@
 import { ref, computed, watch, onUnmounted, onMounted } from 'vue';
-import { transfers_filteredFull, transferBlits_mapPoints, transferUnits_filtered, transferBlits_filtered } from "@/components/conexion/DataConector";
+import { getTransfersFilteredFull } from "@/services/transferService";
+import { getTransferBlitsMapPoints } from "@/services/blitService";
+import { useUnits } from "@/composables/useUnits"; // Import useUnits
+import { useBlits } from "@/composables/useBlits"; // Import useBlits
+import { useAuthStore } from "@/stores/authStore";
 import { getContainerStatusText, getContainerStatusColor } from '../utils/statusUtils';
 
 export function useMainContent(timeWindowHours) {
@@ -19,22 +23,51 @@ export function useMainContent(timeWindowHours) {
   const containerTrackingData = ref([]);
 
   // Global Container Tab State
-  const allContainers = ref([]);
   const isGlobalContainerView = ref(true);
-  const isLoadingContainers = ref(false);
   const containerCurrentPage = ref(1);
-  const containerTotalPages = ref(1);
-  const containerTotalItems = ref(0);
   const containerPageSize = ref(10);
   const containerActiveFilters = ref([]);
 
-  // ETA Tab State
-  const etaContainers = ref([]);
-  const isLoadingEta = ref(false);
+  // Vue Query for Containers
+  const { useTransferUnitsFiltered } = useUnits();
+
+  const containerParams = computed(() => {
+    const searchParams = containerActiveFilters.value.reduce((params, filter) => {
+      params[filter.key] = filter.value;
+      return params;
+    }, {});
+    return {
+      page: containerCurrentPage.value,
+      pageSize: containerPageSize.value,
+      timeWindowHours: timeWindowHours.value,
+      ...searchParams
+    };
+  });
+
+  const {
+    data: containerData,
+    isLoading: isLoadingContainers,
+    // refetch: refetchContainers // Unused
+  } = useTransferUnitsFiltered(containerParams, {
+    enabled: computed(() => activeTab.value === 'Contenedor' || !isGlobalContainerView.value),
+  });
+
+  const allContainers = computed(() => {
+    const data = containerData.value?.data || containerData.value;
+    return data?.transferUnits || [];
+  });
+  const containerTotalItems = computed(() => {
+    const data = containerData.value?.data || containerData.value;
+    return data?.total || 0;
+  });
+  const containerTotalPages = computed(() => {
+    const data = containerData.value?.data || containerData.value;
+    return data ? Math.ceil(data.total / data.pageSize) : 1;
+  });
+
 
   // Timers
-  const trackingTimer = ref(null);
-  const etaTimer = ref(null);
+  // trackingTimer and sessionTimer are declared later
 
   const filterOptions = [
     { label: 'Container ID', value: 'ids' },
@@ -62,28 +95,33 @@ export function useMainContent(timeWindowHours) {
       pageSize: 10,
       timeWindowHours: timeWindowHours.value,
     };
-    const response = await transfers_filteredFull(params);
-    if (response.success) {
-      const linkedTransfers = response.data.transfers.filter(t => t.transferUnits.some(u => u.currentLinked));
-      shipmentData.value = linkedTransfers;
-      totalShipments.value = linkedTransfers.length;
-      totalPages.value = Math.ceil(linkedTransfers.length / 10);
-      currentPage.value = page;
+    try {
+      const response = await getTransfersFilteredFull(params);
+      if (response.success) {
+        const linkedTransfers = response.data.transfers.filter(t => t.transferUnits.some(u => u.currentLinked));
+        shipmentData.value = linkedTransfers;
+        totalShipments.value = linkedTransfers.length;
+        totalPages.value = Math.ceil(linkedTransfers.length / 10);
+        currentPage.value = page;
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      loading.value = false;
     }
-    loading.value = false;
   };
 
   const handleGroupContainers = (shipment) => {
     if (!shipment || !shipment.transferUnits) return;
     isGlobalContainerView.value = false;
     activeContainers.value = shipment.transferUnits.map(c => ({
-        id: `${shipment.transfer.bl}-${c.id}`,
-        transferUnitId: c.id,
-        container: `Contenedor # ${c.container}`,
-        origin: shipment.transfer.startPlace.label,
-        destination: shipment.transfer.endPlace.label,
-        status: getContainerStatusText(c.statusId),
-        statusColorClass: getContainerStatusColor(c.statusId),
+      id: `${shipment.transfer.bl}-${c.id}`,
+      transferUnitId: c.id,
+      container: `Contenedor # ${c.container}`,
+      origin: shipment.transfer.startPlace.label,
+      destination: shipment.transfer.endPlace.label,
+      status: getContainerStatusText(c.statusId),
+      statusColorClass: getContainerStatusColor(c.statusId),
     }));
     activeTab.value = 'Contenedor';
   };
@@ -96,79 +134,101 @@ export function useMainContent(timeWindowHours) {
     if (containers.length === 0) return;
 
     activeContainers.value = containers.map(c => ({
-        id: `${shipment.transfer.bl}-${c.id}`,
-        transferUnitId: c.id,
-        container: `Contenedor # ${c.container}`,
-        origin: shipment.transfer.startPlace.label,
-        destination: shipment.transfer.endPlace.label,
-        status: getContainerStatusText(c.statusId),
-        statusColorClass: getContainerStatusColor(c.statusId),
+      id: `${shipment.transfer.bl}-${c.id}`,
+      transferUnitId: c.id,
+      container: `Contenedor # ${c.container}`,
+      origin: shipment.transfer.startPlace.label,
+      destination: shipment.transfer.endPlace.label,
+      status: getContainerStatusText(c.statusId),
+      statusColorClass: getContainerStatusColor(c.statusId),
     }));
 
     const trLnkIds = containers.map(c => c.id).join(',');
-    const response = await transferBlits_mapPoints({ trLnkIds, lastBlit: false });
+    try {
+      const response = await getTransferBlitsMapPoints({ trLnkIds, lastBlit: false });
+      containerTrackingData.value = response.success ? response.data.transferUnitMapData.map(item => ({
+        id: item.transferLinked.id,
+        name: `Contenedor # ${item.transferLinked.container}`,
+        route: item.points.map(p => ({ lat: p.lat, lng: p.lng }))
+      })) : [];
 
-    containerTrackingData.value = response.success ? response.data.transferUnitMapData.map(item => ({
-      id: item.transferLinked.id,
-      name: `Contenedor # ${item.transferLinked.container}`,
-      route: item.points.map(p => ({ lat: p.lat, lng: p.lng }))
-    })) : [];
-
-    if (containerTrackingData.value.length > 0) {
-      activeTab.value = 'Mapa';
+      if (containerTrackingData.value.length > 0) {
+        activeTab.value = 'Mapa';
+      }
+    } catch (e) {
+      console.error(e);
     }
   };
 
   // --- Tab-specific Fetching ---
+
+
+  // --- ETA Tab State (Refactored to Vue Query) ---
+  const { useTransferBlitsFiltered } = useBlits();
+
+  const etaParams = computed(() => ({
+    lastBlit: true,
+    timeWindowHours: timeWindowHours.value,
+    pageSize: 10000
+  }));
+
+  const {
+    data: etaData,
+    isLoading: isLoadingEta,
+  } = useTransferBlitsFiltered(etaParams, {
+    enabled: computed(() => activeTab.value === 'ETA'),
+    refetchInterval: 60000, // Poll every minute
+    refetchOnWindowFocus: false,
+  });
+
+  const etaContainers = computed(() => {
+    const data = etaData.value?.data || etaData.value;
+    if (!data?.transferUnitBlits) return [];
+
+    const mappedData = data.transferUnitBlits.map(item => {
+      const blit = item.transferBlits?.[0] || {};
+      return {
+        id: item.transferLinked.id,
+        containerName: item.transferLinked.container,
+        statusId: item.transferLinked.statusId,
+        distance: blit.distance || 0,
+        distanceRemain: blit.distanceRemain || 0,
+        timeRemain: blit.timeRemain,
+        completed: blit.completed || 0,
+        departureTime: item.transferLinked.departureTime,
+        arrivalTime: item.transferLinked.arrivalTime,
+      };
+    });
+
+    return mappedData.sort((a, b) => {
+      const aIsEnTransito = a.statusId === 3;
+      const bIsEnTransito = b.statusId === 3;
+      if (aIsEnTransito && !bIsEnTransito) return -1;
+      if (!aIsEnTransito && bIsEnTransito) return 1;
+      return 0;
+    });
+  });
+
+  // Timers (Tracking only, ETA handled by Vue Query)
+  const trackingTimer = ref(null);
+  const sessionTimer = ref(null);
+
+  // ... (Filter Options)
+
+  // --- COMPUTED ---
+  // ...
+
+  // --- METHODS ---
+  // ...
+
+  // ... (handleTrackShipment)
+
+  // --- Tab-specific Fetching ---
   const fetchAllContainers = async (page = 1) => {
-    isLoadingContainers.value = true;
-    const searchParams = containerActiveFilters.value.reduce((params, filter) => {
-      params[filter.key] = filter.value;
-      return params;
-    }, {});
-    const params = { page, pageSize: containerPageSize.value, timeWindowHours: timeWindowHours.value, ...searchParams };
-    const response = await transferUnits_filtered(params);
-    if (response.success) {
-      allContainers.value = response.data.transferUnits;
-      containerTotalItems.value = response.data.total;
-      containerTotalPages.value = Math.ceil(response.data.total / response.data.pageSize);
-      containerCurrentPage.value = response.data.page;
-    }
-    isLoadingContainers.value = false;
+    if (page) containerCurrentPage.value = page;
   };
 
-  const fetchEtaData = async (showLoader = false) => {
-    if (showLoader) isLoadingEta.value = true;
-    const params = { lastBlit: true, timeWindowHours: timeWindowHours.value, pageSize: 10000 };
-    const response = await transferBlits_filtered(params);
-    if (response.success && response.data.transferUnitBlits) {
-      const mappedData = response.data.transferUnitBlits.map(item => {
-        const blit = item.transferBlits?.[0] || {};
-        return {
-          id: item.transferLinked.id,
-          containerName: item.transferLinked.container,
-          statusId: item.transferLinked.statusId,
-          distance: blit.distance || 0,
-          distanceRemain: blit.distanceRemain || 0,
-          timeRemain: blit.timeRemain,
-          completed: blit.completed || 0,
-          departureTime: item.transferLinked.departureTime,
-          arrivalTime: item.transferLinked.arrivalTime,
-        };
-      });
-
-      mappedData.sort((a, b) => {
-        const aIsEnTransito = a.statusId === 3;
-        const bIsEnTransito = b.statusId === 3;
-        if (aIsEnTransito && !bIsEnTransito) return -1;
-        if (!aIsEnTransito && bIsEnTransito) return 1;
-        return 0;
-      });
-
-      etaContainers.value = mappedData;
-    }
-    if (showLoader) isLoadingEta.value = false;
-  };
+  // fetchEtaData removed - handled by Vue Query
 
   const selectTab = (tab) => {
     activeTab.value = tab;
@@ -191,29 +251,38 @@ export function useMainContent(timeWindowHours) {
     }, 15000);
   };
 
-  const stopEtaTimer = () => {
-    if (etaTimer.value) clearInterval(etaTimer.value);
-    etaTimer.value = null;
+  // stopEtaTimer and startEtaTimer removed - handled by Vue Query
+
+  const startSessionTimer = () => {
+    sessionTimer.value = setInterval(async () => {
+      try {
+        await useAuthStore().checkAuth();
+        if (!useAuthStore().isAuthenticated) {
+          window.location.reload();
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }, 60000);
   };
 
-  const startEtaTimer = () => {
-    stopEtaTimer();
-    fetchEtaData(true);
-    etaTimer.value = setInterval(() => fetchEtaData(false), 20000);
+  const stopSessionTimer = () => {
+    if (sessionTimer.value) clearInterval(sessionTimer.value);
+    sessionTimer.value = null;
   };
 
   // --- WATCHERS ---
   watch(activeTab, (newTab, oldTab) => {
     if (oldTab === 'Mapa') stopTrackingTimer();
-    if (oldTab === 'ETA') stopEtaTimer();
+    // ETA timer stop handled by Vue Query enabled
 
     if (newTab === 'Mapa' && lastTrackedShipment.value) {
       startTrackingTimer();
     } else if (newTab === 'ETA') {
-      startEtaTimer();
+      // ETA fetch handled by Vue Query enabled
     } else if (newTab === 'Contenedor') {
       isGlobalContainerView.value = true;
-      fetchAllContainers(1);
+      // fetchAllContainers(1); // Vue Query handles this
     } else if (newTab === 'BL' && shipmentData.value.length === 0) {
       fetchShipments();
     }
@@ -224,22 +293,23 @@ export function useMainContent(timeWindowHours) {
   watch(timeWindowHours, () => {
     const activeFetch = {
       'BL': () => fetchShipments(1),
-      'Contenedor': () => fetchAllContainers(1),
-      'ETA': () => fetchEtaData(true),
+      'Contenedor': () => { }, // Vue Query handles this
+      'ETA': () => { }, // Vue Query handles this
     }[activeTab.value];
     if (activeFetch) activeFetch();
   });
 
-  watch([containerCurrentPage, containerPageSize], () => fetchAllContainers(containerCurrentPage.value));
-  watch(containerActiveFilters, () => fetchAllContainers(1), { deep: true });
+  // watch([containerCurrentPage, containerPageSize], () => fetchAllContainers(containerCurrentPage.value)); // Vue Query handles this
+  // watch(containerActiveFilters, () => fetchAllContainers(1), { deep: true }); // Vue Query handles this
 
   onMounted(() => {
     fetchShipments();
+    startSessionTimer();
   });
 
   onUnmounted(() => {
     stopTrackingTimer();
-    stopEtaTimer();
+    stopSessionTimer();
   });
 
   return {
@@ -249,5 +319,6 @@ export function useMainContent(timeWindowHours) {
     allContainers, isLoadingContainers, containerCurrentPage, containerTotalPages, containerTotalItems, containerPageSize, containerActiveFilters, filterOptions,
     etaContainers, isLoadingEta,
     selectTab, handleGroupContainers, handleTrackShipment, handlePageChange: (page) => { currentPage.value = page; },
+    fetchAllContainers, fetchShipments
   };
 }

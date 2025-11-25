@@ -42,10 +42,10 @@ function removeBL(bl_Selected) {
 </script>
 
 <template>
-  <form @submit.prevent="$emit('next')" class="space-y-10">
+  <form @submit.prevent="$emit('next')" class="space-y-6">
     <div>
       <h2 class="text-base/7 font-semibold text-slate-900">Asignar Contenedores a BLs</h2>
-      <div class="mt-6 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-3">
+      <div class="mt-4 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-3">
         <div class="sm:col-span-1">
           <label for="bl-select" class="block text-sm/6 font-medium text-slate-700">BL</label>
           <div class="mt-2 grid grid-cols-1">
@@ -94,7 +94,7 @@ function removeBL(bl_Selected) {
       </div>
     </div>
 
-    <div class="mt-6 flex items-center justify-end gap-x-4 border-t border-gray-200 pt-6">
+    <div class="mt-4 flex items-center justify-end gap-x-4 border-t border-gray-200 pt-4">
       <button @click="$emit('cerrar')" type="button" class="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">Cancelar</button>
       <button type="submit" class="rounded-md bg-sky-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-sky-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500">Siguiente</button>
     </div>

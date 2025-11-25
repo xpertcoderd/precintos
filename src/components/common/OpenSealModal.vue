@@ -1,6 +1,6 @@
 <template>
   <transition name="fade">
-    <div v-if="show" class="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4">
+    <div v-if="show" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex justify-center items-center p-4">
       <div class="bg-white rounded-xl shadow-2xl w-full max-w-3xl mx-auto flex overflow-hidden">
         <!-- Left Side: Video -->
         <div class="w-full md:w-1/3 bg-slate-100 rounded-l-xl overflow-hidden">

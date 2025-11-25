@@ -1,23 +1,55 @@
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useNotifications } from '@/composables/useNotifications';
-import { clients_filtered, clients_create, clients_update } from '@/components/conexion/DataConector';
+import { useClients } from '@/composables/useClients';
 
 export function useClientesPage() {
   const { sendNotification } = useNotifications();
-  const items = ref([]);
-  const editingItem = ref(null);
-  const isModalVisible = ref(false);
-  const isConfirmationVisible = ref(false);
-  const itemToDelete = ref(null);
-  const isLoading = ref(false);
-  const error = ref(null);
-  const errors = ref({});
 
   // Pagination State
   const currentPage = ref(1);
-  const totalPages = ref(1);
-  const totalItems = ref(0);
   const pageSize = ref(10);
+
+  // Query Params
+  const params = computed(() => ({
+    page: currentPage.value,
+    pageSize: pageSize.value,
+  }));
+
+  // Use Vue Query
+  const {
+    data: queryData,
+    isLoading: isQueryLoading,
+    isError,
+    error: queryError,
+    createClient,
+    updateClient,
+    isCreating,
+    isUpdating
+  } = useClients(params);
+
+  // Local state
+  const items = ref([]);
+  const totalItems = ref(0);
+  const totalPages = ref(1);
+
+  // Sync Query Data
+  watch(queryData, (newData) => {
+    if (newData && newData.success && newData.data) {
+      items.value = newData.data.clients || [];
+      totalItems.value = newData.data.total || 0;
+      totalPages.value = Math.ceil((newData.data.total || 0) / (newData.data.pageSize || 10));
+    }
+  }, { immediate: true });
+
+  const editingItem = ref(null);
+  const isModalVisible = ref(false);
+  const isWizardVisible = ref(false);
+  const isConfirmationVisible = ref(false);
+  const itemToDelete = ref(null);
+  const errors = ref({});
+
+  const isLoading = computed(() => isQueryLoading.value || isCreating.value || isUpdating.value);
+  const error = computed(() => isError.value ? (queryError.value?.message || 'No se pudieron cargar los clientes.') : null);
 
   const pageTitle = 'Gestionar Clientes';
   const createButtonText = 'Crear Cliente';
@@ -25,27 +57,6 @@ export function useClientesPage() {
     editingItem.value ? 'Editar Cliente' : 'Crear Nuevo Cliente'
   );
   const saveButtonText = computed(() => (editingItem.value ? 'Guardar Cambios' : 'Crear'));
-
-  async function fetchItems(page = 1) {
-    isLoading.value = true;
-    error.value = null;
-    try {
-      const response = await clients_filtered({ page, pageSize: pageSize.value });
-      if (response.success) {
-        items.value = response.data.clients;
-        totalItems.value = response.data.total;
-        totalPages.value = Math.ceil(response.data.total / response.data.pageSize);
-        currentPage.value = response.data.page;
-      } else {
-        throw new Error('Failed to fetch clients');
-      }
-    } catch (e) {
-      error.value = 'No se pudieron cargar los clientes. Por favor, intente de nuevo.';
-      console.error(e);
-    } finally {
-      isLoading.value = false;
-    }
-  }
 
   function handlePageChange(newPage) {
     currentPage.value = newPage;
@@ -55,6 +66,19 @@ export function useClientesPage() {
     editingItem.value = null;
     errors.value = {};
     isModalVisible.value = true;
+  }
+
+  function openWizard() {
+    isWizardVisible.value = true;
+  }
+
+  function closeWizard() {
+    isWizardVisible.value = false;
+    // No need to manually fetch, Vue Query handles it if we invalidate queries in the wizard or if wizard uses mutations that invalidate
+    // But wizard uses services directly, so we might need to invalidate queries manually or rely on stale time?
+    // Ideally wizard should use the mutation from useClients or we invalidate 'clients' query key globally.
+    // For now, let's assume wizard might need a refresh trigger or we just rely on auto-refetch on window focus.
+    // Or we can export queryClient and invalidate.
   }
 
   function openEditModal(item) {
@@ -79,50 +103,34 @@ export function useClientesPage() {
   }
 
   async function saveItem(formData) {
-    isLoading.value = true;
     try {
-      let response;
       if (editingItem.value) {
-        response = await clients_update(editingItem.value.id, formData);
+        await updateClient({ id: editingItem.value.id, data: formData });
+        sendNotification('Cliente actualizado con éxito', 'success');
       } else {
-        response = await clients_create(formData);
+        await createClient(formData);
+        sendNotification('Cliente creado con éxito', 'success');
       }
-
-      if (response.success) {
-        sendNotification(`Cliente ${editingItem.value ? 'actualizado' : 'creado'} con éxito`, 'success');
-        fetchItems(currentPage.value);
-      } else {
-        throw new Error(response.message || 'Error al guardar el cliente');
-      }
-    } catch (e) {
-      sendNotification(e.message, 'error');
-      console.error(e);
-    } finally {
-      isLoading.value = false;
       closeModal();
+    } catch (e) {
+      sendNotification(e.message || 'Error al guardar el cliente', 'error');
+      console.error(e);
     }
   }
 
   async function confirmDelete() {
     if (!itemToDelete.value) return;
-    isLoading.value = true;
     // Replace with actual delete endpoint when available
     await new Promise(resolve => setTimeout(resolve, 500));
     sendNotification('Funcionalidad de eliminar no implementada.', 'warning');
-    isLoading.value = false;
     closeDeleteConfirmation();
   }
-
-  watch([currentPage, pageSize], () => {
-    fetchItems(currentPage.value);
-  });
-
-  onMounted(() => fetchItems(1));
 
   return {
     items,
     editingItem,
     isModalVisible,
+    isWizardVisible,
     isConfirmationVisible,
     isLoading,
     error,
@@ -135,9 +143,10 @@ export function useClientesPage() {
     totalPages,
     totalItems,
     pageSize,
-    fetchItems,
     handlePageChange,
     openCreateModal,
+    openWizard,
+    closeWizard,
     openEditModal,
     closeModal,
     openDeleteConfirmation,

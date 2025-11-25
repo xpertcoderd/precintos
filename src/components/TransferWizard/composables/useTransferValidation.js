@@ -1,11 +1,23 @@
+
 // composables/transferWizard/useTransferValidation.js
-import { transfersCheckBL } from "@/components/conexion/DataConector";
+import { checkTransferBL } from "@/services/transferService";
 
 export function useTransferValidation(wizardData, errors, allData) {
 
     async function validateBLExistence(bl) {
-        const response = await transfersCheckBL(bl);
-        return response.success;
+        try {
+            const response = await checkTransferBL(bl);
+            // If we get a response, the BL exists (return true = exists)
+            return response.success === true;
+        } catch (error) {
+            // If we get a 404, the BL doesn't exist, which is what we want (return false = doesn't exist)
+            if (error.response && error.response.status === 404) {
+                return false;
+            }
+            // For other errors, log and assume it doesn't exist to allow the user to proceed
+            console.error('Error checking BL existence:', error);
+            return false;
+        }
     }
 
     function validateStep(currentStep) {

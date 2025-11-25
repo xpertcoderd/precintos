@@ -1,7 +1,7 @@
 <script setup>
 import { ref, watch, defineProps, defineEmits, computed } from 'vue';
 import {prepareFormData} from "@/services/transportistaService";
-import {linkTransferUnits} from "@/components/conexion/DataConector";
+import { linkTransferUnits } from "@/services/unitService";
 
 // --- Component Props and Emits ---
 const props = defineProps({
@@ -90,7 +90,7 @@ const UploadCloud = { template: `<svg xmlns="http://www.w3.org/2000/svg" width="
 
 <template>
   <transition name="fade">
-    <div v-if="show" @click="$emit('close')" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+    <div v-if="show" @click="$emit('close')" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div @click.stop class="bg-white rounded-xl shadow-2xl w-full max-w-4xl transform transition-all flex flex-col md:flex-row max-h-[90vh]">
 
         <div class="w-full md:w-1/3 bg-slate-100 rounded-l-xl overflow-hidden">

@@ -1,57 +1,11 @@
-import {
-    decodeBase64Token,
-    endPlace_Points,
-    finalClientsList,
-    startPlace_Points,
-    transfer_Types,
-    tariffs_calculation
-} from "@/components/conexion/DataConector";
+import { getTransferTypes } from "@/services/transferService";
+import { getStartPlacePoints, getEndPlacePoints } from "@/services/placeService";
+import { getFinalClientsList } from "@/services/clientService";
+import { calculateTariff } from "@/services/tariffService";
+import { decodeBase64Token } from "@/utils/authUtils";
 import Cookies from 'js-cookie';
 
-const PUBLIC_COOKIE= 'userPublicInfo'
-async function getTransferTypes() {
-    try {
-        const typeList = await transfer_Types();
-        if (typeList.success) {
-            return typeList.data.transferTypes;
-        }
-    } catch (error) {
-        console.error("Error al hacer la petición de tipos de transferencia:", error);
-    }
-}
-
-async function getStartPlaces(sc_Id) {
-    try {
-        const listPlaces = await startPlace_Points(sc_Id);
-        if (listPlaces.success) {
-            return listPlaces.data.places;
-        }
-    } catch (error) {
-        console.error("Error al obtener puntos de inicio:", error);
-    }
-}
-
-async function getEndPlaces(sc_Id) {
-    try {
-        const listPlaces = await endPlace_Points(sc_Id);
-        if (listPlaces.success) {
-            return listPlaces.data.places;
-        }
-    } catch (error) {
-        console.error("Error al obtener puntos de destino:", error);
-    }
-}
-
-async function getFinalClientsList(sc_id) {
-    try {
-        const clientList = await finalClientsList(sc_id);
-        if (clientList.success) {
-            return clientList.data.clients;
-        }
-    } catch (error) {
-        console.error("Error al obtener clientes finales:", error);
-    }
-}
+const PUBLIC_COOKIE = 'userPublicInfo'
 
 export function getTokenPublicInfo() {
     const token = Cookies.get(PUBLIC_COOKIE);
@@ -73,17 +27,26 @@ export async function fetchInitialData() {
     };
 
     try {
-        const [transferTypes, startPlaces, endPlaces, finalClients] = await Promise.all([
+        // API calls now return data directly (intercepted) or the full response?
+        // My axios instance returns response.data.
+        // The services return the promise of that.
+        // So `await getTransferTypes()` returns the data directly.
+        // I need to check the structure of the data returned by the API.
+        // Old DataConector: response.data.success ? response.data : ...
+        // New Service: api.get(...) -> interceptor returns response.data.
+        // So if API returns { success: true, data: { transferTypes: [] } }, then I get that object.
+
+        const [typesRes, startRes, endRes, clientsRes] = await Promise.all([
             getTransferTypes(),
-            getStartPlaces(user_session.clientId),
-            getEndPlaces(user_session.clientId),
+            getStartPlacePoints(user_session.clientId),
+            getEndPlacePoints(user_session.clientId),
             getFinalClientsList(user_session.clientId)
         ]);
 
-        if (transferTypes) initialData.transferTypes = transferTypes;
-        if (startPlaces) initialData.startPlaces = startPlaces;
-        if (endPlaces) initialData.endPlaces = endPlaces;
-        if (finalClients) initialData.finalClients = finalClients;
+        if (typesRes?.success) initialData.transferTypes = typesRes.data.transferTypes;
+        if (startRes?.success) initialData.startPlaces = startRes.data.places;
+        if (endRes?.success) initialData.endPlaces = endRes.data.places;
+        if (clientsRes?.success) initialData.finalClients = clientsRes.data.clients;
 
     } catch (error) {
         console.error("Error al cargar los datos iniciales:", error);
@@ -92,19 +55,26 @@ export async function fetchInitialData() {
     return initialData;
 }
 
-export async function calculateTariff(trTypeId, startPlaceID, endPlaceId) {
-    if (!trTypeId || !startPlaceID || !endPlaceId) {
+export async function calculateTariffValue(trType, startPlace, endPlace) {
+    // Extract IDs from objects if they are objects
+    const trTypeId = typeof trType === 'object' ? trType.id : trType;
+    const startPlaceId = typeof startPlace === 'object' ? startPlace.id : startPlace;
+    const endPlaceId = typeof endPlace === 'object' ? endPlace.id : endPlace;
+
+    if (!trTypeId || !startPlaceId || !endPlaceId) {
         console.warn("No pueden haber valores null");
-        return;
+        return 0;
     }
 
     try {
-        const response = await tariffs_calculation(trTypeId, startPlaceID, endPlaceId);
-        return response.data.tariff.price || 0;
+        const response = await calculateTariff(trTypeId, startPlaceId, endPlaceId);
+        return response.success ? (response.data.tariff.price || 0) : 0;
     } catch (error) {
         console.error("Error al consultar la tarifa:", error);
+        return 0;
     }
 }
+
 
 
 
