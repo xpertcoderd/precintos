@@ -93,6 +93,7 @@ export function useTransferValidation(wizardData, errors, allData) {
 
                     allData.value.bl_ContainerList.push({
                         bl: bl.text,
+                        transferId: bl.transferId, // Pass transferId if exists (Edit Mode)
                         bl_count: filteredContainerList.length,
                         amount,
                         containers: filteredContainerList,

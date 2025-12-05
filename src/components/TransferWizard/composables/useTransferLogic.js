@@ -81,15 +81,28 @@ export function useTransferLogic(wizardData) {
 
     async function processSingleBl(bl) {
         const createdOrders = [];
+        let transferId;
         const transferData = buildTransferParams(bl);
 
-        const transferResponse = await createTransfer(transferData);
+        // Check if we are in Edit Mode (transferId exists)
+        if (bl.transferId) {
+            transferId = bl.transferId;
+            // sms(`ℹ️ Agregando a Transferencia existente #${transferId}`); // Optional feedback
+        } else {
+            // Create new transfer
+            const transferResponse = await createTransfer(transferData);
 
-        if (transferResponse.success) {
-            const transferId = transferResponse.data.transfer.id;
+            if (transferResponse.success) {
+                transferId = transferResponse.data.transfer.id;
+                sms(`✅ BL ${transferId} creado`);
+            } else {
+                sms(`❌ Error al crear BL ${bl.bl}`);
+                return [];
+            }
+        }
 
-            sms(`✅ BL ${transferId} creado`);
-
+        // Proceed to assign containers (common for both modes)
+        if (transferId) {
             // Transform containers to match API expected format: array of {transferId, container}
             const containerData = bl.containers.map(c => ({
                 transferId: transferId,
@@ -112,9 +125,6 @@ export function useTransferLogic(wizardData) {
             } else {
                 sms(`⚠️ No se pudieron asignar contenedores para BL ${bl.bl}`);
             }
-        } else {
-            sms(`❌ Error al crear BL ${bl.bl}`);
-            return [];
         }
 
         return createdOrders;

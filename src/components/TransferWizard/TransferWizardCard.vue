@@ -6,8 +6,8 @@
         <div class="p-3 sm:p-4 pb-0 border-b border-gray-200 flex-shrink-0">
           <div class="flex flex-wrap items-start justify-between gap-4 sm:flex-nowrap">
             <div>
-              <h2 class="text-xl font-bold text-gray-900">Nuevo Traslado</h2>
-              <p class="mt-1 text-sm text-gray-500">Siga los pasos para completar la transferencia.</p>
+              <h2 class="text-xl font-bold text-gray-900">{{ editMode ? 'Agregar Contenedor' : 'Nuevo Traslado' }}</h2>
+              <p class="mt-1 text-sm text-gray-500">{{ editMode ? 'Ingrese los nuevos contenedores para el traslado existente.' : 'Siga los pasos para completar la transferencia.' }}</p>
             </div>
             <img :src="auroraLogo" alt="Aurora Logo" class="h-10 sm:h-12" />
           </div>
@@ -31,7 +31,7 @@
 
 <script setup>
 import auroraLogo from '@/assets/logo/auroraLogob.png'
-import { ref, onMounted, defineEmits } from 'vue'
+import { ref, onMounted } from 'vue'
 import TransferStep1Form from './TransferStep1Form.vue'
 import TransferStep2Form from './TransferStep2Form.vue'
 import TransferStep3Form from './TransferStep3Form.vue'
@@ -42,6 +42,17 @@ import { fetchInitialData } from "@/components/TransferWizard/helpers/fetchBroke
 import { useTransferWizardState } from "@/components/TransferWizard/composables/useTransferWizardState";
 import { useTransferLogic } from "@/components/TransferWizard/composables/useTransferLogic";
 import { useTransferValidation } from "@/components/TransferWizard/composables/useTransferValidation";
+
+const props = defineProps({
+  editMode: {
+    type: Boolean,
+    default: false
+  },
+  initialTransferData: {
+    type: Object,
+    default: null
+  }
+})
 
 const outGoingData = defineEmits(['close', 'closeFetch', 'updateTransfersList'])
 
@@ -92,6 +103,10 @@ onMounted(async () => {
   error.value = null
   try {
     initialData.value = await fetchInitialData()
+
+    if (props.editMode && props.initialTransferData) {
+      initEditMode(props.initialTransferData)
+    }
   } catch (err) {
     error.value = 'Error cargando datos iniciales.'
     console.error(err)
@@ -99,6 +114,46 @@ onMounted(async () => {
     loading.value = false
   }
 })
+
+function initEditMode(transferData) {
+  // Populate Step 1 Data (readonly/reference)
+  // We need to map the incoming flat structure "transfer.serverClient.name" etc back to objects if strictly needed,
+  // or just populate what's needed for the logic and display.
+  // "headerData" is used in Confirmation (Step 4), so we populate that directly for display.
+
+  allData.value.headerData = {
+    serverClient: transferData.transfer.serverClient?.name,
+    finalClient: transferData.transfer.finalClient?.name,
+    startPlace: transferData.transfer.startPlace?.label,
+    endPlace: transferData.transfer.endPlace?.label,
+    typeName: transferData.transfer.transferType?.name || 'N/A', // Adjust based on actual data shape
+    unitPrice: transferData.transfer.unitPrice,
+    booking: transferData.transfer.booking,
+    address: transferData.transfer.address, // if available
+    city: transferData.transfer.city       // if available
+  }
+
+  // Populate wizardData.step1 for logic references (unitPrice, type)
+  wizardData.step1 = {
+    unitPrice: transferData.transfer.unitPrice,
+    type: { name: transferData.transfer.transferType?.name || 'Import', id: transferData.transfer.transferTypeId } // Mock object as needed by validation/logic
+  }
+
+  // Populate Step 2 (BL)
+  // In edit mode, we are adding to an existing BL or Transfer.
+  // The user might want to select the BL from the existing transfer or it's implied.
+  // If the transfer is linked to a BL, we should put it here.
+  wizardData.step2 = {
+    listBl: [{
+        text: transferData.transfer.bl, // The BL string
+        transferId: transferData.transfer.id // Key for our logic to know it exists
+    }],
+    booking: transferData.transfer.booking
+  }
+
+  // Jump to Step 3
+  step.value = 3
+}
 
 // 🔧 Navigation
 function close() {

@@ -33,6 +33,7 @@
             @cancel="handleCancel"
             @link-shipment="handleLinkShipment"
             @view-voucher="handleViewVoucher"
+            @add-container="handleAddContainer"
         />
         <div class="mt-6 flex items-center justify-between">
             <div class="flex items-center gap-2 text-sm text-slate-500">
@@ -82,7 +83,14 @@
       :containers ="containers"
     />
 
-    <TransferWizardCard v-if="showTransferWizard" @close="showTransferWizard = false" @closeFetch="closeAndFetch" @updateTransfersList="fetchItems" />
+    <TransferWizardCard
+      v-if="showTransferWizard"
+      :edit-mode="isEditMode"
+      :initial-transfer-data="selectedTransferData"
+      @close="closeTransferWizard"
+      @closeFetch="closeAndFetch"
+      @updateTransfersList="fetchItems"
+    />
 
   </div>
 </template>
@@ -130,6 +138,10 @@ const voucherImageUrl = ref('');
 const selectedTransferId = ref(null);
 const selectedContainerForLink = ref(null);
 
+// Edit Mode State
+const isEditMode = ref(false);
+const selectedTransferData = ref(null);
+
 async function fetchNotLinkedContainersPerTransfer (transferId) {
   try {
     const response = await getTransferUnitsFiltered({transferId , statusIds: '1'})
@@ -141,9 +153,18 @@ async function fetchNotLinkedContainersPerTransfer (transferId) {
   }
 }
 function closeAndFetch() {
-  showTransferWizard.value = false;
+  closeTransferWizard();
   fetchItems();
 }
+
+function closeTransferWizard() {
+  showTransferWizard.value = false;
+  setTimeout(() => {
+    isEditMode.value = false;
+    selectedTransferData.value = null;
+  }, 300); // Wait for fade out
+}
+
 function handleUploadPayment(item) {
   selectedTransferId.value = item.transfer.id;
   isVoucherModalVisible.value = true;
@@ -229,6 +250,12 @@ function closePreviewModal() {
 function handleCancel(item) {
   // Placeholder for cancel logic
   sendNotification(`Solicitud #${item.transfer.id} cancelada (simulado).`, 'warning');
+}
+
+function handleAddContainer(item) {
+  selectedTransferData.value = item;
+  isEditMode.value = true;
+  showTransferWizard.value = true;
 }
 
 </script>

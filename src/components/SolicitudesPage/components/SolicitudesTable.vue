@@ -36,9 +36,14 @@
             </div>
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm relative group cursor-help">
-            <span :class="['px-2 inline-flex text-xs leading-5 font-semibold rounded-full', getTransferStatusColor(item.transfer.transferStateId)]">
-              {{ getTransferStatusText(item.transfer.transferStateId) }}
-            </span>
+            <div class="flex items-center gap-2">
+              <span :class="['px-2 inline-flex text-xs leading-5 font-semibold rounded-full', getTransferStatusColor(item.transfer.transferStateId)]">
+                {{ getTransferStatusText(item.transfer.transferStateId) }}
+              </span>
+              <div v-if="item.transfer.voucherPhotoUrl" class="text-slate-400" title="Comprobante Adjunto">
+                <VoucherIcon class="w-5 h-5" />
+              </div>
+            </div>
             <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-slate-800 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
               {{ getTransferStatusDescription(item.transfer.transferStateId) }}
             </div>
@@ -74,6 +79,7 @@
 
 <script setup>
 import { ref } from 'vue';
+import VoucherIcon from '@/components/icons/VoucherIcon.vue';
 
 defineProps({
   data: {

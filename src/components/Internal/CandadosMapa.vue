@@ -1,13 +1,7 @@
 <template>
 
 	<div class="contenedorDivisor">
-
-		<TablaSingle class="tableSingle" :locksList="incomingData.locksList" @listChecked="listChecked"
-			@lockSelected="lockSelected" @disableBtn="disableBtn" @marcarTodos="marcarTodos"
-			@desmarcarTodos="desmarcarTodos" @actual="actual" />
-
 		<MapaPage class="mapaPage" :inputData="valoresDefectoMapa" ref="mapaRef" />
-
 	</div>
 
 
@@ -16,16 +10,11 @@
 
 <script setup>
 
-import TablaSingle from '@/components/Internal/tablas/TablaSingle.vue'
 import MapaPage from '@/components/MapaPage.vue'
-
-import { onMounted, ref, defineProps, defineEmits } from 'vue';
-
+import { ref, defineProps, watch, nextTick } from 'vue';
 
 const mapaRef = ref(null);
-
-const incomingData = defineProps(['locksList']);
-const outGoingData = defineEmits(['listChecked', 'lockSelected', 'disableBtn', 'marcarTodos', 'desmarcarTodos']);
+const props = defineProps(['locksList']);
 
 let valoresDefectoMapa = ref({
 	center: [18.468025816718264, -69.93920818790205],
@@ -34,68 +23,26 @@ let valoresDefectoMapa = ref({
 	lng: -69.95920818790205
 })
 
+watch(() => props.locksList, async (newVal) => {
+    if (!newVal) return;
+    
+    // Check if any item is selected
+    const hasSelection = newVal.some(item => item.check);
+    
+    // If items are selected, show only those. Otherwise, show all.
+    const itemsToShow = hasSelection ? newVal.filter(item => item.check) : newVal;
+    
+    const markers = itemsToShow.map(item => ({
+        label: item.row.device.label,
+        device_id: item.row.device.deviceid,
+        coordenadas: { lat: item.row.deviceState.lat, lng: item.row.deviceState.lng }
+    }));
 
-
-function lockSelected(actualLock) {
-	//console.log(actualLock.device.id)
-	outGoingData('lockSelected', actualLock);
-
-}
-
-function disableBtn() {
-	//console.log("desabilitame")
-	outGoingData('disableBtn')
-	//btnEnable.value = false
-}
-
-function actual(device) {
-	//console.log(device)
-	//outGoingData('actual', device);
-
-	//heading deviceId lat lng
-	//mapaRef.value.update_motorIcon(device)
-	//mapaRef.value.clearMarker()
-	mapaRef.value.setCenter(device)
-}
-
-/*function showMapaBtn() {
-	//console.log("showbtnMapa")
-	outGoingData('showMapaBtn')
-	//btnEnable.value = false
-}
-*/
-
-function marcarTodos() {
-	outGoingData('marcarTodos')
-}
-
-function desmarcarTodos() {
-	outGoingData('desmarcarTodos')
-}
-
-
-function listChecked(activos) {
-	//console.log(activos)
-
-	const candados = activos.map(elem => ({
-		label: elem.row.device.label,
-		device_id: elem.row.device.deviceid,
-		coordenadas: { lat: elem.row.deviceState.lat, lng: elem.row.deviceState.lng }
-
-	}))
-
-
-	mapaRef.value.setMarkers(candados)
-	outGoingData('listChecked', activos);
-
-}
-
-
-
-onMounted(async () => {
-
-	//mapaRef.value.actualizarCandadoMapa("datos")	
-})
+    await nextTick();
+    if (mapaRef.value) {
+        mapaRef.value.setMarkers(markers);
+    }
+}, { immediate: true, deep: true });
 
 </script>
 
@@ -105,10 +52,6 @@ onMounted(async () => {
 	height: 100%;
 }
 
-.tableSingle {
-	width: 40%;
-	height: 100%;
-	overflow: auto;
-}
+
 
 </style>

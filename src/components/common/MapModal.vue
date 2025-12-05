@@ -8,8 +8,8 @@
             <svg class="w-6 h-6 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
           </button>
         </div>
-        <div class="flex-grow">
-          <MapComponent :markers="markers" />
+        <div class="flex-grow relative">
+           <MapaPage ref="mapRef" :inputData="mapConfig" />
         </div>
       </div>
     </div>
@@ -17,29 +17,31 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
-import MapComponent from '@/components/Internal/Menu/Frames/Pages/PanelPrincipal/MapComponent.vue';
+import { ref, watch, nextTick, defineProps, defineEmits } from 'vue';
+import MapaPage from '@/components/MapaPage.vue';
 
 const props = defineProps({
-  visible: {
-    type: Boolean,
-    default: false,
-  },
-  locations: {
-    type: Array,
-    default: () => [],
-  },
+  visible: { type: Boolean, default: false },
+  locations: { type: Array, default: () => [] },
 });
 
 defineEmits(['close']);
 
-const markers = computed(() => {
-  return props.locations.map(loc => ({
-    lat: loc.lat,
-    lng: loc.lng,
-    name: loc.label, // Use the device label for the marker tooltip
-  }));
-});
+const mapRef = ref(null);
+const mapConfig = ref({ zoom: 8, center: [18.7357, -70.1627] });
+
+watch(() => [props.visible, props.locations], async ([newVisible, newLocations]) => {
+  if (newVisible && newLocations && newLocations.length > 0) {
+    await nextTick();
+    if (mapRef.value) {
+      const markers = newLocations.map(loc => ({
+        label: loc.label,
+        coordenadas: { lat: loc.lat, lng: loc.lng }
+      }));
+      mapRef.value.setMarkers(markers);
+    }
+  }
+}, { deep: true });
 </script>
 
 <style scoped>

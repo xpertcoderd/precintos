@@ -77,15 +77,15 @@ let deviceList = ref([])
 
 // Watch for data changes to update local list
 watch(devicesData, (newData) => {
-    if (newData && newData.success) {
-        deviceList.value = newData.devicesGroupsDevicesStates.map(row => ({ check: false, row }));
+    if (newData && newData.success && newData.data && newData.data.devices) {
+        deviceList.value = newData.data.devices.map(row => ({ check: false, row }));
     }
 }, { immediate: true });
 
 
 function downLoadList() {
-    if (devicesData.value && devicesData.value.success) {
-        const listadevices = devicesData.value.devicesGroupsDevicesStates.map(row => ({
+    if (devicesData.value && devicesData.value.success && devicesData.value.data && devicesData.value.data.devices) {
+        const listadevices = devicesData.value.data.devices.map(row => ({
             id: row.device.id,
             estado_device: row.deviceState.connectionStatus,
             nombre: row.device.label,
@@ -262,8 +262,8 @@ function changeSearchMode(id) {
 }
 
 function consultarCandadoListFilterBY(texto) {
-    if (devicesData.value && devicesData.value.success) {
-        const listDeviceTemp = devicesData.value.devicesGroupsDevicesStates.map(row => ({ check: false, row }));
+    if (devicesData.value && devicesData.value.success && devicesData.value.data && devicesData.value.data.devices) {
+        const listDeviceTemp = devicesData.value.data.devices.map(row => ({ check: false, row }));
 
         if (searchMode.value == 'device.label') {
             deviceList.value = listDeviceTemp.filter(item => item.row.device.label.toString().toUpperCase().includes(texto.toUpperCase()))
@@ -278,8 +278,8 @@ function consultarCandadoListFilterBY(texto) {
 }
 
 function consultarCandadoList() {
-    if (devicesData.value && devicesData.value.success) {
-        deviceList.value = devicesData.value.devicesGroupsDevicesStates.map(row => ({ check: false, row }));
+    if (devicesData.value && devicesData.value.success && devicesData.value.data && devicesData.value.data.devices) {
+        deviceList.value = devicesData.value.data.devices.map(row => ({ check: false, row }));
     }
 }
 
