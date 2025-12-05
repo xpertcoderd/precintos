@@ -1,10 +1,8 @@
 import { ref, computed, watch, onUnmounted, onMounted } from 'vue';
 import { getTransfersFilteredFull } from "@/services/transferService";
 import { getTransferBlitsMapPoints } from "@/services/blitService";
-import { useUnits } from "@/composables/useUnits"; // Import useUnits
 import { useBlits } from "@/composables/useBlits"; // Import useBlits
 import { useAuthStore } from "@/stores/authStore";
-import { getContainerStatusText, getContainerStatusColor } from '../utils/statusUtils';
 
 export function useMainContent(timeWindowHours) {
   // --- STATE ---
@@ -24,45 +22,52 @@ export function useMainContent(timeWindowHours) {
 
   // Global Container Tab State
   const isGlobalContainerView = ref(true);
-  const containerCurrentPage = ref(1);
+  const containerCurrentPage = ref(1); // Kept for potential client-side pagination if needed, or remove if unused
   const containerPageSize = ref(10);
   const containerActiveFilters = ref([]);
 
-  // Vue Query for Containers
-  const { useTransferUnitsFiltered } = useUnits();
-
-  const containerParams = computed(() => {
-    const searchParams = containerActiveFilters.value.reduce((params, filter) => {
-      params[filter.key] = filter.value;
-      return params;
-    }, {});
-    return {
-      page: containerCurrentPage.value,
-      pageSize: containerPageSize.value,
-      timeWindowHours: timeWindowHours.value,
-      ...searchParams
-    };
-  });
-
-  const {
-    data: containerData,
-    isLoading: isLoadingContainers,
-    // refetch: refetchContainers // Unused
-  } = useTransferUnitsFiltered(containerParams, {
-    enabled: computed(() => activeTab.value === 'Contenedor' || !isGlobalContainerView.value),
-  });
-
+  // Derived Container Data
   const allContainers = computed(() => {
-    const data = containerData.value?.data || containerData.value;
-    return data?.transferUnits || [];
+    if (!shipmentData.value) return [];
+    return shipmentData.value.flatMap(shipment => {
+      return shipment.transferUnits.map(unit => ({
+        id: unit.id,
+        container: unit.container,
+        deviceId: unit.deviceId,
+        statusId: unit.statusId,
+        linkedTime: unit.linkedTime,
+        unlinkedTime: unit.unlinkedTime,
+        transfer: {
+          bl: shipment.transfer.bl,
+          startDate: shipment.transfer.timeRequest,
+          endDate: shipment.transfer.timeTravelEst,
+          startPlace: shipment.transfer.startPlace,
+          endPlace: shipment.transfer.endPlace
+        }
+      }));
+    });
   });
-  const containerTotalItems = computed(() => {
-    const data = containerData.value?.data || containerData.value;
-    return data?.total || 0;
-  });
-  const containerTotalPages = computed(() => {
-    const data = containerData.value?.data || containerData.value;
-    return data ? Math.ceil(data.total / data.pageSize) : 1;
+
+  const isLoadingContainers = computed(() => loading.value);
+  const containerTotalItems = computed(() => allContainers.value.length);
+  const containerTotalPages = computed(() => 1); // Simplified since we show what's in BL tab
+
+  // --- Map Tab Data Fetching ---
+  // Removed independent fetching. Now derived from allContainers.
+
+  const isLoadingMapUnits = computed(() => loading.value);
+
+  const mapUnits = computed(() => {
+    // Priority 1: If a shipment is being tracked, show its units
+    if (lastTrackedShipment.value && activeContainers.value.length > 0) {
+      return activeContainers.value.filter(u => u.linkedTime);
+    }
+
+    // Priority 2: Default view (all active units from BL tab)
+    return allContainers.value.filter(u =>
+      (u.statusId === 3 || u.statusId === 4) && // En Tránsito (3) or Entregado (4)
+      u.linkedTime // Must have linked time
+    );
   });
 
 
@@ -115,13 +120,17 @@ export function useMainContent(timeWindowHours) {
     if (!shipment || !shipment.transferUnits) return;
     isGlobalContainerView.value = false;
     activeContainers.value = shipment.transferUnits.map(c => ({
-      id: `${shipment.transfer.bl}-${c.id}`,
-      transferUnitId: c.id,
-      container: `Contenedor # ${c.container}`,
-      origin: shipment.transfer.startPlace.label,
-      destination: shipment.transfer.endPlace.label,
-      status: getContainerStatusText(c.statusId),
-      statusColorClass: getContainerStatusColor(c.statusId),
+      id: c.id,
+      container: c.container,
+      deviceId: c.deviceId,
+      statusId: c.statusId,
+      transfer: {
+        bl: shipment.transfer.bl,
+        startDate: shipment.transfer.startDate,
+        endDate: shipment.transfer.endDate,
+        startPlace: shipment.transfer.startPlace,
+        endPlace: shipment.transfer.endPlace
+      }
     }));
     activeTab.value = 'Contenedor';
   };
@@ -134,13 +143,19 @@ export function useMainContent(timeWindowHours) {
     if (containers.length === 0) return;
 
     activeContainers.value = containers.map(c => ({
-      id: `${shipment.transfer.bl}-${c.id}`,
-      transferUnitId: c.id,
-      container: `Contenedor # ${c.container}`,
-      origin: shipment.transfer.startPlace.label,
-      destination: shipment.transfer.endPlace.label,
-      status: getContainerStatusText(c.statusId),
-      statusColorClass: getContainerStatusColor(c.statusId),
+      id: c.id,
+      container: c.container,
+      deviceId: c.deviceId,
+      statusId: c.statusId,
+      linkedTime: c.linkedTime,
+      unlinkedTime: c.unlinkedTime,
+      transfer: {
+        bl: shipment.transfer.bl,
+        startDate: shipment.transfer.startDate,
+        endDate: shipment.transfer.endDate,
+        startPlace: shipment.transfer.startPlace,
+        endPlace: shipment.transfer.endPlace
+      }
     }));
 
     const trLnkIds = containers.map(c => c.id).join(',');
@@ -185,20 +200,25 @@ export function useMainContent(timeWindowHours) {
     const data = etaData.value?.data || etaData.value;
     if (!data?.transferUnitBlits) return [];
 
-    const mappedData = data.transferUnitBlits.map(item => {
-      const blit = item.transferBlits?.[0] || {};
-      return {
-        id: item.transferLinked.id,
-        containerName: item.transferLinked.container,
-        statusId: item.transferLinked.statusId,
-        distance: blit.distance || 0,
-        distanceRemain: blit.distanceRemain || 0,
-        timeRemain: blit.timeRemain,
-        completed: blit.completed || 0,
-        departureTime: item.transferLinked.departureTime,
-        arrivalTime: item.transferLinked.arrivalTime,
-      };
-    });
+    // Filter ETA data to only include units present in allContainers (BL tab)
+    const visibleUnitIds = new Set(allContainers.value.map(u => u.id));
+
+    const mappedData = data.transferUnitBlits
+      .filter(item => visibleUnitIds.has(item.transferLinked.id))
+      .map(item => {
+        const blit = item.transferBlits?.[0] || {};
+        return {
+          id: item.transferLinked.id,
+          containerName: item.transferLinked.container,
+          statusId: item.transferLinked.statusId,
+          distance: blit.distance || 0,
+          distanceRemain: blit.distanceRemain || 0,
+          timeRemain: blit.timeRemain,
+          completed: blit.completed || 0,
+          departureTime: item.transferLinked.departureTime,
+          arrivalTime: item.transferLinked.arrivalTime,
+        };
+      });
 
     return mappedData.sort((a, b) => {
       const aIsEnTransito = a.statusId === 3;
@@ -231,6 +251,9 @@ export function useMainContent(timeWindowHours) {
   // fetchEtaData removed - handled by Vue Query
 
   const selectTab = (tab) => {
+    if (tab === 'Mapa') {
+      lastTrackedShipment.value = null; // Reset tracking filter when clicking tab directly
+    }
     activeTab.value = tab;
   };
 
@@ -299,8 +322,8 @@ export function useMainContent(timeWindowHours) {
     if (activeFetch) activeFetch();
   });
 
-  // watch([containerCurrentPage, containerPageSize], () => fetchAllContainers(containerCurrentPage.value)); // Vue Query handles this
-  // watch(containerActiveFilters, () => fetchAllContainers(1), { deep: true }); // Vue Query handles this
+  // watch([containerCurrentPage, containerPageSize], () => fetchAllContainers(containerCurrentPage.value)); // Removed
+  // watch(containerActiveFilters, () => fetchAllContainers(1), { deep: true }); // Removed
 
   onMounted(() => {
     fetchShipments();
@@ -318,6 +341,7 @@ export function useMainContent(timeWindowHours) {
     activeContainers, isGlobalContainerView, containerTrackingData, lastTrackedShipment, filteredContainersForMap,
     allContainers, isLoadingContainers, containerCurrentPage, containerTotalPages, containerTotalItems, containerPageSize, containerActiveFilters, filterOptions,
     etaContainers, isLoadingEta,
+    mapUnits, isLoadingMapUnits, // Export map data
     selectTab, handleGroupContainers, handleTrackShipment, handlePageChange: (page) => { currentPage.value = page; },
     fetchAllContainers, fetchShipments
   };

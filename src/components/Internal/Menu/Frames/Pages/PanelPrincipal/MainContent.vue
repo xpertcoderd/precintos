@@ -126,14 +126,13 @@
         </div>
     </div>
 
-    <div v-if="activeTab === 'Mapa'">
-      <MapComponent :tracking-data="containerTrackingData" />
-      <div class="mt-6">
-        <ContainerComponent
-          v-if="filteredContainersForMap.length > 0"
-          :containers="filteredContainersForMap"
-        />
-      </div>
+    <div v-if="activeTab === 'Mapa'" class="relative">
+      <transition name="fade">
+        <div v-if="isLoadingMapUnits" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
+          <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-sky-500"></div>
+        </div>
+      </transition>
+      <MapComponent :units="mapUnits" />
     </div>
 
     <!-- Modals -->
@@ -184,11 +183,11 @@ const linkModalData = ref({ clients: [], carriers: [], drivers: [], vehicles: []
 
 const {
   tabs, activeTab, shipmentData, loading, currentPage, totalPages, totalShipments,
-  activeContainers, isGlobalContainerView, containerTrackingData, filteredContainersForMap,
+  activeContainers, isGlobalContainerView,
   allContainers, isLoadingContainers, containerCurrentPage, containerTotalPages, containerTotalItems, containerPageSize, containerActiveFilters, filterOptions,
-  etaContainers, isLoadingEta,
+  etaContainers, isLoadingEta, mapUnits, isLoadingMapUnits,
   selectTab, handleGroupContainers, handleTrackShipment, handlePageChange,
-  fetchAllContainers, fetchEtaData, fetchShipments
+  fetchAllContainers, fetchShipments
 } = useMainContent(timeWindowHours);
 
 const { useOpenTransferUnitSeal } = useUnits();
@@ -224,7 +223,6 @@ const confirmOpenSeal = async ({ containerId, pin }) => {
       sendNotification('Sello abierto con éxito', 'success');
       fetchShipments();
       fetchAllContainers();
-      fetchEtaData();
     } else {
       sendNotification(response.message || 'Error al abrir el sello', 'error');
     }

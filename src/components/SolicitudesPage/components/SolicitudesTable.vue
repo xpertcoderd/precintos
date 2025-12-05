@@ -19,8 +19,13 @@
           <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ item.transfer.serverClient.name }}</td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ item.transfer.finalClient.name }}</td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ item.transfer.bl }}</td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ abbreviateLocation(item.transfer.startPlace.label) }}</td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ abbreviateLocation(item.transfer.endPlace.label) }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
+             <div class="flex items-center gap-2">
+               <span class="truncate max-w-[100px]" :title="item.transfer.startPlace.label">{{ abbreviateLocation(item.transfer.startPlace.label) }}</span>
+               <span class="text-slate-400">→</span>
+               <span class="truncate max-w-[100px]" :title="item.transfer.endPlace.label">{{ abbreviateLocation(item.transfer.endPlace.label) }}</span>
+             </div>
+          </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ formatDate(item.transfer.timeRequest) }}</td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500 relative group cursor-help">
             <span class="border-b border-dotted border-slate-400">{{ formatCurrency(item.transfer.unitPrice * item.countainerCount) }}</span>
@@ -82,7 +87,7 @@ defineEmits(['upload-payment', 'approve', 'cancel', 'link-shipment', 'view-vouch
 const openMenuId = ref(null);
 
 const headers = [
-  'Compañia', 'Cliente Final', 'Traslado', 'Origen', 'Destino', 'Fecha salida', 'Total', 'Estado'
+  'Compañia', 'Cliente Final', 'Traslado', 'Ruta', 'Fecha salida', 'Total', 'Estado'
 ];
 
 const formatDate = (dateString) => {

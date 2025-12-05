@@ -10,35 +10,40 @@
       </thead>
       <tbody class="bg-white divide-y divide-slate-200">
         <tr v-if="containers.length === 0">
-          <td :colspan="headers.length + 1" class="px-6 py-12 text-center text-slate-500">
+          <td :colspan="headers.length" class="px-6 py-12 text-center text-slate-500">
             No hay contenedores para mostrar.
           </td>
         </tr>
         <tr v-for="item in containers" :key="item.id" class="hover:bg-slate-50 transition-colors">
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ item.container }}</td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-            {{ item.deviceId || 'sin asignar' }}
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">{{ item.container }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500 font-mono">
+            {{ item.transfer?.bl || 'N/A' }}
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-            {{ getStatusText(item.statusId) }}
+            {{ formatDate(item.transfer?.startDate) }}
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-            {{ item.currentLinked ? 'Sí' : 'No' }}
+            {{ formatDate(item.transfer?.endDate) }}
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-            {{ item.linkedTime ? formatDate(item.linkedTime) : 'sin asignar' }}
+             <div class="flex items-center gap-2">
+               <span class="truncate max-w-[100px]" :title="item.transfer?.startPlace?.label">{{ item.transfer?.startPlace?.label || 'N/A' }}</span>
+               <span class="text-slate-400">→</span>
+               <span class="truncate max-w-[100px]" :title="item.transfer?.endPlace?.label">{{ item.transfer?.endPlace?.label || 'N/A' }}</span>
+             </div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm">
+            <span 
+              class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full"
+              :class="getContainerStatusColor(item.statusId)"
+            >
+              {{ getStatusText(item.statusId) }}
+            </span>
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-            {{ item.unlinkedTime ? formatDate(item.unlinkedTime) : 'sin asignar' }}
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-            {{ item.departureTime ? formatDate(item.departureTime) : 'sin asignar' }}
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-            {{ getArrivalTimeInfo(item).text }}
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-            {{ item.lastBlitTime ? formatDate(item.lastBlitTime) : 'sin asignar' }}
+            <button class="text-slate-400 hover:text-slate-600">
+              <EllipsisVerticalIcon class="w-5 h-5" />
+            </button>
           </td>
         </tr>
       </tbody>
@@ -47,7 +52,8 @@
 </template>
 
 <script setup>
-import { getContainerStatusText } from '../utils/statusUtils';
+import { EllipsisVerticalIcon } from '@heroicons/vue/24/outline';
+import { getContainerStatusText, getContainerStatusColor } from '../utils/statusUtils';
 
 defineProps({
   containers: {
@@ -58,14 +64,12 @@ defineProps({
 
 const headers = [
   'Contenedor',
-  'Device ID',
+  'BL',
+  'Fecha Inicio',
+  'Fecha Fin',
+  'Ruta',
   'Estado',
-  'Vinculado',
-  'Hora Vinculación',
-  'Hora Desvinculación',
-  'Hora Salida',
-  'Hora Llegada',
-  'Última Actividad'
+  'Acciones'
 ];
 
 const formatDate = (dateString) => {
@@ -74,18 +78,7 @@ const formatDate = (dateString) => {
   return date.toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' });
 };
 
-const getArrivalTimeInfo = (item) => {
-  if (!item.departureTime) {
-    return { text: 'sin asignar', class: 'text-slate-500' };
-  }
-  if (!item.arrivalTime) {
-    return { text: 'Sin Confirmar', class: 'text-slate-500' };
-  }
-  return { text: formatDate(item.arrivalTime), class: 'text-slate-500' };
-};
-
 const getStatusText = (statusId) => {
   return getContainerStatusText(statusId);
 };
-
 </script>
