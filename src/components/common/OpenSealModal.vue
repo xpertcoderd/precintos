@@ -15,7 +15,9 @@
           <div class="space-y-4 text-base">
             <div>
               <p class="font-semibold text-slate-700">Serial:</p>
-              <p class="text-lg text-slate-900" v-html="highlightedSerial"></p>
+              <p class="text-lg text-slate-900">
+                {{ serialParts.start }}<span v-if="serialParts.hasHighlight" class="text-sky-500 font-bold">{{ serialParts.end }}</span>
+              </p>
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div>
@@ -67,14 +69,14 @@ const emit = defineEmits(['close', 'confirm']);
 
 const pin = ref('');
 
-const highlightedSerial = computed(() => {
+const serialParts = computed(() => {
   const serial = props.container?.deviceId?.toString() || '';
   if (serial.length > 5) {
     const start = serial.slice(0, -5);
     const end = serial.slice(-5);
-    return `${start}<span class="text-sky-500 font-bold">${end}</span>`;
+    return { start, end, hasHighlight: true };
   }
-  return serial;
+  return { start: serial, end: '', hasHighlight: false };
 });
 
 const handleSubmit = () => {

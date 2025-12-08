@@ -23,7 +23,7 @@ const outGoingData = defineEmits(
 
 const router = useRouter();
 
-const menuSections = ref([
+const menuSections = [
     {
         title: 'Menu Principal',
         items: [
@@ -49,7 +49,7 @@ const menuSections = ref([
             // { name: 'Informacion', icon: InfoIcon, route: 'Informacion' }, // Not implemented yet
         ]
     }
-]);
+];
 
 const activeItem = ref('Panel Principal');
 
@@ -62,7 +62,7 @@ const setActive = (item) => {
 };
 
 const updateView = (routeName) => {
-  const item = menuSections.value.flatMap(section => section.items).find(item => item.route === routeName);
+  const item = menuSections.flatMap(section => section.items).find(item => item.route === routeName);
   if (item) {
     activeItem.value = item.name;
   }
