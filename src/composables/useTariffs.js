@@ -1,37 +1,49 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query';
 import {
-    getTariffsListAll,
-    calculateTariff,
+    getTariffsFiltered,
     createTariff,
-    deleteTariff
+    getTariffRead,
+    updateTariff,
+    deleteTariff,
+    getTariffTypesFiltered,
+    getTransferTypesFiltered
 } from '@/services/tariffService';
-
 import { unref, computed } from 'vue';
 
 export function useTariffs() {
     const queryClient = useQueryClient();
 
-    const useTariffsListAll = () => {
-        return useQuery({
-            queryKey: ['tariffs', 'all'],
-            queryFn: getTariffsListAll,
-            staleTime: 1000 * 60 * 5,
-        });
-    };
-
-    const useCalculateTariff = (trTypeId, startPlaceId, endPlaceId) => {
-        const queryKey = computed(() => ['tariffs', 'calc', unref(trTypeId), unref(startPlaceId), unref(endPlaceId)]);
+    const useTariffsFiltered = (params) => {
+        const queryKey = computed(() => ['tariffs', 'filtered', unref(params)]);
         return useQuery({
             queryKey,
-            queryFn: () => calculateTariff(unref(trTypeId), unref(startPlaceId), unref(endPlaceId)),
-            enabled: computed(() => !!unref(trTypeId) && !!unref(startPlaceId) && !!unref(endPlaceId)),
-            staleTime: 1000 * 60 * 60, // 1 hour
+            queryFn: () => getTariffsFiltered(unref(params)),
+            staleTime: 1000 * 60 * 5, // 5 minutes
         });
     };
 
     const useCreateTariff = () => {
         return useMutation({
             mutationFn: createTariff,
+            onSuccess: () => {
+                queryClient.invalidateQueries(['tariffs']);
+            },
+        });
+    };
+
+    const useTariffRead = (id) => {
+        const queryKey = computed(() => ['tariffs', 'read', unref(id)]);
+        return useQuery({
+            queryKey,
+            queryFn: () => getTariffRead(unref(id)),
+            enabled: computed(() => !!unref(id)),
+            staleTime: 1000 * 60 * 5, // 5 minutes
+        });
+    };
+
+    const useUpdateTariff = () => {
+        return useMutation({
+            mutationFn: ({ id, data }) => updateTariff(id, data),
             onSuccess: () => {
                 queryClient.invalidateQueries(['tariffs']);
             },
@@ -47,10 +59,29 @@ export function useTariffs() {
         });
     };
 
+    const useTariffTypesFiltered = (params = {}) => {
+        return useQuery({
+            queryKey: ['tariffTypes', 'filtered', params],
+            queryFn: () => getTariffTypesFiltered(params),
+            staleTime: 1000 * 60 * 60, // 1 hour (lookup data)
+        });
+    };
+
+    const useTransferTypesFiltered = (params = {}) => {
+        return useQuery({
+            queryKey: ['transferTypes', 'filtered', params],
+            queryFn: () => getTransferTypesFiltered(params),
+            staleTime: 1000 * 60 * 60, // 1 hour (lookup data)
+        });
+    };
+
     return {
-        useTariffsListAll,
-        useCalculateTariff,
+        useTariffsFiltered,
         useCreateTariff,
+        useTariffRead,
+        useUpdateTariff,
         useDeleteTariff,
+        useTariffTypesFiltered,
+        useTransferTypesFiltered,
     };
 }

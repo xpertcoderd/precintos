@@ -17,7 +17,13 @@
         </tr>
         <tr v-for="item in data" :key="item.id" class="hover:bg-slate-50 transition-colors">
           <td v-for="field in tableConfig.fields" :key="field" class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-            {{ getFieldData(item, field) }}
+            <!-- Custom Slot Logic for Actions or Specific styling could go here, for now using helper -->
+            <span v-if="field === 'additionals'" class="text-sky-500 hover:text-sky-700 cursor-pointer text-xs font-medium">
+                {{ getFieldData(item, field) }}
+            </span>
+            <span v-else>
+                 {{ getFieldData(item, field) }}
+            </span>
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
             <div class="flex items-center justify-center gap-4">
@@ -48,11 +54,43 @@ defineProps({
 defineEmits(['edit-item', 'delete-item'])
 
 const tableConfig = computed(() => ({
-  headers: ['Nombre', 'Tipo Transferencia', 'Tipo Tarifa', 'Precio'],
-  fields: ['name', 'transferType.name', 'tariffType.name', 'price'],
+  // Updated headers matching visual requirements
+  headers: ['Nombre de la Tarifa', 'Tipo de Carga', 'Tipo de Tarifa', 'Precio RDS', 'Viajes Cortos', 'Origen', 'Destino', 'Adicionales'],
+  // Fields mapped to properties (nested supported)
+  fields: [
+    'name', 
+    'transferType.name', 
+    'tariffType.name', 
+    'price', 
+    'shortTripKm', 
+    'origin.action_or_name', // Special logic
+    'destination.action_or_name',
+    'additionals' // Calculated field
+  ],
 }))
 
 function getFieldData(item, field) {
-  return field.split('.').reduce((o, i) => (o ? o[i] : null), item)
+  // Logic to handle specific visual requirements
+  const value = field.split('.').reduce((o, i) => (o ? o[i] : null), item);
+  
+  if (field === 'price') return formatting.currency(value);
+  if (field === 'shortTripKm') return value ? value : 'N/A';
+  
+  // Custom logic for Origin/Dest if they are not set (N/A)
+  if (field === 'origin.action_or_name') return item.origin?.name || 'N/A';
+  if (field === 'destination.action_or_name') return item.destination?.name || 'N/A';
+  
+  if (field === 'additionals') return 'Ver mas'; // Static for valid items
+
+  return value || '-';
+}
+
+const formatting = {
+    currency: (val) => {
+        if (typeof val !== 'number') return val;
+        // Returning raw number to match screenshot simple "2000" style, 
+        // but if formatting is preferred we'd use Intl
+        return val; 
+    }
 }
 </script>
