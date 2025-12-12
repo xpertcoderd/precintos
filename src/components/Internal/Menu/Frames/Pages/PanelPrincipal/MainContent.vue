@@ -61,9 +61,6 @@
     <div v-if="activeTab === 'Contenedor'">
       <!-- Global Table View -->
       <div v-if="isGlobalContainerView">
-        <div class="mb-6">
-          <MultiFilterInput v-model="containerActiveFilters" :filter-options="filterOptions" />
-        </div>
         <div class="relative">
             <transition name="fade">
                 <div v-if="isLoadingContainers" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
@@ -170,7 +167,6 @@ import MapComponent from './MapComponent.vue';
 import CreateLinkComponent from '@/components/CreateLink/CreateLinkComponent.vue';
 import OpenSealModal from '@/components/common/OpenSealModal.vue';
 import Pagination from './Pagination.vue';
-import MultiFilterInput from '@/components/common/MultiFilterInput.vue';
 import ListIcon from './icons/ListIcon.vue';
 import Swal from 'sweetalert2';
 
@@ -184,7 +180,7 @@ const linkModalData = ref({ clients: [], carriers: [], drivers: [], vehicles: []
 const {
   tabs, activeTab, shipmentData, loading, currentPage, totalPages, totalShipments,
   activeContainers, isGlobalContainerView,
-  allContainers, isLoadingContainers, containerCurrentPage, containerTotalPages, containerTotalItems, containerPageSize, containerActiveFilters, filterOptions,
+  allContainers, isLoadingContainers, containerCurrentPage, containerTotalPages, containerTotalItems, containerPageSize,
   etaContainers, isLoadingEta, mapUnits, isLoadingMapUnits,
   selectTab, handleGroupContainers, handleTrackShipment, handlePageChange,
   fetchAllContainers, fetchShipments

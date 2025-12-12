@@ -24,7 +24,7 @@ export function useMainContent(timeWindowHours) {
   const isGlobalContainerView = ref(true);
   const containerCurrentPage = ref(1); // Kept for potential client-side pagination if needed, or remove if unused
   const containerPageSize = ref(10);
-  const containerActiveFilters = ref([]);
+
 
   // Derived Container Data
   const allContainers = computed(() => {
@@ -74,17 +74,7 @@ export function useMainContent(timeWindowHours) {
   // Timers
   // trackingTimer and sessionTimer are declared later
 
-  const filterOptions = [
-    { label: 'Container ID', value: 'ids' },
-    { label: 'Transfer ID', value: 'transferId' },
-    { label: 'Status ID', value: 'statusIds' },
-    { label: 'Device ID', value: 'deviceId' },
-    { label: 'Carrier ID', value: 'carrierId' },
-    { label: 'Vehicle ID', value: 'vehicleId' },
-    { label: 'Driver ID', value: 'driverId' },
-    { label: 'Min Linked Time (hrs)', value: 'minLinkedTime' },
-    { label: 'Max Linked Time (hrs)', value: 'maxLinkedTime' },
-  ];
+
 
   // --- COMPUTED ---
   const filteredContainersForMap = computed(() => {
@@ -339,7 +329,7 @@ export function useMainContent(timeWindowHours) {
     tabs: ['BL', 'Contenedor', 'ETA', 'Mapa'],
     activeTab, shipmentData, loading, currentPage, totalPages, totalShipments,
     activeContainers, isGlobalContainerView, containerTrackingData, lastTrackedShipment, filteredContainersForMap,
-    allContainers, isLoadingContainers, containerCurrentPage, containerTotalPages, containerTotalItems, containerPageSize, containerActiveFilters, filterOptions,
+    allContainers, isLoadingContainers, containerCurrentPage, containerTotalPages, containerTotalItems, containerPageSize,
     etaContainers, isLoadingEta,
     mapUnits, isLoadingMapUnits, // Export map data
     selectTab, handleGroupContainers, handleTrackShipment, handlePageChange: (page) => { currentPage.value = page; },

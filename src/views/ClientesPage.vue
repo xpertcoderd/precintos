@@ -25,11 +25,14 @@
       <div v-else-if="error" class="text-center text-red-500 py-4">{{ error }}</div>
 
       <!-- The integrated table component -->
+      <!-- The integrated table component -->
       <div v-else>
         <ClientesTable
             :data="items"
+            :profiles-map="profilesMap"
             @edit-item="openEditModal"
             @delete-item="openDeleteConfirmation"
+            @open-credit-profile="openCreditModal"
         />
         <div class="mt-6 flex items-center justify-between">
             <div class="flex items-center gap-2 text-sm text-slate-500">
@@ -70,11 +73,21 @@
     </transition>
 
     <ConfirmationModal :visible="isConfirmationVisible" @cancel="closeDeleteConfirmation" @confirm="confirmDelete" />
+
+    <!-- Credit Profile Modal -->
+    <CreditProfileModal
+      :visible="isCreditModalVisible"
+      :client="selectedClientForCredit"
+      :profile-id="selectedProfileId"
+      @close="closeCreditModal"
+      @saved="handleCreditSaved"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue' // Added computed
+import { useNotifications } from '@/composables/useNotifications'
 import { useClientesPage } from '@/components/ClientesPage/composables/useClientesPage'
 import ClientesTable from '@/components/ClientesPage/components/ClientesTable.vue'
 import EntityModal from '@/components/ClientesPage/components/EntityModal.vue'
@@ -82,6 +95,11 @@ import ConfirmationModal from '@/components/ClientesPage/components/Confirmation
 import ClienteForm from '@/components/ClientesPage/components/ClientesForm.vue'
 import ClientWizard from '@/components/ClientesPage/components/ClientWizard.vue'
 import Pagination from '@/components/Internal/Menu/Frames/Pages/PanelPrincipal/Pagination.vue';
+import CreditProfileModal from '@/components/ClientesPage/components/CreditProfileModal.vue';
+import { useCreditTariffProfiles } from '@/composables/useCreditTariffProfiles'; // Import
+
+const { sendNotification } = useNotifications();
+const { useCreditTariffProfilesFiltered } = useCreditTariffProfiles(); // Use hook
 
 const {
   items,
@@ -114,6 +132,47 @@ const {
 } = useClientesPage()
 
 const clienteFormRef = ref(null)
+
+// Credit Profile Logic
+const { data: profilesData, refetch: refetchProfiles } = useCreditTariffProfilesFiltered(computed(() => ({
+    page: 1, 
+    pageSize: 1000 // Fetching a large number to map profiles. Optimally should be handled by backend.
+})));
+
+const profilesMap = computed(() => {
+    if (!profilesData.value || !profilesData.value.data) return {};
+    
+    // access profiles array correctly based on user provided JSON structure
+    const profiles = profilesData.value.data.profiles || [];
+    
+    return profiles.reduce((acc, profile) => {
+        // Fallback to clientId if id is missing, assuming potential 1:1 or backend fix needed
+        acc[profile.clientId] = profile.id || profile.clientId;
+        return acc;
+    }, {});
+});
+
+// Credit Profile Modal State
+const isCreditModalVisible = ref(false);
+const selectedClientForCredit = ref(null);
+const selectedProfileId = ref(null);
+
+function openCreditModal({ client, profileId }) {
+    selectedClientForCredit.value = client;
+    selectedProfileId.value = profileId;
+    isCreditModalVisible.value = true;
+}
+
+function closeCreditModal() {
+    isCreditModalVisible.value = false;
+    selectedClientForCredit.value = null;
+    selectedProfileId.value = null;
+}
+
+function handleCreditSaved() {
+    sendNotification('Perfil crediticio guardado exitosamente', 'success');
+    refetchProfiles(); // Refresh profiles map
+}
 
 async function handleSave() {
   if (clienteFormRef.value) {
