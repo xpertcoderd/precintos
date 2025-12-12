@@ -136,7 +136,13 @@ function initEditMode(transferData) {
   // Populate wizardData.step1 for logic references (unitPrice, type)
   wizardData.step1 = {
     unitPrice: transferData.transfer.unitPrice,
-    type: { name: transferData.transfer.transferType?.name || 'Import', id: transferData.transfer.transferTypeId } // Mock object as needed by validation/logic
+    type: { name: transferData.transfer.transferType?.name || 'Import', id: transferData.transfer.transferTypeId },
+    finalClient: transferData.transfer.finalClient,
+    startPlace: transferData.transfer.startPlace,
+    endPlace: transferData.transfer.endPlace,
+    address: transferData.transfer.address,
+    city: transferData.transfer.city,
+    timeTravelEst: transferData.transfer.timeTravelEst
   }
 
   // Populate Step 2 (BL)

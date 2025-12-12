@@ -8,7 +8,7 @@ export function useTransfers(params) {
     // Ensure params is reactive or a computed ref
     const queryKey = computed(() => ['transfers', unref(params)]);
 
-    const { data, isLoading, isError, error, isFetching } = useQuery({
+    const { data, isLoading, isError, error, isFetching, refetch } = useQuery({
         queryKey,
         queryFn: () => getTransfersSummary(unref(params)),
         keepPreviousData: true, // Keep showing old data while fetching new page
@@ -31,5 +31,6 @@ export function useTransfers(params) {
         isFetching,
         createTransfer: createMutation.mutateAsync,
         isCreating: createMutation.isPending,
+        refetch,
     };
 }

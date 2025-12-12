@@ -66,7 +66,16 @@
                   @click.prevent="item.transfer.transferStateId !== 1 ? $emit('link-shipment', item) : null"
                   role="menuitem"
                 >Enlazar</a>
-                <a href="#" @click.prevent="$emit('add-container', item)" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100" role="menuitem">Agregar Contenedor</a>
+                <a 
+                  href="#" 
+                  :class="[
+                    'block px-4 py-2 text-sm',
+                    item.transfer.transferStateId === 1 ? 'text-slate-700 hover:bg-slate-100' : 'text-slate-400 cursor-not-allowed'
+                  ]"
+                  :title="item.transfer.transferStateId !== 1 ? 'Solo disponibles para solicitudes pendientes' : ''"
+                  @click.prevent="item.transfer.transferStateId === 1 ? $emit('add-container', item) : null" 
+                  role="menuitem"
+                >Agregar Contenedor</a>
                 <a href="#" @click.prevent="$emit('cancel', item)" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50" role="menuitem">Cancelar</a>
               </div>
             </div>

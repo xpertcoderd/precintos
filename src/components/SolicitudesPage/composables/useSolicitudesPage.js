@@ -17,7 +17,7 @@ export function useSolicitudesPage(timeWindowHours) {
   }));
 
   // Use Vue Query
-  const { data: queryData, isLoading: isQueryLoading, isError, error: queryError } = useTransfers(params);
+  const { data: queryData, isLoading: isQueryLoading, isError, error: queryError, refetch } = useTransfers(params);
 
   // Local state for UI manipulation (mock support)
   const items = ref([]);
@@ -141,5 +141,6 @@ export function useSolicitudesPage(timeWindowHours) {
     closeDeleteConfirmation,
     saveItem,
     confirmDelete,
+    fetchItems: refetch,
   };
 }
