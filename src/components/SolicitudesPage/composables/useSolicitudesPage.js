@@ -14,6 +14,8 @@ export function useSolicitudesPage(timeWindowHours) {
     page: currentPage.value,
     pageSize: pageSize.value,
     timeWindowHours: timeWindowHours.value,
+    sortBy: 'transfers.transferStateId',
+    sortDir: 'asc',
   }));
 
   // Use Vue Query
@@ -25,10 +27,31 @@ export function useSolicitudesPage(timeWindowHours) {
   const totalPages = ref(1);
 
   // Sync Query Data to Local State
-  // Sync Query Data to Local State
   watch(queryData, (newData) => {
     if (newData && newData.success && newData.data) {
-      items.value = [...newData.data.transfers]; // Create a copy for local mutation
+      // Sort: Pending (1) first, then others. Within each group (and generally), sort by date descending.
+      // Since API already sorts by status ASC (1, 2, 3...), we mainly need to ensure date sorting.
+      // Although API handles status sort, we reinforce it here and apply date sort.
+
+      const sortedTransfers = [...newData.data.transfers].sort((a, b) => {
+        const stateA = a.transfer.transferStateId;
+        const stateB = b.transfer.transferStateId;
+
+        // Primary Sort: Pending (1) first
+        // Note: The API 'asc' sort on transferStateId should already put 1s first.
+        // We replicate this logic to be safe and handle mixed client-side state if needed.
+        if (stateA === 1 && stateB !== 1) return -1;
+        if (stateA !== 1 && stateB === 1) return 1;
+
+        // Determine if we are comparing two Pending items or two Non-Pending items (or mixed non-pending)
+        // Secondary Sort: Date Descending (Newest first)
+        const dateA = new Date(a.transfer.timeRequest).getTime();
+        const dateB = new Date(b.transfer.timeRequest).getTime();
+
+        return dateB - dateA;
+      });
+
+      items.value = sortedTransfers;
       totalItems.value = newData.data.total;
       totalPages.value = Math.ceil(newData.data.total / newData.data.pageSize);
     }

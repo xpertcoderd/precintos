@@ -20,6 +20,7 @@ const step = ref(1);
 const linkData = ref({});
 const deviceSearchText = ref('');
 const isDeviceDropdownOpen = ref(false);
+const uploadError = ref(null); // New state for upload error
 
 // --- Logic ---
 const initializeLinkData = (container) => {
@@ -56,6 +57,45 @@ const handleBlur = () => {
   setTimeout(() => {
     isDeviceDropdownOpen.value = false;
   }, 200);
+};
+
+// --- Validation Logic ---
+const isStep1Valid = computed(() => {
+  return (
+    linkData.value.transferUnitId &&
+    linkData.value.deviceId &&
+    linkData.value.carrierId &&
+    linkData.value.driverId &&
+    linkData.value.vehicleId
+  );
+});
+
+const handleFileUpload = (event) => {
+  const file = event.target.files[0];
+  uploadError.value = null; // Reset error
+
+  if (!file) {
+    linkData.value.photo = null;
+    return;
+  }
+
+  // Validate format (PNG, JPG)
+  const allowedTypes = ['image/png', 'image/jpeg'];
+  if (!allowedTypes.includes(file.type)) {
+    uploadError.value = 'Formato inválido. Solo se permiten PNG o JPG.';
+    linkData.value.photo = null;
+    return;
+  }
+
+  // Validate size (max 10MB)
+  const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+  if (file.size > maxSize) {
+    uploadError.value = 'El archivo es demasiado grande. Máximo 10MB.';
+    linkData.value.photo = null;
+    return;
+  }
+
+  linkData.value.photo = file;
 };
 
 // Watch for changes in the selected container and re-initialize the form
@@ -186,14 +226,17 @@ const UploadCloud = { template: `<svg xmlns="http://www.w3.org/2000/svg" width="
                             <div class="flex text-sm text-slate-600">
                                 <label for="file-upload" class="relative cursor-pointer rounded-md bg-white font-medium text-sky-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-sky-500 focus-within:ring-offset-2 hover:text-sky-500">
                                     <span>Sube un archivo</span>
-                                    <input id="file-upload" name="file-upload" type="file" class="sr-only" @change="(e) => linkData.photo = e.target.files[0]">
+                                    <input id="file-upload" name="file-upload" type="file" class="sr-only" @change="handleFileUpload" accept="image/png, image/jpeg">
                                 </label>
                                 <p class="pl-1">o arrástralo aquí</p>
                             </div>
                           <p v-if="linkData.photo" class="text-sm text-slate-600 pt-1">
                             Archivo: <span class="font-semibold">{{ linkData.photo.name }}</span>
                           </p>
-                          <p v-else class="text-xs leading-5 text-slate-600">PNG, JPG, GIF hasta 10MB</p>
+                          <p v-else-if="uploadError" class="text-sm text-red-500 pt-1">
+                            {{ uploadError }}
+                          </p>
+                          <p v-else class="text-xs leading-5 text-slate-600">PNG, JPG hasta 10MB</p>
                         </div>
                     </div>
                 </div>
@@ -205,8 +248,8 @@ const UploadCloud = { template: `<svg xmlns="http://www.w3.org/2000/svg" width="
 
                 <button v-if="step === 2" @click="step = 1" class="ml-3 px-5 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-100 transition-colors">Atrás</button>
 
-                <button v-if="step === 1" @click="step = 2" class="ml-3 px-5 py-2.5 text-sm font-medium text-white bg-sky-500 rounded-lg hover:bg-sky-600">Siguiente</button>
-                <button v-if="step === 2" @click="handleConfirm" class="ml-3 px-5 py-2.5 text-sm font-medium text-white bg-sky-500 rounded-lg hover:bg-sky-600">Confirmar</button>
+                <button v-if="step === 1" @click="step = 2" :disabled="!isStep1Valid" :class="{'opacity-50 cursor-not-allowed': !isStep1Valid}" class="ml-3 px-5 py-2.5 text-sm font-medium text-white bg-sky-500 rounded-lg hover:bg-sky-600">Siguiente</button>
+                <button v-if="step === 2" @click="handleConfirm" :disabled="!linkData.photo" :class="{'opacity-50 cursor-not-allowed': !linkData.photo}" class="ml-3 px-5 py-2.5 text-sm font-medium text-white bg-sky-500 rounded-lg hover:bg-sky-600">Confirmar</button>
             </div>
         </div>
       </div>
