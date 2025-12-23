@@ -38,19 +38,23 @@
         <tr>
           <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">No. BL</th>
           <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Contenedores</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Total</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Total Bruto</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Descuento</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Total Neto</th>
         </tr>
         </thead>
         <tbody class="bg-white divide-y divide-slate-200">
         <tr v-if="!incomingData.bl_ContainerList || incomingData.bl_ContainerList.length === 0">
-          <td colspan="3" class="px-6 py-12 text-center text-slate-500">
+          <td colspan="5" class="px-6 py-12 text-center text-slate-500">
             No hay datos para mostrar.
           </td>
         </tr>
         <tr v-for="(row, index) in incomingData.bl_ContainerList" :key="index" class="hover:bg-slate-50 transition-colors">
           <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ row.bl }}</td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ row.bl_count }}</td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ `RD$${row.amount.toLocaleString('es-419')}` }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ `RD$${(row.grossAmount || 0).toLocaleString('es-419')}` }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ `RD$${(row.discountAmount || 0).toLocaleString('es-419')}` }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ `RD$${(row.netAmount || 0).toLocaleString('es-419')}` }}</td>
         </tr>
         </tbody>
       </table>

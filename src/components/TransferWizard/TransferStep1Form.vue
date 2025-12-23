@@ -45,7 +45,14 @@ watch(
 
 watch(
     () => [localModel.value.type, localModel.value.startPlace, localModel.value.endPlace],
-    async ([type, start, end]) => {
+    async ([type, start, end], [oldType, oldStart, oldEnd]) => {
+      // Guard against infinite loops or redundant calls
+      const isSame = 
+          type?.id === oldType?.id && 
+          start?.id === oldStart?.id && 
+          end?.id === oldEnd?.id;
+
+      if (isSame) return;
       if (start && end && start.id === end.id) {
         locationError.value = 'El origen y el destino no pueden ser el mismo.';
         unitPrice.value = 0;
@@ -55,9 +62,20 @@ watch(
         if (type && start && end) {
           isCalculatingTariff.value = true;
           try {
-            const price = await calculateTariff(type, start, end);
-            unitPrice.value = price;
-            localModel.value.unitPrice = price;
+            const tariffData = await calculateTariff(type, start, end);
+            
+            unitPrice.value = tariffData.price; // Display Gross Price in the Input? Or Final?
+            // User did not specify what to display in Step 1 input. 
+            // Usually "Tarifa" implies the base rate. 
+            // I will store the detailed breakdown in localModel.
+            
+            // Trigger the setter to ensure the parent updates correctly via v-model
+            const newState = {
+              ...localModel.value,
+              unitPrice: tariffData.price,
+              tariffData: tariffData
+            };
+            localModel.value = newState;
           } finally {
             isCalculatingTariff.value = false;
           }

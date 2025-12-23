@@ -38,17 +38,21 @@
               <tr>
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">BL</th>
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Cantidad</th>
-                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Monto</th>
+                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Total Bruto</th>
+                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Descuento</th>
+                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Total Neto</th>
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-slate-200">
               <tr v-for="(item, index) in step4Data" :key="index">
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">#{{ item.bl }}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ item.bl_count }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500 text-right">{{ formatCurrency(item.amount) }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500 text-right">{{ formatCurrency(item.grossAmount || 0) }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500 text-right">{{ formatCurrency(item.discountAmount || 0) }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500 text-right">{{ formatCurrency(item.netAmount || 0) }}</td>
               </tr>
               <tr v-if="!step4Data.length">
-                <td colspan="3" class="text-center py-4 text-sm text-slate-500">No hay desglose para mostrar.</td>
+                <td colspan="5" class="text-center py-4 text-sm text-slate-500">No hay desglose para mostrar.</td>
               </tr>
             </tbody>
           </table>
@@ -95,7 +99,7 @@ const props = defineProps({
 defineEmits(['cerrar', 'next']);
 
 const summaryDetails = computed(() => props.allData.headerData || {});
-const grandTotal = computed(() => props.allData.totalAmount || 0);
+const grandTotal = computed(() => props.allData.totalAmount || 0); // This is now Net Total per logic update
 
 const formatCurrency = (value) => {
   if (typeof value !== 'number') {

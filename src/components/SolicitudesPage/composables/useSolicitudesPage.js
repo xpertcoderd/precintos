@@ -14,7 +14,7 @@ export function useSolicitudesPage(timeWindowHours) {
     page: currentPage.value,
     pageSize: pageSize.value,
     timeWindowHours: timeWindowHours.value,
-    sortBy: 'transfers.transferStateId',
+    sortBy: 'transferStateId',
     sortDir: 'asc',
   }));
 

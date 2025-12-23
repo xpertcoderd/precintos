@@ -22,7 +22,7 @@
           <TransferStep2Form v-if="step === 2" v-model="wizardData.step2" :errors="errors.step2" :transfer-type="wizardData.step1.type" @cerrar="close" @next="validateAndNext(2)" />
           <TransferStep3Form v-if="step === 3" :incoming-data="wizardData.step2" v-model="wizardData.step3" :errors="errors.step3" @cerrar="close" @next="validateAndNext(3)" />
           <TransferStep4Form v-if="step === 4" :order-data="allData" v-model="wizardData.step4" :errors="errors.step4" @cerrar="close" @next="validateAndNext(4)" @update-table-data="handleUpdateStep4Data" />
-          <TransferStep5Form v-if="step === 5" :all-data="allData" :step4-data="step4TableData" @cerrar="close" @next="closeAndFetch" />
+          <TransferStep5Form v-if="step === 5" :all-data="allData" :step4-data="allData.bl_ContainerList" @cerrar="close" @next="closeAndFetch" />
         </div>
       </div>
     </div>
@@ -81,6 +81,8 @@ const allData = ref({
   },
   bl_ContainerList: [],
   totalAmount: 0,
+  grossTotal: 0,
+  discountTotal: 0,
   check: false,
 })
 
@@ -142,7 +144,12 @@ function initEditMode(transferData) {
     endPlace: transferData.transfer.endPlace,
     address: transferData.transfer.address,
     city: transferData.transfer.city,
-    timeTravelEst: transferData.transfer.timeTravelEst
+    timeTravelEst: transferData.transfer.timeTravelEst,
+    tariffData: {
+      price: transferData.transfer.unitPrice,
+      discount: 0, // Default to 0 as we don't have historical discount data
+      finalCost: transferData.transfer.unitPrice
+    }
   }
 
   // Populate Step 2 (BL)

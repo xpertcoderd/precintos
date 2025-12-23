@@ -71,12 +71,20 @@ export function useTransferLogic(wizardData) {
         orders.value.push(...createdOrders);
 
         orderSummary.value.bl = orders.value.length;
+        // Total containers
         orderSummary.value.containers = orders.value.reduce(
             (sum, o) => sum + (o.containers_count || 0),
             0
         );
-        orderSummary.value.amount =
-            orderSummary.value.containers * wizardData.step1.unitPrice;
+
+        // Summing up totals
+        const totalGross = orders.value.reduce((sum, o) => sum + (o.grossAmount || 0), 0);
+        const totalDiscount = orders.value.reduce((sum, o) => sum + (o.discountAmount || 0), 0);
+        const totalNet = orders.value.reduce((sum, o) => sum + (o.netAmount || 0), 0);
+
+        orderSummary.value.grossTotal = totalGross;
+        orderSummary.value.discountTotal = totalDiscount;
+        orderSummary.value.totalAmount = totalNet; // This will trigger the "Total a Pagar" in Step 5
     }
 
     async function processSingleBl(bl) {
@@ -113,14 +121,22 @@ export function useTransferLogic(wizardData) {
 
             if (assignResponse.success) {
                 sms(`✅ Contenedores asignados para BL ${bl.bl}`);
+
+                // Calculate costs using tariffData from Step 1
+                const tariffData = wizardData.step1.tariffData || { price: transferData.unitPrice || 0, discount: 0, finalCost: transferData.unitPrice || 0 };
+                const count = bl.containers.length;
+
                 createdOrders.push({
                     id: transferId,
                     bl: bl.bl,
                     startPlace: transferData.startPlace,
                     endPlace: transferData.endPlace,
-                    unitPrice: transferData.unitPrice,
-                    containers_count: bl.containers.length,
-                    amount: bl.containers.length * transferData.unitPrice,
+                    unitPrice: tariffData.price,
+                    containers_count: count,
+                    grossAmount: count * tariffData.price,
+                    discountAmount: count * tariffData.discount,
+                    netAmount: count * tariffData.finalCost,
+                    amount: count * tariffData.finalCost // Keep 'amount' for backward compatibility if needed, but we rely on netAmount or grossAmount
                 });
             } else {
                 sms(`⚠️ No se pudieron asignar contenedores para BL ${bl.bl}`);

@@ -8,7 +8,7 @@
 
       <div class="flex justify-end text-sm">
         <strong>Total: </strong>
-        <span class="ml-1">{{ `RD$${localModel.totalAmount?.toLocaleString('es-419')}` }}</span>
+        <span class="ml-1">{{ `RD$${(localModel.totalAmount || 0).toLocaleString('es-419')}` }}</span>
       </div>
 
       <div class="space-y-1">

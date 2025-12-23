@@ -82,20 +82,40 @@ export function useTransferValidation(wizardData, errors, allData) {
                         container: container.text2,
                     });
                 });
-                allData.value.totalAmount = 0;
+
+                // Initialize totals
+                allData.value.totalAmount = 0; // Net Total
+                allData.value.grossTotal = 0;
+                allData.value.discountTotal = 0;
+
+                const tariffData = wizardData.step1.tariffData || {
+                    price: wizardData.step1.unitPrice || 0,
+                    discount: 0,
+                    finalCost: wizardData.step1.unitPrice || 0
+                };
 
                 wizardData.step2.listBl.forEach((bl) => {
                     const filteredContainerList = unfilteredContainerList.filter(
                         (container) => container.bl === bl.text
                     );
-                    const amount = filteredContainerList.length * wizardData.step1.unitPrice;
-                    allData.value.totalAmount += amount;
+
+                    const count = filteredContainerList.length;
+                    const grossAmount = count * tariffData.price;
+                    const discountAmount = count * tariffData.discount;
+                    const netAmount = count * tariffData.finalCost;
+
+                    allData.value.grossTotal += grossAmount;
+                    allData.value.discountTotal += discountAmount;
+                    allData.value.totalAmount += netAmount;
 
                     allData.value.bl_ContainerList.push({
                         bl: bl.text,
                         transferId: bl.transferId, // Pass transferId if exists (Edit Mode)
-                        bl_count: filteredContainerList.length,
-                        amount,
+                        bl_count: count,
+                        grossAmount,
+                        discountAmount,
+                        netAmount,
+                        amount: netAmount, // Default amount for generic usage
                         containers: filteredContainerList,
                     });
                 });

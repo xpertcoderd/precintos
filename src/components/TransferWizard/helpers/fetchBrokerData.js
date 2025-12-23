@@ -68,10 +68,18 @@ export async function calculateTariffValue(trType, startPlace, endPlace) {
 
     try {
         const response = await calculateTariff(trTypeId, startPlaceId, endPlaceId);
-        return response.success ? (response.data.tariff.price || 0) : 0;
+        if (response.success) {
+            const data = response.data;
+            return {
+                price: data.tariff?.price || 0,
+                discount: data.discount || 0,
+                finalCost: data.finalCost || 0
+            };
+        }
+        return { price: 0, discount: 0, finalCost: 0 };
     } catch (error) {
         console.error("Error al consultar la tarifa:", error);
-        return 0;
+        return { price: 0, discount: 0, finalCost: 0 };
     }
 }
 
