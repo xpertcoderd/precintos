@@ -38,12 +38,15 @@ export function useMainContent(timeWindowHours) {
         linkedTime: unit.linkedTime,
         unlinkedTime: unit.unlinkedTime,
         transfer: {
-          bl: shipment.transfer.bl,
           startDate: shipment.transfer.timeRequest,
           endDate: shipment.transfer.timeTravelEst,
           startPlace: shipment.transfer.startPlace,
-          endPlace: shipment.transfer.endPlace
-        }
+          endPlace: shipment.transfer.endPlace,
+          finalClient: shipment.transfer.finalClient?.name || 'N/A',
+          cargoDescription: shipment.transfer.description || 'Sin descripción',
+          bl: shipment.transfer.bl
+        },
+        seal: unit.seal || unit.precinto || unit.deviceId || 'N/A'
       }));
     });
   });
@@ -184,6 +187,7 @@ export function useMainContent(timeWindowHours) {
     enabled: computed(() => activeTab.value === 'ETA'),
     refetchInterval: 60000, // Poll every minute
     refetchOnWindowFocus: false,
+    retry: false
   });
 
   const etaContainers = computed(() => {

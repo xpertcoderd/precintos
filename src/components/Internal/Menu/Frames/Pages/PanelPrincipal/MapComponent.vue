@@ -24,7 +24,12 @@
               <div class="flex justify-between items-start mb-2">
                 <div>
                   <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Contenedor</p>
-                  <p class="font-bold text-slate-800 text-base">{{ unit.container }}</p>
+                  <p class="font-bold text-slate-800 text-base">{{ unit.container.replace('Contenedor # ', '') }}</p>
+                  
+                  <div class="mt-1 flex flex-col gap-0.5">
+                      <p class="text-xs text-slate-600"><span class="font-semibold">BL:</span> {{ unit.transfer?.bl || 'N/A' }}</p>
+                      <p class="text-xs text-slate-600 truncate" :title="unit.transfer?.cargoDescription"><span class="font-semibold">Carga:</span> {{ unit.transfer?.cargoDescription || 'Sin descripción' }}</p>
+                  </div>
                 </div>
               </div>
 
@@ -186,16 +191,16 @@ const fetchAndDrawRoute = async (unit) => {
         path.push(latLng);
         bounds.extend(latLng);
 
-        // Start Marker
+        // Start Marker (Origin)
         if (index === 0) {
           const startMarker = new googleMaps.value.maps.Marker({
             position: latLng,
             map: map.value,
-            title: "Origen",
+            title: "Origen: " + (unit.transfer?.startPlace?.label || ''),
             icon: {
               path: googleMaps.value.maps.SymbolPath.CIRCLE,
-              scale: 7,
-              fillColor: "#22c55e", // Green
+              scale: 6,
+              fillColor: "#64748b", // Slate-500 (Gray)
               fillOpacity: 1,
               strokeWeight: 2,
               strokeColor: "#ffffff",
@@ -204,31 +209,69 @@ const fetchAndDrawRoute = async (unit) => {
           markers.value.push(startMarker);
         }
 
-        // End/Current Marker
+        // Current Position Marker
         if (index === points.length - 1) {
-          const endMarker = new googleMaps.value.maps.Marker({
+          const currentMarker = new googleMaps.value.maps.Marker({
             position: latLng,
             map: map.value,
             title: "Posición Actual",
             icon: {
               path: googleMaps.value.maps.SymbolPath.CIRCLE,
-              scale: 7,
+              scale: 8,
               fillColor: "#3b82f6", // Blue
               fillOpacity: 1,
-              strokeWeight: 2,
+              strokeWeight: 3,
               strokeColor: "#ffffff",
             }
           });
-          markers.value.push(endMarker);
+          markers.value.push(currentMarker);
         }
       });
+      
+      // Destination Marker (if coordinates available)
+      if (unit.transfer?.endPlace?.lat && unit.transfer?.endPlace?.lng) {
+          const destLatLng = new googleMaps.value.maps.LatLng(unit.transfer.endPlace.lat, unit.transfer.endPlace.lng);
+          const destMarker = new googleMaps.value.maps.Marker({
+            position: destLatLng,
+            map: map.value,
+            title: "Destino: " + (unit.transfer.endPlace.label || ''),
+            icon: {
+              path: googleMaps.value.maps.SymbolPath.CIRCLE,
+              scale: 8,
+              fillColor: "#22c55e", // Green (Requested)
+              fillOpacity: 1,
+              strokeWeight: 3,
+              strokeColor: "#ffffff",
+            }
+          });
+          markers.value.push(destMarker);
+          bounds.extend(destLatLng);
+      } else if (unit.transfer?.endPlace?.latitude && unit.transfer?.endPlace?.longitude) {
+           // Fallback for different property names
+          const destLatLng = new googleMaps.value.maps.LatLng(unit.transfer.endPlace.latitude, unit.transfer.endPlace.longitude);
+          const destMarker = new googleMaps.value.maps.Marker({
+            position: destLatLng,
+            map: map.value,
+            title: "Destino: " + (unit.transfer.endPlace.label || ''),
+            icon: {
+              path: googleMaps.value.maps.SymbolPath.CIRCLE,
+              scale: 8,
+              fillColor: "#22c55e", // Green
+              fillOpacity: 1,
+              strokeWeight: 3,
+              strokeColor: "#ffffff",
+            }
+          });
+          markers.value.push(destMarker);
+          bounds.extend(destLatLng);
+      }
 
       // Draw Polyline
       polyline.value = new googleMaps.value.maps.Polyline({
         path: path,
         geodesic: true,
         strokeColor: "#3b82f6",
-        strokeOpacity: 0.8,
+        strokeOpacity: 0.6,
         strokeWeight: 4,
       });
       polyline.value.setMap(map.value);

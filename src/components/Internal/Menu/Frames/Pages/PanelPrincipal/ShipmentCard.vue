@@ -147,6 +147,7 @@ const formattedEta = computed(() => {
         startDate: new Date(props.shipmentData.transfer.timeRequest).toLocaleDateString(),
         endDate: new Date(props.shipmentData.transfer.timeTravelEst).toLocaleDateString(),
         isOverdue: new Date() > new Date(props.shipmentData.transfer.timeTravelEst),
+        deviceId: container.deviceId || 'N/A',
       }));
   });
 

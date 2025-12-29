@@ -1,83 +1,117 @@
 <template>
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-    <div v-for="container in containers" :key="container.id" class="bg-slate-50 hover:bg-slate-100 p-4 rounded-lg border border-slate-200 transition-colors space-y-4">
-      <!-- Header Section -->
-      <div class="flex justify-between items-start">
-        <div class="flex items-center gap-4">
-          <input type="checkbox" class="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500">
-          <div>
-            <div class="font-semibold text-slate-800">{{ container.container }}</div>
-            <div class="text-xs text-slate-500">{{ container.id }}</div>
-          </div>
-        </div>
-        <div class="relative">
-          <button @click.stop="toggleMenu(container.id)" class="text-slate-400 hover:text-sky-600">
-            <MoreHorizontalIcon class="w-5 h-5" />
-          </button>
-          <!-- Dropdown Menu -->
-          <div v-if="openMenuId === container.id" @click.stop class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-slate-200">
-            <a
-              href="#"
-              class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100"
-              @click.prevent="$emit('create-link', container)"
-            >Enlace</a>
-            <a
-              href="#"
-              :class="[
-                'block px-4 py-2 text-sm',
-                container.status === 'Entregado' ? 'text-slate-700 hover:bg-slate-100' : 'text-slate-400 cursor-not-allowed'
-              ]"
-              @click.prevent="container.status === 'Entregado' ? $emit('open-seal', container) : null"
-            >Abrir candado</a>
-            <a href="#" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">Alertar Contacto</a>
-            <a href="#" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50">Cancelar</a>
-          </div>
-        </div>
-      </div>
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-slate-200">
+      <thead class="bg-slate-50">
+        <tr>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+            No.
+          </th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+            Contenedor
+          </th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+            Precinto
+          </th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+            Fecha inicio
+          </th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+            Fecha Fin
+          </th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+            Ruta
+          </th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+            Estado
+          </th>
+          <th scope="col" class="relative px-6 py-3">
+            <span class="sr-only">Acciones</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-slate-200">
+        <tr v-for="(container, index) in containers" :key="container.id" class="hover:bg-slate-50 transition-colors">
+          
+          <!-- Index -->
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
+            {{ String(index + 1).padStart(2, '0') }}
+          </td>
 
-      <!-- Route Section -->
-      <div class="text-sm text-slate-600">
-        <div class="flex justify-between items-center mb-1">
-          <span class="text-xs font-medium text-slate-500">{{ container.origin }}</span>
-          <span class="text-xs font-medium text-slate-500">{{ container.destination }}</span>
-        </div>
-        <div class="relative w-full bg-slate-200 rounded-full h-2.5">
-          <div class="bg-sky-500 h-2.5 rounded-full" :style="{ width: container.progress + '%' }"></div>
-          <div class="absolute top-1/2 -translate-y-1/2 -translate-x-1/2" :style="{ left: container.progress + '%' }">
-            <TruckIcon class="w-5 h-5 text-white bg-sky-600 rounded-full p-0.5" />
-          </div>
-        </div>
-        <div class="text-center text-xs font-semibold text-sky-600 mt-1">{{ container.progress }}% completado</div>
-      </div>
+          <!-- Contenedor -->
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-900">
+             {{ container.container.replace('Contenedor # ', '') }}
+          </td>
 
-      <!-- Details Section -->
-      <div class="flex justify-between items-center text-sm">
-        <div>
-          <div class="text-xs text-slate-400 font-medium">FECHA INICIO</div>
-          <div class="text-slate-600">{{ container.startDate }}</div>
-        </div>
-        <div>
-          <div class="text-xs text-slate-400 font-medium">FECHA FIN</div>
-          <div :class="container.isOverdue ? 'text-red-500 font-bold' : 'text-slate-600'">{{ container.endDate }}</div>
-        </div>
-        <div>
-          <div class="text-xs text-slate-400 font-medium">ESTADO</div>
-          <span :class="[
-            'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
-            container.statusColorClass
-          ]">
-            {{ container.status }}
-          </span>
-        </div>
-      </div>
-    </div>
+          <!-- Precinto -->
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium" :class="container.deviceId !== 'N/A' ? 'text-sky-500' : 'text-slate-400'">
+            {{ container.deviceId }}
+          </td>
+
+          <!-- Fecha Inicio -->
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-700 font-medium">
+             {{ container.startDate }}
+          </td>
+
+          <!-- Fecha Fin -->
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-700 font-medium">
+             {{ container.endDate }}
+          </td>
+
+          <!-- Ruta -->
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
+             <div class="flex items-center gap-2">
+                <span class="truncate max-w-[150px]" :title="container.origin">{{ container.origin }}</span>
+                <span class="text-slate-400">→</span>
+                <span class="truncate max-w-[150px]" :title="container.destination">{{ container.destination }}</span>
+             </div>
+          </td>
+
+          <!-- Estado -->
+          <td class="px-6 py-4 whitespace-nowrap">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium" :class="container.statusColorClass">
+               {{ container.status }}
+            </span>
+          </td>
+
+          <!-- Actions -->
+          <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium relative">
+             <button @click.stop="toggleMenu(container.id, $event)" class="text-slate-400 hover:text-sky-600 transition-colors">
+                <MoreHorizontalIcon class="w-5 h-5" />
+             </button>
+             
+             <!-- Dropdown Menu -->
+             <Teleport to="body">
+               <div v-if="openMenuId === container.id" 
+                    :style="{ top: menuPosition.top + 'px', left: menuPosition.left + 'px' }"
+                    @click.stop 
+                    class="fixed w-48 bg-white rounded-md shadow-lg z-50 border border-slate-200">
+                  <a
+                    href="#"
+                    class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 text-left"
+                    @click.prevent="closeMenu(); $emit('create-link', container)"
+                  >Enlace</a>
+                  <a
+                    href="#"
+                    :class="[
+                      'block px-4 py-2 text-sm text-left',
+                      container.status === 'Entregado' ? 'text-slate-700 hover:bg-slate-100' : 'text-slate-400 cursor-not-allowed'
+                    ]"
+                    @click.prevent="container.status === 'Entregado' ? (closeMenu(), $emit('open-seal', container)) : null"
+                  >Abrir candado</a>
+                  <a href="#" @click.prevent="closeMenu" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 text-left">Alertar Contacto</a>
+                  <a href="#" @click.prevent="closeMenu" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 text-left">Cancelar</a>
+               </div>
+             </Teleport>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </template>
 
 <script setup>
-import { ref, defineProps, defineEmits } from 'vue';
+import { ref, defineProps, defineEmits, onUnmounted } from 'vue';
 import MoreHorizontalIcon from '@/components/TransportistaPage/icons/MoreHorizontalIcon.vue';
-import TruckIcon from '@/components/Internal/Menu/icons/TruckIcon.vue';
 
 defineProps({
   containers: { type: Array, required: true },
@@ -86,13 +120,16 @@ defineProps({
 defineEmits(['create-link', 'open-seal']);
 
 const openMenuId = ref(null);
+const menuPosition = ref({ top: 0, left: 0 });
 
 const closeMenu = () => {
   openMenuId.value = null;
   document.removeEventListener('click', closeMenu);
+  window.removeEventListener('scroll', closeMenu);
+  window.removeEventListener('resize', closeMenu);
 };
 
-const toggleMenu = (id) => {
+const toggleMenu = (id, event) => {
   const isAlreadyOpen = openMenuId.value === id;
 
   if (openMenuId.value !== null) {
@@ -100,12 +137,26 @@ const toggleMenu = (id) => {
   }
 
   if (!isAlreadyOpen) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    menuPosition.value = {
+      top: rect.bottom,
+      left: rect.right - 192 // 192px is w-48 (12rem), w-48 is ~192px
+    };
+
     openMenuId.value = id;
-    // Use setTimeout to ensure the current click event that opens the menu
-    // does not immediately trigger the new document click listener.
+    
+    // Use setTimeout to ensure the current click event doesn't trigger closeMenu immediately
     setTimeout(() => {
       document.addEventListener('click', closeMenu);
+      window.addEventListener('scroll', closeMenu);
+      window.addEventListener('resize', closeMenu);
     }, 0);
   }
 };
+
+onUnmounted(() => {
+  document.removeEventListener('click', closeMenu);
+  window.removeEventListener('scroll', closeMenu);
+  window.removeEventListener('resize', closeMenu);
+});
 </script>

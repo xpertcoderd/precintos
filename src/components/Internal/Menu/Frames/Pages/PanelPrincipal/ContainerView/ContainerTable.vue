@@ -16,8 +16,14 @@
         </tr>
         <tr v-for="item in containers" :key="item.id" class="hover:bg-slate-50 transition-colors">
           <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">{{ item.container }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium" :class="item.seal !== 'N/A' ? 'text-sky-500' : 'text-slate-400'">
+            {{ item.seal }}
+          </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500 font-mono">
             {{ item.transfer?.bl || 'N/A' }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-700">
+            {{ item.transfer?.finalClient || 'N/A' }}
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
             {{ formatDate(item.transfer?.startDate) }}
@@ -64,7 +70,9 @@ defineProps({
 
 const headers = [
   'Contenedor',
+  'Precinto',
   'BL',
+  'Cliente Final',
   'Fecha Inicio',
   'Fecha Fin',
   'Ruta',
