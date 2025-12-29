@@ -30,9 +30,17 @@
           <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500 relative group cursor-help">
             <span class="border-b border-dotted border-slate-400">{{ formatCurrency(item.transfer.unitPrice * item.countainerCount) }}</span>
             <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-slate-800 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
-              <div class="font-semibold mb-1">Detalle del Cálculo:</div>
-              <div>{{ item.countainerCount }} Contenedores</div>
-              <div>x {{ formatCurrency(item.transfer.unitPrice) }} (Tarifa)</div>
+              <div class="font-semibold mb-1 pb-1 border-b border-slate-600">Detalle del Cálculo:</div>
+              <div class="grid grid-cols-2 gap-x-4 gap-y-1">
+                <div class="text-right">Total Bruto:</div>
+                <div class="font-medium">{{ formatCurrency((item.transfer.grossPrice || item.transfer.unitPrice) * item.countainerCount) }}</div>
+                
+                <div class="text-right text-slate-300">Descuento:</div>
+                <div class="font-medium text-slate-300">{{ formatCurrency((item.transfer.discount || 0) * item.countainerCount) }}</div>
+                
+                <div class="text-right font-bold pt-1 border-t border-slate-600 mt-1">Total Neto:</div>
+                <div class="font-bold pt-1 border-t border-slate-600 mt-1">{{ formatCurrency(item.transfer.unitPrice * item.countainerCount) }}</div>
+              </div>
             </div>
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm relative group cursor-help">

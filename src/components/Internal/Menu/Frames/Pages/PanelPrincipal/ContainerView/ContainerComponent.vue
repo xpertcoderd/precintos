@@ -129,7 +129,10 @@ const closeMenu = () => {
   window.removeEventListener('resize', closeMenu);
 };
 
-const toggleMenu = (id, event) => {
+const toggleMenu = (/* id, event */) => {
+  // Menu disabled for now as per request
+  return;
+  /*
   const isAlreadyOpen = openMenuId.value === id;
 
   if (openMenuId.value !== null) {
@@ -152,6 +155,7 @@ const toggleMenu = (id, event) => {
       window.addEventListener('resize', closeMenu);
     }, 0);
   }
+  */
 };
 
 onUnmounted(() => {
