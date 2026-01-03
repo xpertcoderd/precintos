@@ -3,11 +3,11 @@ import { useNotifications } from '@/composables/useNotifications';
 import { getDevicesFiltered } from '@/services/deviceService';
 
 const filterOptions = [
-  { label: 'Device ID', value: 'ids' },
-  { label: 'Source ID', value: 'sourceId' },
-  { label: 'Group ID', value: 'groupId' },
-  { label: 'Model', value: 'model' },
-  { label: 'Phone', value: 'phone' },
+  // { label: 'Device ID', value: 'ids' },
+  // { label: 'Source ID', value: 'sourceId' },
+  // { label: 'Group ID', value: 'groupId' },
+  // { label: 'Model', value: 'model' },
+  // { label: 'Phone', value: 'phone' },
   { label: 'Tail Number', value: 'tailDeviceid' },
 ];
 

@@ -211,6 +211,7 @@ export function useMainContent(timeWindowHours) {
           completed: blit.completed || 0,
           departureTime: item.transferLinked.departureTime,
           arrivalTime: item.transferLinked.arrivalTime,
+          seal: item.transferLinked.deviceId,
         };
       });
 

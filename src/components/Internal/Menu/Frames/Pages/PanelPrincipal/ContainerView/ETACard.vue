@@ -1,68 +1,91 @@
 <template>
-  <div class="bg-white shadow-lg rounded-lg p-3 mb-2 border border-slate-200 relative">
-    <!-- Top Section: Title, Status, and Menu -->
-    <div class="flex items-start justify-between mb-2">
-      <div class="flex-1 pr-3">
-        <div class="flex items-center gap-2 mb-1">
-          <h3 class="text-lg font-bold text-slate-800">Contenedor #{{ container.containerName }}</h3>
-          <span :class="['px-2 py-0.5 rounded-full text-xs font-medium', statusBadgeColorClass]">
-            {{ statusText }}
-          </span>
-        </div>
+  <div class="bg-white shadow-sm rounded-lg p-3 mb-2 border border-slate-200 relative flex items-center gap-4 h-36 overflow-visible">
+    
+    <!-- Left Section: Origin & Progress & Destination/Info -->
+    <div class="flex-1 min-w-0 flex flex-col justify-center gap-2 h-full py-1">
         
-        <div class="text-sm text-slate-600 mb-2 flex items-center gap-2">
-             <span class="font-semibold text-xs uppercase text-slate-400">Precinto:</span>
-             <span class="font-mono font-medium" :class="container.seal && container.seal !== 'N/A' ? 'text-sky-600' : 'text-slate-400'">{{ container.seal || 'N/A' }}</span>
-        </div>
-
-        <!-- Departure and Arrival Times -->
-        <div class="mt-2 grid grid-cols-2 gap-x-3 text-slate-600">
-            <div>
-                <p class="font-semibold text-xs uppercase text-slate-400">Salida</p>
-                <p class="text-sm font-medium">{{ formatDateTime(container.departureTime) }}</p>
-            </div>
-            <div>
-                <p class="font-semibold text-xs uppercase text-slate-400">Llegada Est.</p>
-                <p class="text-sm font-medium">{{ formatDateTime(container.arrivalTime) }}</p>
+        <!-- Top Row: Origin (Left) --- Container/Seal Info (Right) -->
+        <div class="flex justify-between items-end">
+            <h3 class="font-bold text-slate-800 text-sm truncate pr-2" :title="container.transfer?.startPlace?.label">
+                {{ container.transfer?.startPlace?.label || 'Origen Desconocido' }}
+            </h3>
+            <div class="text-sm text-slate-600 font-mono">
+                <span class="font-bold text-slate-700 uppercase">Contenedor:</span> {{ container.containerName }} <span class="mx-1">|</span> 
+                <span class="font-bold text-slate-700 uppercase">Precinto:</span> <span :class="container.seal ? 'text-sky-600 font-bold' : 'text-slate-400'">{{ container.seal || 'N/A' }}</span>
             </div>
         </div>
-      </div>
 
-      <div class="flex flex-col items-end gap-2">
-           <!-- Menu Button -->
-           <button @click.stop="toggleMenu(container.id, $event)" class="text-slate-400 hover:text-sky-600 transition-colors p-1">
-              <MoreHorizontalIcon class="w-6 h-6" />
-           </button>
+        <!-- Middle: Progress Bar -->
+        <div class="relative h-4 w-full bg-slate-100 rounded-full flex items-center my-1">
+            <!-- Green Bar -->
+            <div :style="{ width: container.completed + '%' }" :class="['h-full rounded-l-full relative transition-all duration-500 min-w-[2%]', statusBackgroundColorClass]">
+                <!-- Text Inside Bar (Left) -->
+                 <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                    <span class="text-[10px] font-bold text-white uppercase tracking-wider drop-shadow-sm">Recorrido: {{ distanceTraveled }}km</span>
+                 </div>
+            </div>
 
-           <div :class="[statusBackgroundColorClass, 'w-20 h-20 rounded-full flex flex-col items-center justify-center text-white shadow-lg mt-1']">
-            <span class="text-xl font-bold tracking-tight">{{ formattedTime.value }}</span>
-            <span v-if="formattedTime.unit" class="text-[10px] font-medium -mt-1">{{ formattedTime.unit }}</span>
-          </div>
-      </div>
-    </div>
+            <!-- Remaining Text (Right part of gray bar) -->
+            <div class="absolute inset-y-0 right-14 flex items-center pointer-events-none z-10">
+                 <span :class="['text-[10px] font-bold uppercase tracking-wider', container.completed > 90 ? 'text-white drop-shadow-sm' : 'text-slate-500']">
+                    Restan: {{ (container.distanceRemain / 1000).toFixed(0) }}km
+                 </span>
+            </div>
 
-    <!-- Bottom Section: Progress Bar with Distance -->
-    <div class="relative pt-2 border-t border-slate-100 mt-2">
-      <div class="flex justify-between items-center text-xs text-slate-600 mb-1">
-        <div class="flex gap-4">
-             <div>
-                <span class="text-slate-400">Recorrido: </span>
-                <span class="font-semibold text-slate-700">{{ distanceTraveled }} km</span>
-             </div>
-             <div>
-                <span class="text-slate-400">Restante: </span>
-                <span class="font-semibold text-slate-700">{{ (container.distanceRemain / 1000).toFixed(2) }} km</span>
+            <!-- Percentage Badge -->
+             <div 
+               class="absolute h-6 flex items-center justify-center bg-blue-500 text-white text-xs font-bold px-2 rounded-md shadow-md z-20 -top-1"
+               :style="{ left: `calc(${container.completed}% - 10px)` }" 
+             >
+                {{ container.completed.toFixed(0) }}%
              </div>
         </div>
-        <span class="font-bold text-sky-600">{{ container.completed.toFixed(0) }}% Com.</span>
-      </div>
-      <div class="overflow-hidden h-3 text-xs flex rounded-full bg-slate-200 relative">
-        <div :style="{ width: container.completed + '%' }" :class="[statusBackgroundColorClass, 'shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center items-center transition-all duration-500']">
+
+        <!-- Bottom Row: Destination / Shipping Line (Right Aligned) -->
+        <div class="flex justify-end">
+            <p class="text-xs text-slate-500 font-bold uppercase tracking-wider truncate max-w-[400px]" :title="container.transfer?.endPlace?.label">
+                {{ container.transfer?.endPlace?.label || 'Destino Desconocido' }} 
+                <span v-if="container.booking" class="normal-case font-normal text-slate-500">({{ container.booking }})</span>
+            </p>
         </div>
-      </div>
     </div>
 
-    <!-- Dropdown Menu Teleport -->
+    <!-- Separator -->
+    <div class="w-px h-24 bg-slate-200 mx-1"></div>
+
+    <!-- Right Section: Time & Menu -->
+    <div class="flex items-center gap-5 shrink-0">
+        
+        <!-- Circular Timer -->
+        <div class="relative w-24 h-24 flex flex-col items-center justify-center rounded-full border-4 border-slate-100 bg-white">
+            <span class="text-4xl font-bold text-slate-800 leading-none -mt-1">{{ formattedTime.value.split(':')[0] }}</span> 
+             <span class="text-xs font-bold text-slate-400 uppercase">{{ formattedTime.unit === 'hrs:min' ? 'HRS' : formattedTime.unit }}</span>
+             
+             <!-- Small Bubble for Minutes -->
+             <div class="absolute -bottom-1 -right-1 w-8 h-8 bg-sky-500 rounded-full flex items-center justify-center text-white text-sm font-bold border-2 border-white shadow-sm">
+                {{ formattedTime.value.split(':')[1] || '00' }}
+             </div>
+        </div>
+
+        <!-- Times Text -->
+        <div class="flex flex-col text-sm leading-tight text-slate-600 w-32">
+            <div class="mb-2">
+                <span class="font-bold text-slate-800 block uppercase text-xs mb-0.5">Salida</span>
+                <span class="font-mono text-base font-medium">{{ formatDateTime(container.departureTime).split(',')[1] || '--:--' }}</span>
+            </div>
+            <div>
+                 <span class="font-bold text-slate-800 block uppercase text-xs mb-0.5">Llegada</span>
+                 <span class="font-mono text-base font-medium">{{ formatDateTime(container.arrivalTime).split(',')[1] || '--:--' }}</span>
+            </div>
+        </div>
+
+        <!-- Menu Button -->
+        <button @click.stop="toggleMenu(container.id, $event)" class="text-slate-400 hover:text-sky-600 transition-colors bg-slate-50 hover:bg-slate-100 p-2 rounded-full">
+            <MoreHorizontalIcon class="w-6 h-6" />
+        </button>
+    </div>
+
+     <!-- Dropdown Menu Teleport -->
      <Teleport to="body">
        <div v-if="openMenuId === container.id" 
             :style="{ top: menuPosition.top + 'px', left: menuPosition.left + 'px' }"
@@ -90,7 +113,7 @@
 
 <script setup>
 import { computed, ref, onUnmounted, defineEmits, defineProps } from 'vue';
-import { getContainerStatusText, getContainerStatusColor } from '../utils/statusUtils';
+
 import MoreHorizontalIcon from '@/components/TransportistaPage/icons/MoreHorizontalIcon.vue';
 
 const props = defineProps({
@@ -143,8 +166,7 @@ onUnmounted(() => {
 });
 
 // Status & Data Logic
-const statusText = computed(() => getContainerStatusText(props.container.statusId));
-const statusBadgeColorClass = computed(() => getContainerStatusColor(props.container.statusId));
+
 
 const statusBackgroundColorClass = computed(() => {
   const statusId = props.container.statusId;
