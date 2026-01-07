@@ -98,7 +98,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, defineProps } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { Loader } from '@googlemaps/js-api-loader';
 import { getTransferBlitsMapPoints } from "@/services/blitService";
 import { getContainerStatusText, getContainerStatusColor } from './utils/statusUtils';

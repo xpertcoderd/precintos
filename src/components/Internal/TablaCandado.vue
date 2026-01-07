@@ -63,7 +63,8 @@
 
 <script setup>
 import { getStatusGPS } from '@/components/utils.js'
-import { defineProps, defineEmits } from 'vue' //, ref  //ref 
+
+ //, ref  //ref 
 
 
 const incomingData = defineProps(['locksList']);

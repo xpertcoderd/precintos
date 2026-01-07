@@ -188,7 +188,8 @@
 
 <script setup>
 
-import { ref, defineProps, defineEmits, defineExpose } from 'vue'; //defineProps defineEmits
+import { ref } from 'vue';
+ //defineProps defineEmits
 
 
 const incomingData = defineProps(['transferTypes', 'tariffTypes', 'places_List']);

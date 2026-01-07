@@ -1,5 +1,4 @@
 <script setup>
-import { defineProps, defineEmits } from 'vue';
 import TrashIcon from "@/components/TransportistaPage/icons/TrashIcon.vue";
 
 const props = defineProps(['blList', 'columnName']);

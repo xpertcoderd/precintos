@@ -156,7 +156,7 @@
 
 <script setup>
 
-import { ref, defineProps, defineEmits, defineExpose } from 'vue';
+import { ref } from 'vue';
 
 const outGoingData = defineEmits(['cerrar', 'form', 'next', 'skip', 'update'])
 

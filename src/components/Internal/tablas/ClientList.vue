@@ -80,7 +80,7 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits } from 'vue' //ref  
+ //ref  
 
 
 const incomingData = defineProps(['clientList']);

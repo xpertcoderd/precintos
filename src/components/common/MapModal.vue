@@ -17,7 +17,7 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick, defineProps, defineEmits } from 'vue';
+import { ref, watch, nextTick } from 'vue';
 import MapaPage from '@/components/MapaPage.vue';
 
 const props = defineProps({

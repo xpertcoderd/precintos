@@ -96,7 +96,7 @@
 </template>
 
 <script setup>
-import { ref, watch, computed, defineProps, defineExpose } from 'vue';
+import { ref, watch, computed } from 'vue';
 
 const props = defineProps({
   initialData: { type: Object, default: () => null },

@@ -45,7 +45,7 @@
 </template>
 
 <script setup>
-import { ref, computed, defineProps, defineEmits } from 'vue';
+import { ref, computed } from 'vue';
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
 import CalendarIcon from './icons/CalendarIcon.vue';

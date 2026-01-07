@@ -1,5 +1,5 @@
 <script setup>
-import { computed, defineProps, defineEmits } from 'vue';
+import { computed } from 'vue';
 // Import the new icons
 import PencilIcon from '../icons/PencilIcon.vue';
 import TrashIcon from '../icons/TrashIcon.vue';

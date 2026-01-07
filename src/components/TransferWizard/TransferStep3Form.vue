@@ -1,5 +1,5 @@
 <script setup>
-import { computed, defineEmits, defineProps } from 'vue';
+import { computed } from 'vue';
 import TablaAddingBL_Container from '@/components/Internal/tablas/TablaAddingBL_Container.vue';
 import PlusIcon from "@/components/icons/PlusIcon.vue";
 import ChevronDownIcon from "@/components/icons/ChevronDownIcon.vue";

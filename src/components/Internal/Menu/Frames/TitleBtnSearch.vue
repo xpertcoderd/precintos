@@ -26,7 +26,7 @@
 	</div>
 </template>
 <script setup>
-import { ref, defineProps, defineEmits } from 'vue'
+import { ref } from 'vue';
 
 
 const incomingData = defineProps(['title', 'subtitle', 'btnTitle', 'right']);

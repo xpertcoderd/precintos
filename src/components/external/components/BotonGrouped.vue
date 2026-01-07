@@ -4,14 +4,14 @@
 
 
 			<div @click="fuction_uno" class="targetas text-center" :class="{ 'vistaSelected': vista.uno }">
-				{{ labels[0] }}
+				{{ displayLabels[0] }}
 			</div>
 			<div @click="fuction_dos" class="targetas text-center" :class="{ 'vistaSelected': vista.dos }">
-				{{ labels[1] }}
+				{{ displayLabels[1] }}
 			</div>
 
 			<div @click="fuction_tres" class="targetas text-center" :class="{ 'vistaSelected': vista.tres }">
-				{{ labels[2] }}
+				{{ displayLabels[2] }}
 			</div>
 
 		</div>
@@ -40,7 +40,7 @@
 
 
 
-import { ref, defineEmits, defineProps, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 
 let vista = ref({
 	uno: false,
@@ -49,7 +49,7 @@ let vista = ref({
 
 })
 
-const labels = ref(['Uno', 'dos', 'tres'])
+const displayLabels = ref(['Uno', 'dos', 'tres'])
 
 const incomingData = defineProps(['labels'])
 
@@ -85,7 +85,7 @@ function fuction_tres() {
 
 function updateLabels(label) {
 
-	labels.value = label || ["Hoy", "Semanal", "Mensual"]
+	displayLabels.value = label || ["Hoy", "Semanal", "Mensual"]
 }
 
 

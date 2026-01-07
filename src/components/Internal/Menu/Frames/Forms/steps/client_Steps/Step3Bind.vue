@@ -51,7 +51,8 @@
 
 <script setup>
 
-import { ref, defineEmits, defineExpose } from 'vue'; //defineProps
+import { ref } from 'vue';
+ //defineProps
 
 /*const incomingData = defineProps(['updatingClient']);*/
 //incomingData.updatingClient defineProps

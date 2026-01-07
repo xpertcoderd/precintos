@@ -1,5 +1,5 @@
 <script setup>
-import {ref, defineExpose, defineProps, watch} from 'vue';
+import { ref, watch } from 'vue';
 import UploadCloudIcon from '../icons/UploadCloudIcon.vue';
 
 const props = defineProps({

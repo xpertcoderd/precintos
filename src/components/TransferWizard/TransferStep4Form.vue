@@ -29,7 +29,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch, defineEmits, defineProps } from 'vue';
+import { computed, ref, watch } from 'vue';
 import TablaAddingConfirmation from '@/components/Internal/tablas/TablaAddingConfirmation.vue';
 
 const props = defineProps(['orderData', 'errors']);

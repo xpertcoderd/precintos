@@ -1,5 +1,5 @@
 <script setup>
-import { computed, defineProps, defineEmits, ref } from 'vue';
+import { computed, ref } from 'vue';
 import TablaAddingBL from '@/components/Internal/tablas/TablaAddingBL.vue';
 import PlusIcon from "@/components/icons/PlusIcon.vue";
 import { useTransferValidation } from "@/components/TransferWizard/composables/useTransferValidation";

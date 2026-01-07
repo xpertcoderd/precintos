@@ -9,7 +9,6 @@
 
 import VistaStandar from './VistaStandar.vue'
 
-import { defineProps, defineEmits } from 'vue'
 
 const incomingData = defineProps(['fullTransfer']);
 

@@ -1,5 +1,5 @@
 <script setup>
-import { computed, defineEmits, defineProps, ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { calculateTariffValue as calculateTariff } from "@/components/TransferWizard/helpers/fetchBrokerData";
 import ChevronDownIcon from "@/components/icons/ChevronDownIcon.vue";
 

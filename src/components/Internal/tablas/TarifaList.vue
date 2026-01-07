@@ -67,7 +67,7 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits } from 'vue' //ref   tariffsList
+ //ref   tariffsList
 
 
 const incomingData = defineProps(['tariffsList']);

@@ -11,7 +11,7 @@
 <script setup>
 
 import MapaPage from '@/components/MapaPage.vue'
-import { ref, defineProps, watch, nextTick } from 'vue';
+import { ref, watch, nextTick } from 'vue';
 
 const mapaRef = ref(null);
 const props = defineProps(['locksList']);

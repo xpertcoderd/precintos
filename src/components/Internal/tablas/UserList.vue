@@ -78,7 +78,6 @@
 
 <script setup>
 
-import { defineProps, defineEmits } from 'vue'
 
 
 const incomingData = defineProps(['userList']);

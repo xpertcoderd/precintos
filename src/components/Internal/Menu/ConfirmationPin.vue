@@ -96,7 +96,7 @@
 <script setup>
 
 import { serial_ } from '@/components/utils.js'
-import { ref, defineEmits, defineExpose } from 'vue';
+import { ref } from 'vue';
 
 const outGoingData = defineEmits(
   ['cerrar', 'pin']

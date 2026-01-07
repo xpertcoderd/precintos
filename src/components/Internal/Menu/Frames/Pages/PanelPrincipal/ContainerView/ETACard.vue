@@ -112,7 +112,7 @@
 </template>
 
 <script setup>
-import { computed, ref, onUnmounted, defineEmits, defineProps } from 'vue';
+import { computed, ref, onUnmounted } from 'vue';
 
 import MoreHorizontalIcon from '@/components/TransportistaPage/icons/MoreHorizontalIcon.vue';
 

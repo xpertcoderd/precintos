@@ -41,7 +41,7 @@ import CounterCards from '@/components/Internal/CounterCards.vue'
 import DatePicker from '@/components/external/frames/DatePicker.vue'
 import SolicitudesCard from '@/components/Internal/Menu/Frames/SolicitudesCard.vue'
 
-import { onMounted, defineProps } from 'vue'
+import { onMounted } from 'vue';
 
 const incomingData = defineProps(['counters']);
 

@@ -58,7 +58,8 @@
 
 <script setup>
 
-import { ref, defineEmits, defineExpose, onMounted, watch } from 'vue'; //defineProps
+import { ref, onMounted, watch } from 'vue';
+ //defineProps
 
 import Step1Client from '@/components/Internal/Menu/Frames/Forms/steps/client_Steps/Step1Client.vue'
 import Step2User from '@/components/Internal/Menu/Frames/Forms/steps/client_Steps/Step2User.vue'

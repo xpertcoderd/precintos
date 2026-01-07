@@ -5,7 +5,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, defineExpose, defineProps } from 'vue';
+import { ref, onMounted } from 'vue';
 import { Loader } from '@googlemaps/js-api-loader';
 
 const props = defineProps(['inputData']);

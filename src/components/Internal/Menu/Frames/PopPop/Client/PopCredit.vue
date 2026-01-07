@@ -34,7 +34,8 @@
 
 <script setup>
 
-import { ref, defineProps, defineExpose, defineEmits } from 'vue'; //defineProps ref onMounted defineEmits
+import { ref } from 'vue';
+ //defineProps ref onMounted defineEmits
 
 
 import CreditForm1 from '@/components/Internal/Menu/Frames/Forms/steps/credit_steps/CreditForm1.vue'

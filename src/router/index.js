@@ -77,6 +77,26 @@ const routes = [
         name: 'Transportistas',
         component: () => import(/* webpackChunkName: "transportistas" */ '../views/TransportistaPage.vue'),
       },
+      {
+        path: 'reportes',
+        name: 'Reportes',
+        component: () => import(/* webpackChunkName: "reportes" */ '../views/PlaceholderPage.vue'),
+      },
+      {
+        path: 'recolectores',
+        name: 'Recolectores',
+        component: () => import(/* webpackChunkName: "recolectores" */ '../views/PlaceholderPage.vue'),
+      },
+      {
+        path: 'configuracion',
+        name: 'Configuracion',
+        component: () => import(/* webpackChunkName: "configuracion" */ '../views/PlaceholderPage.vue'),
+      },
+      {
+        path: 'informacion',
+        name: 'Informacion',
+        component: () => import(/* webpackChunkName: "informacion" */ '../views/PlaceholderPage.vue'),
+      },
     ],
   },
 ];

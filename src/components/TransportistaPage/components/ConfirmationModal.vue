@@ -28,7 +28,6 @@
 
 <script setup>
 import TrashIcon from '../icons/TrashIcon.vue';
-import {defineProps, defineEmits}  from 'vue'
 
 defineProps({
   visible: Boolean,

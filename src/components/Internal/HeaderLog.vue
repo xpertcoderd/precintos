@@ -22,7 +22,6 @@
 
 <script setup>
 
-import { defineProps } from 'vue'
 
 const incomingData = defineProps(['userName']);
 </script>

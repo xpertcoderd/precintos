@@ -36,7 +36,7 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits, computed } from 'vue';
+import { computed } from 'vue';
 import CheckIcon from '@/components/icons/CheckIcon.vue';
 
 const emit = defineEmits(['setStep']);

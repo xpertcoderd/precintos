@@ -1,5 +1,5 @@
 <script setup>
-import { ref, defineProps, watch, defineExpose } from 'vue';
+import { ref, watch } from 'vue';
 
 const props = defineProps({
   carriers: { /* ... */ },

@@ -47,7 +47,7 @@ import DispositivosCard from '@/components/Internal/Menu/Frames/Groups/Dispositi
 //import { counterCandado } from '@/components/conexion/DataConector.js'
 
 
-import { onMounted, defineProps } from 'vue'
+import { onMounted } from 'vue';
 
 const incomingData = defineProps(['counters']);
 

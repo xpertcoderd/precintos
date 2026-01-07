@@ -79,7 +79,7 @@
 </template>
 
 <script setup>
-import { ref, computed, defineEmits, defineProps } from 'vue';
+import { ref, computed } from 'vue';
 import ShipIcon from './icons/ShipIcon.vue';
 import BoxIcon from './icons/BoxIcon.vue';
 import MapPin from './icons/MapPin.vue';

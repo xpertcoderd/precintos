@@ -11,7 +11,6 @@
 import VistaStandarHeader from '@/components/VistaStandarHeader.vue'
 import VistaStandarList from '@/components/VistaStandarList.vue'
 
-import { defineProps, defineEmits } from 'vue'
 
 const incomingData = defineProps(['fullTransfer']);
 

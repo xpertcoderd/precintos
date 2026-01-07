@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, defineProps, defineEmits, computed } from 'vue';
+import { ref, watch, computed } from 'vue';
 import {prepareFormData} from "@/services/transportistaService";
 import { linkTransferUnits } from "@/services/unitService";
 

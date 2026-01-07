@@ -1,5 +1,5 @@
 <template>
-  <transition name="fade">
+  <transition name="fade" appear>
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm overflow-auto p-4">
       <div class="flex w-full max-w-full sm:max-w-2xl lg:max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden bg-white flex-col">
         <!-- Header -->

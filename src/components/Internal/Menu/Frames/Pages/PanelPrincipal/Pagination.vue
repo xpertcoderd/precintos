@@ -42,7 +42,7 @@
 </template>
 
 <script setup>
-import { computed, defineProps, defineEmits } from 'vue';
+import { computed } from 'vue';
 
 const props = defineProps({
   currentPage: {
